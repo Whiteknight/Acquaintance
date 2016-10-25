@@ -59,7 +59,7 @@ namespace Acquaintance
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
             foreach (var channel in _reqResStrategy.GetExistingChannels<TRequest, TResponse>(name))
-                responses.AddRange(channel.Request(request, timeoutMs));
+                responses.AddRange(channel.Request(request));
             return new BrokeredResponse<TResponse>(responses);
         }
 
