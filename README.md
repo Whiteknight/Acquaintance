@@ -30,7 +30,7 @@ The type of payload object along with the name (`"test event"` in the above exam
 channel. A channel may contain any number of subscribers, and may be published to by any number of
 publishers. 
 
-The Pub/Sub pattern is very similar to the `event`\`EventHandler` functionality built-in to C#, but
+The Pub/Sub pattern is very similar to the `event` / `EventHandler` functionality built-in to C#, but
 unlike `event` you don't need an explicit reference to the publisher in order to subscribe to it.
 Using Acquaintance, you can subscribe to a channel where there are no publishers at all, and create
 those publishers later as needed.
@@ -130,7 +130,7 @@ blocked, dispatching the message to a worker thread is a good choice.
 The other type of thread that the message bus can have is a "Dedicated" worker. These are threads
 which are created on demand and are addressed by ID. Dedicated workers are useful in situations
 where the subscriber has resources which are not thread-safe, but need to process requests or events
-from multiple sender threads. Instead of setting up an expensive lock mechanism, we can a single
+from multiple sender threads. Instead of setting up an expensive lock mechanism, we can use a single
 dedicated worker thread to handle these requests. 
 
     // First, ask the IMessageBus to start a dedicated worker thread:
@@ -155,10 +155,15 @@ thread, as a blocking operation:
     // Handle at most 10 queued messages on the current thread. 
     messageBus.EmptyActionQueue(10);
     
+You can use this method to integrate Acquaintance into some other message processing loop.
+
 Second, you can create a runloop on the current thread, and process messages on the current thread
 as they arrive.
 
     messageBus.RunEventLoop();
+    
+`RunEventLoop` has some optional arguments which can be used to exit the runloop when it's time to
+do something else.
     
 ### Thread-Safe Pub/Sub
 
@@ -213,4 +218,8 @@ hang yourself with it. Best practices include:
 2. If you need lots of request/response and are sensitive to timing, use something else like a
     Mediator pattern instead
     
-## 
+## Status
+
+Acquaintance is currently in an experimental state. The core functionality seems to be working as
+expected but it has not been through sufficient testing for real-world use. There are also several
+important features which have not yet been implemented.
