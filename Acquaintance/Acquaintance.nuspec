@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Acquaintance</id>
+    <version>0.0.1-beta</version>
+    <title>$title$</title>
+    <authors>Andrew F. Whitworth</authors>
+    <owners>$author$</owners>
+    <licenseUrl>https://github.com/Whiteknight/Acquaintance/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Whiteknight/Acquaintance/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Internal messaging for loosely-coupled applications</description>
+    <copyright>Copyright 2016</copyright>
+    <tags>Messaging Pub/Sub Request/Response</tags>
+  </metadata>
+</package>
