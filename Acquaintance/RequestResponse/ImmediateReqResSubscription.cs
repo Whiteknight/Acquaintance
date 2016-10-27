@@ -18,9 +18,10 @@ namespace Acquaintance.RequestResponse
             return _filter == null || _filter(request);
         }
 
-        public TResponse Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            return _request(request);
+            var value = _request(request);
+            return new ImmediateResponse<TResponse>(value);
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Acquaintance.RequestResponse
 {
-    public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDisposable
+    public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDispatchableRequest<TResponse>
     {
         private readonly Func<TRequest, TResponse> _func;
         private readonly TRequest _request;

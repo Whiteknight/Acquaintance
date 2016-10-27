@@ -23,14 +23,25 @@ namespace Acquaintance.RequestResponse
 
         public IEnumerable<TResponse> Request(TRequest request)
         {
-            List<TResponse> responses = new List<TResponse>();
+            List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
             foreach (var subscription in _subscriptions.Values.Where(s => s.CanHandle(request)))
             {
                 // TODO: We should order these so worker thread requests are dispatched first, followed by
                 // immediate requests.
-                var response = subscription.Request(request);
-                responses.Add(response);
+                var responseWaiter = subscription.Request(request);
+                waiters.Add(responseWaiter);
             }
+            List<TResponse> responses = new List<TResponse>();
+            foreach (var waiter in waiters)
+            {
+                bool complete = waiter.WaitForResponse();
+                if (!complete)
+                    responses.Add(default(TResponse));
+                else
+                    responses.Add(waiter.Response);
+                waiter.Dispose();
+            }
+
             return responses;
         }
 

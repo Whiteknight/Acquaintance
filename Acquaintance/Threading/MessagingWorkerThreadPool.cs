@@ -24,6 +24,8 @@ namespace Acquaintance.Threading
             _started = false;
         }
 
+        public int NumberOfRunningFreeWorkers => !_started ? 0 : _freeWorkers.Count;
+
         public void StartFreeWorkers(int numFreeWorkers)
         {
             if (_started)
@@ -103,7 +105,7 @@ namespace Acquaintance.Threading
             return new DummyMessageHandlerThreadContext();
         }
 
-        public IMessageHandlerThreadContext GetAnyThread()
+        public IMessageHandlerThreadContext GetAnyFreeWorkerThread()
         {
             if (_freeWorkers.Count == 0)
                 return null;

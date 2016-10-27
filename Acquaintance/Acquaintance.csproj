@@ -52,6 +52,8 @@
     <Compile Include="MessageBus.cs" />
     <Compile Include="ReqResMessageBusExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestResponse\IDispatchableRequest.cs" />
+    <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="SubscribeOptions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />

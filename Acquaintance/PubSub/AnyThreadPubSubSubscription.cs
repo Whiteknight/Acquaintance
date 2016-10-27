@@ -1,5 +1,5 @@
-using System;
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.PubSub
 {
@@ -20,10 +20,14 @@ namespace Acquaintance.PubSub
         {
             if (_filter != null && !_filter(payload))
                 return;
-            var thread = _threadPool.GetAnyThread();
-            if (thread == null)
+            if (_threadPool.NumberOfRunningFreeWorkers == 0)
+            {
+                _act(payload);
                 return;
-            thread.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
+            }
+
+            var thread = _threadPool.GetAnyFreeWorkerThread();
+            thread?.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
         }
     }
 }
