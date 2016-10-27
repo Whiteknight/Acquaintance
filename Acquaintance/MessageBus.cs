@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using Acquaintance.Dispatching;
+﻿using Acquaintance.Dispatching;
 using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
+using System;
+using System.Collections.Generic;
 
 namespace Acquaintance
 {
@@ -52,42 +52,17 @@ namespace Acquaintance
             return channel.Subscribe(subscriber, filter, options ?? SubscribeOptions.Default);
         }
 
-        public IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request, int timeoutMs = 0)
+        public IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request)
             where TRequest : IRequest<TResponse>
         {
             var responses = new List<TResponse>();
+            // TODO: Be able to specify a timeout for this operation to complete.
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
             foreach (var channel in _reqResStrategy.GetExistingChannels<TRequest, TResponse>(name))
                 responses.AddRange(channel.Request(request));
             return new BrokeredResponse<TResponse>(responses);
         }
-
-        //public IBrokeredResponse<object> Request(string name, Type requestType, object request)
-        //{
-        //    // TODO: Cache these lookups. 
-        //    var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
-        //    if (requestInterface == null)
-        //        return new BrokeredResponse<object>(new List<object>());
-
-        //    var responseType = requestInterface.GetGenericArguments().Single();
-        //    var method = _reqResStrategy.GetType().GetMethod("GetExistingChannels").MakeGenericMethod(requestType, responseType);
-
-        //    var channels = method.Invoke(_reqResStrategy, new object[] { name });
-        //    var channelType = typeof(IReqResChannel<,>).MakeGenericType(requestType, responseType);
-        //    var responses = new List<object>();
-        //    foreach (var channel in channels)
-        //    {
-        //        if (channelType.IsInstanceOfType(channel))
-        //        {
-        //            chan
-        //        }
-        //    }
-        //    if (!)
-        //        return new BrokeredResponse<object>(new List<object>());
-
-        //    return channelType.GetMethod("Request").Invoke(channel, new[] { request }) as IBrokeredResponse<object>;
-        //}
 
         public IDisposable Subscribe<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
             where TRequest : IRequest<TResponse>
@@ -101,12 +76,11 @@ namespace Acquaintance
             if (shouldStop == null)
                 shouldStop = () => false;
             var threadContext = _threadPool.GetCurrentThread();
-            while (!shouldStop())
+            while (!shouldStop() && !threadContext.ShouldStop)
             {
                 threadContext.WaitForEvent(timeoutMs);
                 var action = threadContext.GetAction();
-                if (action != null)
-                    action.Execute(threadContext);
+                action?.Execute(threadContext);
             }
         }
 

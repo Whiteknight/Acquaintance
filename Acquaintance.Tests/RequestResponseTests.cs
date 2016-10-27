@@ -1,8 +1,8 @@
-﻿using System.Threading;
-using Acquaintance.RequestResponse;
+﻿using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System.Threading;
 
 namespace Acquaintance.Tests
 {
@@ -30,16 +30,16 @@ namespace Acquaintance.Tests
             response.Responses[0].Text.Should().Be("RequestResponded");
         }
 
-        //[Test]
-        //public void SubscribeRequestAndResponseObject()
-        //{
-        //    var target = new MessageBus();
-        //    target.Subscribe<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
-        //    var response = target.Request("Test", typeof(TestRequest), new TestRequest { Text = "Request" });
-        //    response.Should().NotBeNull();
-        //    response.Responses.Should().HaveCount(1);
-        //    response.Responses[0].Should().BeOfType(typeof(TestResponse));
-        //}
+        [Test]
+        public void SubscribeRequestAndResponse_Object()
+        {
+            var target = new MessageBus();
+            target.Subscribe<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
+            var response = target.Request("Test", typeof(TestRequest), new TestRequest { Text = "Request" });
+            response.Should().NotBeNull();
+            response.Responses.Should().HaveCount(1);
+            response.Responses[0].Should().BeOfType(typeof(TestResponse));
+        }
 
         [Test]
         public void SubscribeRequestAndResponse_WorkerThread()

@@ -1,5 +1,5 @@
-using System;
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.RequestResponse
 {
@@ -28,7 +28,7 @@ namespace Acquaintance.RequestResponse
 
         public TResponse Request(TRequest request)
         {
-            var thread = _threadPool.GetThread(_threadId);
+            var thread = _threadPool.GetThread(_threadId, false);
             if (thread == null)
                 return default(TResponse);
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, _timeoutMs);

@@ -10,16 +10,16 @@ namespace Acquaintance.Threading
     {
         private bool _started;
         private readonly List<MessageHandlerThread> _freeWorkers;
-        private readonly ConcurrentDictionary<int, MessageHandlerThreadContext> _detachedContexts;
+        private readonly ConcurrentDictionary<int, IMessageHandlerThreadContext> _detachedContexts;
         private readonly ConcurrentDictionary<int, MessageHandlerThread> _dedicatedWorkers;
         private int _currentThread;
 
         public MessagingWorkerThreadPool()
         {
             _freeWorkers = new List<MessageHandlerThread>();
-            
+
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
-            _detachedContexts = new ConcurrentDictionary<int, MessageHandlerThreadContext>();
+            _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
             _currentThread = 0;
             _started = false;
         }
@@ -30,7 +30,7 @@ namespace Acquaintance.Threading
                 throw new Exception("Thread pool already started");
             _started = true;
             if (numFreeWorkers < 0)
-                throw new ArgumentOutOfRangeException("numFreeWorkers");
+                throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
             for (int i = 0; i < numFreeWorkers; i++)
             {
                 var context = new MessageHandlerThreadContext();
@@ -47,10 +47,9 @@ namespace Acquaintance.Threading
             foreach (var thread in _freeWorkers)
                 thread.Stop();
             _freeWorkers.Clear();
-            
+
             _started = false;
         }
-
 
         public int StartDedicatedWorker()
         {
@@ -80,16 +79,31 @@ namespace Acquaintance.Threading
                 thread.Stop();
         }
 
-        public MessageHandlerThreadContext GetThread(int threadId)
+        public IMessageHandlerThreadContext GetThread(int threadId, bool allowAutoCreate)
         {
+            IMessageHandlerThreadContext context = _freeWorkers.Where(t => t.ThreadId == threadId).Select(t => t.Context).FirstOrDefault();
+            if (context != null)
+                return context;
+
             MessageHandlerThread worker;
             bool ok = _dedicatedWorkers.TryGetValue(threadId, out worker);
             if (ok)
                 return worker.Context;
-            return _freeWorkers.Where(t => t.ThreadId == threadId).Select(t => t.Context).FirstOrDefault();
+
+            if (allowAutoCreate)
+            {
+                context = _detachedContexts.GetOrAdd(threadId, id => CreateDetachedContext());
+                return context;
+            }
+
+            ok = _detachedContexts.TryGetValue(threadId, out context);
+            if (ok)
+                return context;
+
+            return new DummyMessageHandlerThreadContext();
         }
 
-        public MessageHandlerThreadContext GetAnyThread()
+        public IMessageHandlerThreadContext GetAnyThread()
         {
             if (_freeWorkers.Count == 0)
                 return null;
@@ -97,18 +111,13 @@ namespace Acquaintance.Threading
             return _freeWorkers[_currentThread].Context;
         }
 
-        public MessageHandlerThreadContext GetCurrentThread()
+        public IMessageHandlerThreadContext GetCurrentThread()
         {
             var currentThreadId = Thread.CurrentThread.ManagedThreadId;
-            var context = GetThread(currentThreadId);
-            if (context != null)
-                return context;
-
-            context = _detachedContexts.GetOrAdd(currentThreadId, id => CreateDetachedContext());
-            return context;
+            return GetThread(currentThreadId, true);
         }
 
-        private MessageHandlerThreadContext CreateDetachedContext()
+        private IMessageHandlerThreadContext CreateDetachedContext()
         {
             return new MessageHandlerThreadContext();
         }

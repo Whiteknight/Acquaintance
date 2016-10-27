@@ -2,6 +2,6 @@
 {
     public interface IThreadAction
     {
-        void Execute(MessageHandlerThreadContext threadContext);
+        void Execute(IMessageHandlerThreadContext threadContext);
     }
 }

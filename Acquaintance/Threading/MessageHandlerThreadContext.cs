@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 
 namespace Acquaintance.Threading
 {
-    public class MessageHandlerThreadContext : IDisposable
+    public class MessageHandlerThreadContext : IMessageHandlerThreadContext
     {
         private readonly ConcurrentQueue<IThreadAction> _queue;
         private readonly ManualResetEventSlim _resetEvent;
@@ -40,7 +39,7 @@ namespace Acquaintance.Threading
 
             if (timeoutMs.Value <= 0)
                 return;
-            bool isSet =_resetEvent.Wait(timeoutMs.Value);
+            bool isSet = _resetEvent.Wait(timeoutMs.Value);
             if (isSet)
                 _resetEvent.Reset();
         }

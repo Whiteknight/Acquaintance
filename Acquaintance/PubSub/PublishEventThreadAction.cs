@@ -1,5 +1,5 @@
-using System;
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.PubSub
 {
@@ -14,7 +14,7 @@ namespace Acquaintance.PubSub
             _payload = payload;
         }
 
-        public void Execute(MessageHandlerThreadContext threadContext)
+        public void Execute(IMessageHandlerThreadContext threadContext)
         {
             _act(_payload);
         }

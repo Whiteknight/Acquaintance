@@ -1,7 +1,7 @@
-using System.Threading;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System.Threading;
 
 namespace Acquaintance.Tests
 {
@@ -66,6 +66,16 @@ namespace Acquaintance.Tests
             {
                 target.Dispose();
             }
+        }
+
+        [Test]
+        public void SubscribeAndPublish_Object()
+        {
+            var target = new MessageBus();
+            string text = null;
+            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text);
+            target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
+            text.Should().Be("Test2");
         }
     }
 }
