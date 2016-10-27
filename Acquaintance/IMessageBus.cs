@@ -1,14 +1,13 @@
-﻿using Acquaintance.RequestResponse;
-using System;
+﻿using System;
 
 namespace Acquaintance
 {
     public interface ISubscribable
     {
         IDisposable Subscribe<TPayload>(string name, Action<TPayload> subscriber, Func<TPayload, bool> filter, SubscribeOptions options = null);
-        IDisposable Subscribe<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
-            where TRequest : IRequest<TResponse>;
+        IDisposable Subscribe<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null);
     }
+
     public interface IMessageBus : ISubscribable, IDisposable
     {
         // Worker Thread Management
@@ -21,8 +20,7 @@ namespace Acquaintance
         void Publish<TPayload>(string name, TPayload payload);
 
         // Request-Response
-        IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request)
-            where TRequest : IRequest<TResponse>;
+        IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request);
         //IBrokeredResponse<object> Request(string name, Type requestType, object request);
 
         // Runloops and Event Processing

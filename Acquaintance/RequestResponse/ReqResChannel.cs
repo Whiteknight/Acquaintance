@@ -1,12 +1,11 @@
+using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acquaintance.Threading;
 
 namespace Acquaintance.RequestResponse
 {
     public class ReqResChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
     {
         private readonly MessagingWorkerThreadPool _threadPool;
         private readonly Dictionary<Guid, IReqResSubscription<TRequest, TResponse>> _subscriptions;
@@ -35,7 +34,7 @@ namespace Acquaintance.RequestResponse
             return responses;
         }
 
-        public SubscriptionToken Subscribe(Func<TRequest, TResponse> act,Func<TRequest, bool> filter, SubscribeOptions options)
+        public SubscriptionToken Subscribe(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options)
         {
             Guid id = Guid.NewGuid();
             var subscription = CreateSubscription(act, filter, options);

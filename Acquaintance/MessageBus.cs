@@ -53,7 +53,6 @@ namespace Acquaintance
         }
 
         public IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request)
-            where TRequest : IRequest<TResponse>
         {
             var responses = new List<TResponse>();
             // TODO: Be able to specify a timeout for this operation to complete.
@@ -65,7 +64,6 @@ namespace Acquaintance
         }
 
         public IDisposable Subscribe<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
-            where TRequest : IRequest<TResponse>
         {
             var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
             return channel.Subscribe(subscriber, filter, options ?? SubscribeOptions.Default);

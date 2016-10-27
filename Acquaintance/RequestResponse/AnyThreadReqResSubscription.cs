@@ -1,10 +1,9 @@
-using System;
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.RequestResponse
 {
     public class AnyThreadReqResSubscription<TRequest, TResponse> : IReqResSubscription<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
     {
         private readonly Func<TRequest, TResponse> _func;
         private readonly Func<TRequest, bool> _filter;
