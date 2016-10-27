@@ -27,9 +27,9 @@ namespace Acquaintance
             return token;
         }
 
-        public IDisposable Subscribe<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
+        public IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
         {
-            var token = _messageBus.Subscribe(name, subscriber, filter, options);
+            var token = _messageBus.Listen(name, subscriber, filter, options);
             _subscriptions.Add(token);
             return token;
         }

@@ -63,7 +63,7 @@ namespace Acquaintance
             return new BrokeredResponse<TResponse>(responses);
         }
 
-        public IDisposable Subscribe<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
+        public IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
         {
             var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
             return channel.Subscribe(subscriber, filter, options ?? SubscribeOptions.Default);

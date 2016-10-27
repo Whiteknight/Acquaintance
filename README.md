@@ -6,7 +6,8 @@ You can stay in touch without having to be all up in each others' business.
 
 Acquaintance is a library for the internal messaging needs of a loosly-coupled application. Using a
 messaging technology such as Acquaintance, individual components in your software can communicate
-without having to maintain explicit references to each other or worry about order of initialization.
+without having to maintain explicit references to each other or worry about order of 
+initialization.
 
 Acquaintance implements two messaging patterns: Publish/Subscribe and Request/Response. To start
 using these, first create an `IMessageBus`:
@@ -30,10 +31,10 @@ The type of payload object along with the name (`"test event"` in the above exam
 channel. A channel may contain any number of subscribers, and may be published to by any number of
 publishers. 
 
-The Pub/Sub pattern is very similar to the `event` / `EventHandler` functionality built-in to C#, but
-unlike `event` you don't need an explicit reference to the publisher in order to subscribe to it.
-Using Acquaintance, you can subscribe to a channel where there are no publishers at all, and create
-those publishers later as needed.
+The Pub/Sub pattern is very similar to the `event` / `EventHandler` functionality built-in to C#, 
+but unlike `event` you don't need an explicit reference to the publisher in order to subscribe to 
+it. Using Acquaintance, you can subscribe to a channel where there are no publishers at all, and 
+create those publishers later as needed (Or, conversely, publish to a channel with no subscribers).
 
 ## Request/Response
 
@@ -41,8 +42,8 @@ Request/Response is a pattern where a client sends a request to zero or more ser
 back zero or more responses in return. This example prints the classic "Hello World" greeting to the
 console:
 
-    // Create a subscription
-    messageBus.Subscribe<MyRequest, MyResponse>("test", req => new MyResponse { 
+    // Setup a Listener
+    messageBus.Listen<MyRequest, MyResponse>("test", req => new MyResponse { 
         Message = "Hello " + req.Message"
     });
     
@@ -54,13 +55,13 @@ console:
         Console.WriteLine(message);
 
 The types of Request, Response and the name (`"test"` in the example above) define the req/res
-channel. A channel may contain any number of subscribers. Any number of clients may make requests
+channel. A channel may contain any number of listeners. Any number of clients may make requests
 on the channel.
 
 ## Managing Subscriptions
 
-Every `Subscribe` method variant returns an `IDisposable`. This is a **subscription token** and
-can be used to cancel the subscription. 
+Every `Subscribe` and `Listen` method variant returns an `IDisposable`. This is a 
+**subscription token** and can be used to cancel the subscription. 
 
     // Create a subscription
     var subscription = messageBus.Subscribe("test event", e => Console.WriteLine(e.Message))) 
@@ -86,8 +87,9 @@ of them.
     
 ## Thread Safety
 
-Thread safety is handled by the subscriber. Every `Subscribe` method call takes an optional 
-`SubscribeOptions` parameter, which can be used to control how the message is received.
+Thread safety is handled by the subscriber or listener. Every `Subscribe` or `Listen` method call 
+takes an optional `SubscribeOptions` parameter, which can be used to control how the message is 
+received.
 
     var subscription = messageBus.Subscribe("", ..., new SubscribeOptions {
         ...
@@ -109,6 +111,10 @@ blocking operation for the publisher or client.
     new SubscribeOptions {
         DispatchType = DispatchThreadType.Immediate
     };
+
+Immediate delivery is the simplest option, but it does cause the client to block. A large number of
+subscribers or listeners all using this option will create performance problems. Use this if your
+callbacks are small and lightweight, but consider one of the asynchronous options otherwise.
     
 ### Random Worker Thread
 
@@ -124,6 +130,9 @@ blocked, dispatching the message to a worker thread is a good choice.
     var options = new SubscribeOptions {
         DispatchType = DispatchThreadType.AnyWorkerThread
     };
+
+Notice that if you don't have any worker threads started, a `AnyWorkerThread` subscription will be
+treated like an `Immediate` subscription instead.
     
 ### Specific Thread
 
