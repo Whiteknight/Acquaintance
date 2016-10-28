@@ -6,17 +6,17 @@ namespace Acquaintance.Threading
     public class MessageHandlerThread : IDisposable
     {
         private readonly Thread _thread;
-        private readonly MessageHandlerThreadContext _context;
+        private readonly IMessageHandlerThreadContext _context;
         private bool _started;
 
-        public MessageHandlerThread(MessageHandlerThreadContext context)
+        public MessageHandlerThread(IMessageHandlerThreadContext context)
         {
             _thread = new Thread(HandlerThreadFunc);
             _started = false;
             _context = context;
         }
 
-        public MessageHandlerThreadContext Context
+        public IMessageHandlerThreadContext Context
         {
             get { return _context; }
         }
@@ -50,7 +50,7 @@ namespace Acquaintance.Threading
 
         private static void HandlerThreadFunc(object contextObject)
         {
-            MessageHandlerThreadContext context = contextObject as MessageHandlerThreadContext;
+            IMessageHandlerThreadContext context = contextObject as IMessageHandlerThreadContext;
             if (context == null)
                 return;
 

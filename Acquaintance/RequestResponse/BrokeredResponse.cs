@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Acquaintance
+namespace Acquaintance.RequestResponse
 {
     public class BrokeredResponse<TResponse> : IBrokeredResponse<TResponse>
     {

@@ -1,12 +1,11 @@
+using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acquaintance.Threading;
 
 namespace Acquaintance.RequestResponse
 {
     public class ReqResChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
     {
         private readonly MessagingWorkerThreadPool _threadPool;
         private readonly Dictionary<Guid, IReqResSubscription<TRequest, TResponse>> _subscriptions;
@@ -24,18 +23,29 @@ namespace Acquaintance.RequestResponse
 
         public IEnumerable<TResponse> Request(TRequest request)
         {
-            List<TResponse> responses = new List<TResponse>();
+            List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
             foreach (var subscription in _subscriptions.Values.Where(s => s.CanHandle(request)))
             {
                 // TODO: We should order these so worker thread requests are dispatched first, followed by
                 // immediate requests.
-                var response = subscription.Request(request);
-                responses.Add(response);
+                var responseWaiter = subscription.Request(request);
+                waiters.Add(responseWaiter);
             }
+            List<TResponse> responses = new List<TResponse>();
+            foreach (var waiter in waiters)
+            {
+                bool complete = waiter.WaitForResponse();
+                if (!complete)
+                    responses.Add(default(TResponse));
+                else
+                    responses.Add(waiter.Response);
+                waiter.Dispose();
+            }
+
             return responses;
         }
 
-        public SubscriptionToken Subscribe(Func<TRequest, TResponse> act,Func<TRequest, bool> filter, SubscribeOptions options)
+        public SubscriptionToken Subscribe(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options)
         {
             Guid id = Guid.NewGuid();
             var subscription = CreateSubscription(act, filter, options);

@@ -1,10 +1,10 @@
+using Acquaintance.Threading;
 using System;
 using System.Threading;
-using Acquaintance.Threading;
 
 namespace Acquaintance.RequestResponse
 {
-    public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDisposable
+    public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDispatchableRequest<TResponse>
     {
         private readonly Func<TRequest, TResponse> _func;
         private readonly TRequest _request;
@@ -15,7 +15,7 @@ namespace Acquaintance.RequestResponse
         public DispatchableRequest(Func<TRequest, TResponse> func, TRequest request, int timeoutMs = 1000)
         {
             if (timeoutMs <= 0)
-                throw new ArgumentOutOfRangeException("timeoutMs");
+                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
             _func = func;
             _request = request;
             _timeoutMs = timeoutMs;
@@ -23,7 +23,7 @@ namespace Acquaintance.RequestResponse
             Response = default(TResponse);
         }
 
-        public void Execute(MessageHandlerThreadContext threadContext)
+        public void Execute(IMessageHandlerThreadContext threadContext)
         {
             Response = _func(_request);
             _resetEvent.Set();

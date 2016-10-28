@@ -1,5 +1,5 @@
-using System;
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.PubSub
 {
@@ -9,6 +9,7 @@ namespace Acquaintance.PubSub
         private readonly Func<TPayload, bool> _filter;
         private readonly int _threadId;
         private readonly MessagingWorkerThreadPool _threadPool;
+
         public SpecificThreadPubSubSubscription(Action<TPayload> act, Func<TPayload, bool> filter, int threadId, MessagingWorkerThreadPool threadPool)
         {
             _act = act;
@@ -21,10 +22,8 @@ namespace Acquaintance.PubSub
         {
             if (_filter != null && !_filter(payload))
                 return;
-            var thread = _threadPool.GetThread(_threadId);
-            if (thread == null)
-                return;
-            thread.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
+            var thread = _threadPool.GetThread(_threadId, true);
+            thread?.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
         }
     }
 }

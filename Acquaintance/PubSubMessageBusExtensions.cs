@@ -4,9 +4,15 @@ namespace Acquaintance
 {
     public static class PubSubMessageBusExtensions
     {
-        public static void Publish<TPayload>(this IMessageBus messageBus, TPayload payload)
+        public static void Publish<TPayload>(this IPublishable messageBus, TPayload payload)
         {
             messageBus.Publish(string.Empty, payload);
+        }
+
+        public static void Publish(this IPublishable messageBus, string name, Type payloadType, object payload)
+        {
+            var method = messageBus.GetType().GetMethod("Publish").MakeGenericMethod(payloadType);
+            method.Invoke(messageBus, new[] { name, payload });
         }
 
         public static IDisposable Subscribe<TPayload>(this ISubscribable messageBus, string name, Action<TPayload> subscriber, SubscribeOptions options = null)
@@ -24,9 +30,10 @@ namespace Acquaintance
             return messageBus.Subscribe(string.Empty, subscriber, filter, options);
         }
 
-        public static IDisposable Transform<TInput, TOutput>(this IMessageBus messageBus, string inName, Func<TInput, TOutput> transform, Func<TInput, bool> filter, string outName, SubscribeOptions options = null)
+        public static IDisposable Transform<TInput, TOutput>(this IPubSubBus messageBus, string inName, Func<TInput, TOutput> transform, Func<TInput, bool> filter, string outName, SubscribeOptions options = null)
         {
-            return messageBus.Subscribe(inName, input => {
+            return messageBus.Subscribe(inName, input =>
+            {
                 TOutput output = transform(input);
                 messageBus.Publish(outName, output);
             }, filter, options);

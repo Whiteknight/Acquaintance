@@ -1,10 +1,9 @@
-using System;
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.RequestResponse
 {
     public class AnyThreadReqResSubscription<TRequest, TResponse> : IReqResSubscription<TRequest, TResponse>
-        where TRequest : IRequest<TResponse>
     {
         private readonly Func<TRequest, TResponse> _func;
         private readonly Func<TRequest, bool> _filter;
@@ -24,17 +23,18 @@ namespace Acquaintance.RequestResponse
             return _filter == null || _filter(request);
         }
 
-        public TResponse Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            var thread = _threadPool.GetAnyThread();
+            if (_threadPool.NumberOfRunningFreeWorkers == 0)
+                return new ImmediateResponse<TResponse>(_func(request));
+
+            var thread = _threadPool.GetAnyFreeWorkerThread();
             if (thread == null)
-                return default(TResponse);
+                return new ImmediateResponse<TResponse>(_func(request));
+
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, _timeoutMs);
             thread.DispatchAction(responseWaiter);
-            bool complete = responseWaiter.WaitForResponse();
-            if (!complete)
-                return default(TResponse);
-            return responseWaiter.Response;
+            return responseWaiter;
         }
     }
 }

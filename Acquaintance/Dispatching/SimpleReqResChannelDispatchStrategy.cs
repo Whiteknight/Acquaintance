@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Acquaintance.RequestResponse;
+using Acquaintance.Threading;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acquaintance.RequestResponse;
-using Acquaintance.Threading;
 
 namespace Acquaintance.Dispatching
 {
@@ -19,10 +19,10 @@ namespace Acquaintance.Dispatching
 
         private string GetReqResKey(Type requestType, Type responseType, string name)
         {
-            return string.Format("Request={0}:Response={1}:Name={2}", requestType.Name, responseType.Name, name ?? string.Empty);
+            return $"Request={requestType.Name}:Response={responseType.Name}:Name={name ?? string.Empty}";
         }
 
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name) where TRequest : IRequest<TResponse>
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
@@ -33,7 +33,7 @@ namespace Acquaintance.Dispatching
             return channel;
         }
 
-        public IEnumerable<IReqResChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name) where TRequest : IRequest<TResponse>
+        public IEnumerable<IReqResChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name)
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
