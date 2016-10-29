@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Acquaintance
 {
-    public sealed class SubscriptionCollection : ISubscribable, IDisposable
+    public sealed class SubscriptionCollection : ISubscribable, IRequestListenable, IDisposable
     {
         private readonly IMessageBus _messageBus;
         private readonly List<IDisposable> _subscriptions;
