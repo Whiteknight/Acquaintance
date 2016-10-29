@@ -8,7 +8,6 @@ namespace Acquaintance
     public static class ReqResMessageBusExtensions
     {
         public static IBrokeredResponse<TResponse> Request<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
-            where TRequest : IRequest<TResponse>
         {
             return messageBus.Request<TRequest, TResponse>(string.Empty, request);
         }
@@ -26,19 +25,16 @@ namespace Acquaintance
         }
 
         public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
-            where TRequest : IRequest<TResponse>
         {
             return messageBus.Listen(name, subscriber, null, options);
         }
 
         public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
-            where TRequest : IRequest<TResponse>
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
 
         public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
-            where TRequest : IRequest<TResponse>
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
