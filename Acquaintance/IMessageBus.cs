@@ -18,7 +18,7 @@ namespace Acquaintance
 
     }
 
-    public interface IRequestListenable
+    public interface IListenable
     {
         IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null);
     }
@@ -29,7 +29,7 @@ namespace Acquaintance
         IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request);
     }
 
-    public interface IReqResBus : IRequestListenable, IRequestable
+    public interface IReqResBus : IListenable, IRequestable
     {
 
     }

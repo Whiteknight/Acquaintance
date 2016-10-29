@@ -25,19 +25,19 @@ namespace Acquaintance
             return response ?? new BrokeredResponse<object>(new List<object>());
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IRequestListenable messageBus, string name, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
             where TRequest : IRequest<TResponse>
         {
             return messageBus.Listen(name, subscriber, null, options);
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IRequestListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
             where TRequest : IRequest<TResponse>
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IRequestListenable messageBus, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
             where TRequest : IRequest<TResponse>
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
