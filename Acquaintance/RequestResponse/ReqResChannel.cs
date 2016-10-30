@@ -45,7 +45,7 @@ namespace Acquaintance.RequestResponse
             return responses;
         }
 
-        public SubscriptionToken Subscribe(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options)
+        public SubscriptionToken Listen(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options)
         {
             Guid id = Guid.NewGuid();
             var subscription = CreateSubscription(act, filter, options);

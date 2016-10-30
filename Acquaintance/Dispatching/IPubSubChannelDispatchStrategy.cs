@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using System;
 using System.Collections.Generic;
-using Acquaintance.PubSub;
 
 namespace Acquaintance.Dispatching
 {
@@ -8,6 +8,6 @@ namespace Acquaintance.Dispatching
     {
         IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name);
 
-        IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name, TPayload payload);
+        IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name);
     }
 }

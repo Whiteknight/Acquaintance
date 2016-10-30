@@ -58,6 +58,21 @@ The types of Request, Response and the name (`"test"` in the example above) defi
 channel. A channel may contain any number of listeners. Any number of clients may make requests
 on the channel.
 
+### Eavesdropping
+
+Sometimes some part of your system wants to be aware of a request/response conversation without
+having to `Listen` and generate a response. The `Eavesdrop` method allows exactly that. An
+`Eavesdrop` is a pub/sub subscription to the request/response conversation:
+
+    messageBus.Eavesdrop<MyRequest, MyResponse>("test", conversation => ...);
+
+Neither the caller nor the listeners will be aware that the conversation is being eavesdropped on.
+Eavesdrop events contain the complete request and all generated responses, and are published after
+all responses are received.
+
+It is possible to make modifications to the request and response objects in an eavesdropper, but as
+a matter of best practices it is strongly recommended against.
+
 ## Managing Subscriptions
 
 Every `Subscribe` and `Listen` method variant returns an `IDisposable`. This is a 

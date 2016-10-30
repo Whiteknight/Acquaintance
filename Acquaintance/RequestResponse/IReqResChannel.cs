@@ -6,7 +6,7 @@ namespace Acquaintance.RequestResponse
     public interface IReqResChannel<TRequest, TResponse> : IReqResChannel
     {
         IEnumerable<TResponse> Request(TRequest request);
-        SubscriptionToken Subscribe(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options);
+        SubscriptionToken Listen(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options);
     }
 
     public interface IReqResChannel : IChannel

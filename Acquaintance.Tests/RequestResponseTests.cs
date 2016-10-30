@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System.Linq;
 using System.Threading;
 
 namespace Acquaintance.Tests
@@ -61,6 +62,17 @@ namespace Acquaintance.Tests
             {
                 target.Dispose();
             }
+        }
+
+        [Test]
+        public void EavesdropRequestAndResponse()
+        {
+            var target = new MessageBus();
+            string eavesdropped = null;
+            target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
+            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null);
+            var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            eavesdropped.Should().Be("RequestResponded");
         }
     }
 

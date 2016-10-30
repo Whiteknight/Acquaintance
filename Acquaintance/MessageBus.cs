@@ -3,6 +3,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Acquaintance
 {
@@ -10,12 +11,14 @@ namespace Acquaintance
     {
         private readonly MessagingWorkerThreadPool _threadPool;
         private readonly IPubSubChannelDispatchStrategy _pubSubStrategy;
+        private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _reqResStrategy;
 
         public MessageBus()
         {
             _threadPool = new MessagingWorkerThreadPool();
             _pubSubStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
+            _eavesdropStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
             _reqResStrategy = new SimpleReqResChannelDispatchStrategy(_threadPool);
         }
 
@@ -42,7 +45,7 @@ namespace Acquaintance
 
         public void Publish<TPayload>(string name, TPayload payload)
         {
-            foreach (var channel in _pubSubStrategy.GetExistingChannels(name, payload))
+            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(name))
                 channel.Publish(payload);
         }
 
@@ -60,12 +63,31 @@ namespace Acquaintance
             // the next channel
             foreach (var channel in _reqResStrategy.GetExistingChannels<TRequest, TResponse>(name))
                 responses.AddRange(channel.Request(request));
+            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
+            if (eavesdropChannels.Any())
+            {
+                var conversation = new Conversation<TRequest, TResponse>(request, responses);
+                foreach (var channel in eavesdropChannels)
+                    channel.Publish(conversation);
+            }
+            
             return new BrokeredResponse<TResponse>(responses);
+        }
+
+        public void Eavesdrop<T1, T2>(string v, Action<Conversation<T1, T2>> p)
+        {
+            throw new NotImplementedException();
         }
 
         public IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
         {
             var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
+            return channel.Listen(subscriber, filter, options ?? SubscribeOptions.Default);
+        }
+
+        public IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
+        {
+            var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(name);
             return channel.Subscribe(subscriber, filter, options ?? SubscribeOptions.Default);
         }
 
@@ -100,5 +122,7 @@ namespace Acquaintance
             _reqResStrategy.Dispose();
             _threadPool.Dispose();
         }
+
+        
     }
 }

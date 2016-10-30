@@ -33,5 +33,12 @@ namespace Acquaintance
             _subscriptions.Add(token);
             return token;
         }
+
+        public IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
+        {
+            var token = _messageBus.Eavesdrop(name, subscriber, filter, options);
+            _subscriptions.Add(token);
+            return token;
+        }
     }
 }

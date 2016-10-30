@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using Acquaintance.Threading;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acquaintance.PubSub;
-using Acquaintance.Threading;
 
 namespace Acquaintance.Dispatching
 {
@@ -33,7 +33,7 @@ namespace Acquaintance.Dispatching
             return channel;
         }
 
-        public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name, TPayload payload)
+        public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name)
         {
             string key = GetPubSubKey(typeof(TPayload), name);
             if (!_pubSubChannels.ContainsKey(key))

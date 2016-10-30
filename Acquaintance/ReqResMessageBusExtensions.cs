@@ -38,5 +38,20 @@ namespace Acquaintance
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
+
+        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
+        {
+            return messageBus.Eavesdrop<TRequest, TResponse>(string.Empty, subscriber, filter, options);
+        }
+
+        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, string name, Action<Conversation<TRequest, TResponse>> subscriber, SubscribeOptions options = null)
+        {
+            return messageBus.Eavesdrop<TRequest, TResponse>(name, subscriber, null, options);
+        }
+
+        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, SubscribeOptions options = null)
+        {
+            return messageBus.Eavesdrop<TRequest, TResponse>(string.Empty, subscriber, null, options);
+        }
     }
 }

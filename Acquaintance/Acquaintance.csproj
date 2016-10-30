@@ -40,11 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Conversation.cs" />
     <Compile Include="Dispatching\SimpleReqResChannelDispatchStrategy.cs" />
     <Compile Include="Dispatching\IPubSubChannelDispatchStrategy.cs" />
     <Compile Include="Dispatching\IReqResChannelDispatchStrategy.cs" />
     <Compile Include="Dispatching\SimplePubSubChannelDispatchStrategy.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
+    <Compile Include="PubSub\PubSubSubscriptionFactory.cs" />
     <Compile Include="RequestResponse\BrokeredResponse.cs" />
     <Compile Include="IBrokeredResponse.cs" />
     <Compile Include="IChannel.cs" />
