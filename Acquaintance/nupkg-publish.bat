@@ -1,1 +1,1 @@
-nuget push Acquaintance.0.3.0-beta.nupkg -Source https://www.nuget.org/api/v2/package
+nuget push Acquaintance.%1-beta.nupkg -Source https://www.nuget.org/api/v2/package
