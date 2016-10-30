@@ -19,7 +19,7 @@ namespace Acquaintance.Dispatching
 
         private string GetReqResKey(Type requestType, Type responseType, string name)
         {
-            return $"Request={requestType.Name}:Response={responseType.Name}:Name={name ?? string.Empty}";
+            return $"Request={requestType.AssemblyQualifiedName}:Response={responseType.AssemblyQualifiedName}:Name={name ?? string.Empty}";
         }
 
         public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)

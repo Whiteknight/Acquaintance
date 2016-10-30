@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System;
 using System.Linq;
 using System.Threading;
 
@@ -74,6 +75,23 @@ namespace Acquaintance.Tests
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             eavesdropped.Should().Be("RequestResponded");
         }
+
+        private class GenericRequest<T> { }
+        private class GenericResponse<T> { }
+
+        [Test]
+        public void ListenRequestAndResponse_Generics()
+        {
+            var target = new MessageBus();
+
+            Action act = () =>
+            {
+                target.Listen<GenericRequest<string>, GenericResponse<string>>("Test", req => new GenericResponse<string>());
+                target.Listen<GenericRequest<int>, GenericResponse<int>>("Test", req => new GenericResponse<int>());
+            };
+            act.ShouldNotThrow();
+        }
+
     }
 
 }
