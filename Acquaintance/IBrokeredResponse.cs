@@ -2,7 +2,7 @@
 
 namespace Acquaintance
 {
-    public interface IBrokeredResponse<out TResponse>
+    public interface IBrokeredResponse<out TResponse> : IEnumerable<TResponse>
     {
         IReadOnlyList<TResponse> Responses { get; }
     }

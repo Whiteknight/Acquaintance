@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 
 namespace Acquaintance.RequestResponse
 {
@@ -10,5 +11,15 @@ namespace Acquaintance.RequestResponse
         }
 
         public IReadOnlyList<TResponse> Responses { get; private set; }
+
+        public IEnumerator<TResponse> GetEnumerator()
+        {
+            return Responses.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Responses.GetEnumerator();
+        }
     }
 }
