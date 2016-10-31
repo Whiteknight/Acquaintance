@@ -1,6 +1,5 @@
 ﻿using Acquaintance.Threading;
 using System;
-using System.Collections.Generic;
 
 namespace Acquaintance.PubSub
 {

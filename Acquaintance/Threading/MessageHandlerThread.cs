@@ -16,15 +16,9 @@ namespace Acquaintance.Threading
             _context = context;
         }
 
-        public IMessageHandlerThreadContext Context
-        {
-            get { return _context; }
-        }
+        public IMessageHandlerThreadContext Context => _context;
 
-        public int ThreadId
-        {
-            get { return _thread.ManagedThreadId; }
-        }
+        public int ThreadId => _thread.ManagedThreadId;
 
         public void Start()
         {

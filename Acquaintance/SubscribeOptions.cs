@@ -15,10 +15,7 @@ namespace Acquaintance
         public int ThreadId { get; set; }
         public int WaitTimeoutMs { get; set; }
 
-        public static SubscribeOptions Default
-        {
-            get { return new SubscribeOptions(); }
-        }
+        public static SubscribeOptions Default => new SubscribeOptions();
 
         public static SubscribeOptions SpecificThread(int threadId)
         {

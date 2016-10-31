@@ -21,7 +21,7 @@ namespace Acquaintance.Timers
             if (delayMs < 0)
                 delayMs = 0;
             if (intervalMs < 100)
-                throw new ArgumentOutOfRangeException("intervalMs", "intervalMs must be 100ms or higher");
+                throw new ArgumentOutOfRangeException(nameof(intervalMs), "intervalMs must be 100ms or higher");
             _messageBus = messageBus;
             _delayMs = delayMs;
             _intervalMs = intervalMs;

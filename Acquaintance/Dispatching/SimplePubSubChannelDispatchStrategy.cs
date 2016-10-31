@@ -19,7 +19,7 @@ namespace Acquaintance.Dispatching
 
         private string GetPubSubKey(Type type, string name)
         {
-            return string.Format("Type={0}:Name={1}", type.AssemblyQualifiedName, name ?? string.Empty);
+            return $"Type={type.AssemblyQualifiedName}:Name={name ?? string.Empty}";
         }
 
         public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name)

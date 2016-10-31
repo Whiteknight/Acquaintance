@@ -10,8 +10,8 @@ namespace Acquaintance
             Channel = channel;
         }
 
-        public IChannel Channel { get; private set; }
-        public Guid Id { get; private set; }
+        public IChannel Channel { get; }
+        public Guid Id { get; }
 
         public void Dispose()
         {
