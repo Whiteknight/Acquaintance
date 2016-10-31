@@ -6,7 +6,7 @@ namespace Acquaintance
     {
         public SubscribeOptions()
         {
-            WaitTimeoutMs = 1000;
+            WaitTimeoutMs = 5000;
             ThreadId = 0;
             DispatchType = DispatchThreadType.Immediate;
         }
@@ -22,7 +22,8 @@ namespace Acquaintance
 
         public static SubscribeOptions SpecificThread(int threadId)
         {
-            return new SubscribeOptions {
+            return new SubscribeOptions
+            {
                 DispatchType = DispatchThreadType.SpecificThread,
                 ThreadId = threadId
             };
