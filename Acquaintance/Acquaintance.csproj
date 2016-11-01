@@ -47,6 +47,7 @@
     <Compile Include="Dispatching\SimplePubSubChannelDispatchStrategy.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\PubSubSubscriptionFactory.cs" />
+    <Compile Include="PubSub\SubscriptionBuilder.cs" />
     <Compile Include="RequestResponse\BrokeredResponse.cs" />
     <Compile Include="IBrokeredResponse.cs" />
     <Compile Include="IChannel.cs" />

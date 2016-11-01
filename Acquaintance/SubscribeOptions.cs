@@ -8,7 +8,7 @@ namespace Acquaintance
         {
             WaitTimeoutMs = 5000;
             ThreadId = 0;
-            DispatchType = DispatchThreadType.Immediate;
+            DispatchType = DispatchThreadType.NoPreference;
         }
 
         public DispatchThreadType DispatchType { get; set; }

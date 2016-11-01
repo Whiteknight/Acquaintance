@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using System;
 
 namespace Acquaintance
 {
@@ -28,6 +29,11 @@ namespace Acquaintance
         public static IDisposable Subscribe<TPayload>(this ISubscribable messageBus, Action<TPayload> subscriber, Func<TPayload, bool> filter, SubscribeOptions options = null)
         {
             return messageBus.Subscribe(string.Empty, subscriber, filter, options);
+        }
+
+        public static SubscriptionBuilder<TPayload> CreateSubscription<TPayload>(this ISubscribable messageBus, Action<TPayload> subscriber)
+        {
+            return new SubscriptionBuilder<TPayload>(messageBus, subscriber);
         }
 
         public static IDisposable Transform<TInput, TOutput>(this IPubSubBus messageBus, string inName, Func<TInput, TOutput> transform, Func<TInput, bool> filter, string outName, SubscribeOptions options = null)
