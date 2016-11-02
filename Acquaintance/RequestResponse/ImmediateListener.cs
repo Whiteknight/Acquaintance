@@ -2,12 +2,12 @@ using System;
 
 namespace Acquaintance.RequestResponse
 {
-    public class ImmediateReqResSubscription<TRequest, TResponse> : IReqResSubscription<TRequest, TResponse>
+    public class ImmediateListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly Func<TRequest, TResponse> _request;
         private readonly Func<TRequest, bool> _filter;
 
-        public ImmediateReqResSubscription(Func<TRequest, TResponse> request, Func<TRequest, bool> filter)
+        public ImmediateListener(Func<TRequest, TResponse> request, Func<TRequest, bool> filter)
         {
             _request = request;
             _filter = filter;

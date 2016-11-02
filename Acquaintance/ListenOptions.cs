@@ -2,22 +2,24 @@
 
 namespace Acquaintance
 {
-    public class SubscribeOptions
+    public class ListenOptions
     {
-        public SubscribeOptions()
+        public ListenOptions()
         {
+            WaitTimeoutMs = 5000;
             ThreadId = 0;
             DispatchType = DispatchThreadType.NoPreference;
         }
 
         public DispatchThreadType DispatchType { get; set; }
         public int ThreadId { get; set; }
+        public int WaitTimeoutMs { get; set; }
 
-        public static SubscribeOptions Default => new SubscribeOptions();
+        public static ListenOptions Default => new ListenOptions();
 
-        public static SubscribeOptions SpecificThread(int threadId)
+        public static ListenOptions SpecificThread(int threadId)
         {
-            return new SubscribeOptions
+            return new ListenOptions
             {
                 DispatchType = DispatchThreadType.SpecificThread,
                 ThreadId = threadId

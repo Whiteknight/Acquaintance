@@ -49,7 +49,7 @@ namespace Acquaintance.Tests
             target.StartWorkers(1);
             try
             {
-                target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId }, new SubscribeOptions
+                target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId }, new ListenOptions
                 {
                     DispatchType = DispatchThreadType.AnyWorkerThread,
                     WaitTimeoutMs = 2000

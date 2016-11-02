@@ -24,17 +24,23 @@ namespace Acquaintance
             return response ?? new BrokeredResponse<object>(new List<object>());
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> func, Func<TRequest, bool> filter, ListenOptions options = null)
+        {
+            var listener = messageBus.ListenerFactory.CreateListener(func, filter, options);
+            return messageBus.Listen(name, listener);
+        }
+
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, ListenOptions options = null)
         {
             return messageBus.Listen(name, subscriber, null, options);
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, ListenOptions options = null)
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, SubscribeOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, ListenOptions options = null)
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }

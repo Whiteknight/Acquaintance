@@ -1,4 +1,5 @@
 ﻿using Acquaintance.PubSub;
+using Acquaintance.RequestResponse;
 using System;
 
 namespace Acquaintance
@@ -22,8 +23,10 @@ namespace Acquaintance
 
     public interface IListenable
     {
-        IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null);
+        IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
         IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null);
+
+        ListenerFactory ListenerFactory { get; }
     }
 
     public interface IRequestable
@@ -44,8 +47,6 @@ namespace Acquaintance
         void StopWorkers();
         int StartDedicatedWorkerThread();
         void StopDedicatedWorkerThread(int id);
-
-
 
         // Runloops and Event Processing
         void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500);

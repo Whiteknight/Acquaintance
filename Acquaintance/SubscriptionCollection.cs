@@ -1,4 +1,5 @@
 ﻿using Acquaintance.PubSub;
+using Acquaintance.RequestResponse;
 using System;
 using System.Collections.Generic;
 
@@ -15,10 +16,9 @@ namespace Acquaintance
             _subscriptions = new List<IDisposable>();
         }
 
-        public SubscriptionFactory SubscriptionFactory
-        {
-            get { return _messageBus.SubscriptionFactory; }
-        }
+        public SubscriptionFactory SubscriptionFactory => _messageBus.SubscriptionFactory;
+
+        public ListenerFactory ListenerFactory => _messageBus.ListenerFactory;
 
         public void Dispose()
         {
@@ -33,9 +33,9 @@ namespace Acquaintance
             return token;
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
+        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
         {
-            var token = _messageBus.Listen(name, subscriber, filter, options);
+            var token = _messageBus.Listen(name, listener);
             _subscriptions.Add(token);
             return token;
         }
@@ -46,5 +46,7 @@ namespace Acquaintance
             _subscriptions.Add(token);
             return token;
         }
+
+
     }
 }

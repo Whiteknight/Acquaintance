@@ -3,19 +3,17 @@ using System;
 
 namespace Acquaintance.RequestResponse
 {
-    public class SpecificThreadReqResSubscription<TRequest, TResponse> : IReqResSubscription<TRequest, TResponse>
+    public class AnyThreadListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly Func<TRequest, TResponse> _func;
         private readonly Func<TRequest, bool> _filter;
-        private readonly int _threadId;
         private readonly MessagingWorkerThreadPool _threadPool;
         private readonly int _timeoutMs;
 
-        public SpecificThreadReqResSubscription(Func<TRequest, TResponse> func, Func<TRequest, bool> filter, int threadId, MessagingWorkerThreadPool threadPool, int timeoutMs)
+        public AnyThreadListener(Func<TRequest, TResponse> func, Func<TRequest, bool> filter, MessagingWorkerThreadPool threadPool, int timeoutMs)
         {
             _func = func;
             _filter = filter;
-            _threadId = threadId;
             _threadPool = threadPool;
             _timeoutMs = timeoutMs;
         }
@@ -27,9 +25,12 @@ namespace Acquaintance.RequestResponse
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            var thread = _threadPool.GetThread(_threadId, false);
+            if (_threadPool.NumberOfRunningFreeWorkers == 0)
+                return new ImmediateResponse<TResponse>(_func(request));
+
+            var thread = _threadPool.GetAnyFreeWorkerThread();
             if (thread == null)
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(_func(request));
 
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, _timeoutMs);
             thread.DispatchAction(responseWaiter);

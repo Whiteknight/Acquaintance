@@ -45,6 +45,7 @@
     <Compile Include="Dispatching\IPubSubChannelDispatchStrategy.cs" />
     <Compile Include="Dispatching\IReqResChannelDispatchStrategy.cs" />
     <Compile Include="Dispatching\SimplePubSubChannelDispatchStrategy.cs" />
+    <Compile Include="ListenOptions.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\EventRouter.cs" />
     <Compile Include="PubSub\SubscriptionFactory.cs" />
@@ -58,6 +59,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
+    <Compile Include="RequestResponse\ListenerFactory.cs" />
     <Compile Include="SubscribeOptions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />
@@ -66,14 +68,14 @@
     <Compile Include="PubSub\PublishEventThreadAction.cs" />
     <Compile Include="PubSub\PubSubChannel.cs" />
     <Compile Include="PubSub\SpecificThreadPubSubSubscription.cs" />
-    <Compile Include="RequestResponse\AnyThreadReqResSubscription.cs" />
+    <Compile Include="RequestResponse\AnyThreadListener.cs" />
     <Compile Include="RequestResponse\DispatchableRequest.cs" />
-    <Compile Include="RequestResponse\ImmediateReqResSubscription.cs" />
+    <Compile Include="RequestResponse\ImmediateListener.cs" />
     <Compile Include="RequestResponse\IReqResChannel.cs" />
-    <Compile Include="RequestResponse\IReqResSubscription.cs" />
+    <Compile Include="RequestResponse\IListener.cs" />
     <Compile Include="IRequest.cs" />
     <Compile Include="RequestResponse\ReqResChannel.cs" />
-    <Compile Include="RequestResponse\SpecificThreadReqResSubscription.cs" />
+    <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="SubscriptionCollection.cs" />
     <Compile Include="SubscriptionToken.cs" />
     <Compile Include="Threading\DispatchThreadType.cs" />

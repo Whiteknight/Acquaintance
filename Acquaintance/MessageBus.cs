@@ -15,8 +15,6 @@ namespace Acquaintance
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _reqResStrategy;
 
-        public SubscriptionFactory SubscriptionFactory { get; private set; }
-
         public MessageBus()
         {
             _threadPool = new MessagingWorkerThreadPool();
@@ -24,7 +22,12 @@ namespace Acquaintance
             _eavesdropStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
             _reqResStrategy = new SimpleReqResChannelDispatchStrategy(_threadPool);
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
+            ListenerFactory = new ListenerFactory(_threadPool);
         }
+
+        public SubscriptionFactory SubscriptionFactory { get; }
+        public ListenerFactory ListenerFactory { get; }
+
 
         public void StartWorkers(int numThreads = 2)
         {
@@ -78,23 +81,19 @@ namespace Acquaintance
             return new BrokeredResponse<TResponse>(responses);
         }
 
-        public void Eavesdrop<T1, T2>(string v, Action<Conversation<T1, T2>> p)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IDisposable Listen<TRequest, TResponse>(string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, SubscribeOptions options = null)
+        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
         {
             var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
-            return channel.Listen(subscriber, filter, options ?? SubscribeOptions.Default);
+            return channel.Listen(listener);
         }
 
         public IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
         {
             var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(name);
-            var subscription = SubscriptionFactory.CreateSubscription<Conversation<TRequest, TResponse>>(subscriber, filter, options);
+            var subscription = SubscriptionFactory.CreateSubscription(subscriber, filter, options);
             return channel.Subscribe(subscription);
         }
+
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)
         {

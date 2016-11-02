@@ -20,6 +20,9 @@ namespace Acquaintance.PubSub
 
         public SubscriptionToken Subscribe(ISubscription<TPayload> subscription)
         {
+            if (subscription == null)
+                throw new ArgumentNullException(nameof(subscription));
+
             var id = Guid.NewGuid();
             _subscriptions.TryAdd(id, subscription);
             return new SubscriptionToken(this, id);

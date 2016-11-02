@@ -9,24 +9,24 @@ namespace Acquaintance.RequestResponse
     public class ReqResChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
     {
         private readonly MessagingWorkerThreadPool _threadPool;
-        private readonly ConcurrentDictionary<Guid, IReqResSubscription<TRequest, TResponse>> _subscriptions;
+        private readonly ConcurrentDictionary<Guid, IListener<TRequest, TResponse>> _listeners;
 
         public ReqResChannel(MessagingWorkerThreadPool threadPool)
         {
             _threadPool = threadPool;
-            _subscriptions = new ConcurrentDictionary<Guid, IReqResSubscription<TRequest, TResponse>>();
+            _listeners = new ConcurrentDictionary<Guid, IListener<TRequest, TResponse>>();
         }
 
         public void Unsubscribe(Guid id)
         {
-            IReqResSubscription<TRequest, TResponse> subscription;
-            _subscriptions.TryRemove(id, out subscription);
+            IListener<TRequest, TResponse> subscription;
+            _listeners.TryRemove(id, out subscription);
         }
 
         public IEnumerable<TResponse> Request(TRequest request)
         {
             List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
-            foreach (var subscription in _subscriptions.Values.Where(s => s.CanHandle(request)))
+            foreach (var subscription in _listeners.Values.Where(s => s.CanHandle(request)))
             {
                 // TODO: We should order these so worker thread requests are dispatched first, followed by
                 // immediate requests.
@@ -47,30 +47,19 @@ namespace Acquaintance.RequestResponse
             return responses;
         }
 
-        public SubscriptionToken Listen(Func<TRequest, TResponse> act, Func<TRequest, bool> filter, SubscribeOptions options)
+        public SubscriptionToken Listen(IListener<TRequest, TResponse> listener)
         {
+            if (listener == null)
+                throw new ArgumentNullException(nameof(listener));
+
             Guid id = Guid.NewGuid();
-            var subscription = CreateSubscription(act, filter, options);
-            _subscriptions.TryAdd(id, subscription);
+            _listeners.TryAdd(id, listener);
             return new SubscriptionToken(this, id);
         }
 
         public void Dispose()
         {
-            _subscriptions.Clear();
-        }
-
-        private IReqResSubscription<TRequest, TResponse> CreateSubscription(Func<TRequest, TResponse> func, Func<TRequest, bool> filter, SubscribeOptions options)
-        {
-            switch (options.DispatchType)
-            {
-                case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadReqResSubscription<TRequest, TResponse>(func, filter, _threadPool, options.WaitTimeoutMs);
-                case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadReqResSubscription<TRequest, TResponse>(func, filter, options.ThreadId, _threadPool, options.WaitTimeoutMs);
-                default:
-                    return new ImmediateReqResSubscription<TRequest, TResponse>(func, filter);
-            }
+            _listeners.Clear();
         }
     }
 }
