@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using System;
 using System.Collections.Generic;
 
 namespace Acquaintance
@@ -14,15 +15,20 @@ namespace Acquaintance
             _subscriptions = new List<IDisposable>();
         }
 
+        public SubscriptionFactory SubscriptionFactory
+        {
+            get { return _messageBus.SubscriptionFactory; }
+        }
+
         public void Dispose()
         {
             foreach (var subscription in _subscriptions)
                 subscription.Dispose();
         }
 
-        public IDisposable Subscribe<TPayload>(string name, Action<TPayload> subscriber, Func<TPayload, bool> filter, SubscribeOptions options = null)
+        public IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription)
         {
-            var token = _messageBus.Subscribe(name, subscriber, filter, options);
+            var token = _messageBus.Subscribe(name, subscription);
             _subscriptions.Add(token);
             return token;
         }

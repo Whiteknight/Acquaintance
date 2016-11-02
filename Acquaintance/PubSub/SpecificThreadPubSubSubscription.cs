@@ -3,7 +3,7 @@ using System;
 
 namespace Acquaintance.PubSub
 {
-    public class SpecificThreadPubSubSubscription<TPayload> : IPubSubSubscription<TPayload>
+    public class SpecificThreadPubSubSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly Action<TPayload> _act;
         private readonly Func<TPayload, bool> _filter;

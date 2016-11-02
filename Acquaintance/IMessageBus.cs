@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using System;
 
 namespace Acquaintance
 {
     public interface ISubscribable
     {
-        IDisposable Subscribe<TPayload>(string name, Action<TPayload> subscriber, Func<TPayload, bool> filter, SubscribeOptions options = null);
+        IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription);
+        SubscriptionFactory SubscriptionFactory { get; }
     }
 
     public interface IPublishable
@@ -42,6 +44,8 @@ namespace Acquaintance
         void StopWorkers();
         int StartDedicatedWorkerThread();
         void StopDedicatedWorkerThread(int id);
+
+
 
         // Runloops and Event Processing
         void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500);

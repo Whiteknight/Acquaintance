@@ -1,4 +1,5 @@
 ﻿using Acquaintance.Dispatching;
+using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using System;
@@ -14,12 +15,15 @@ namespace Acquaintance
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _reqResStrategy;
 
+        public SubscriptionFactory SubscriptionFactory { get; private set; }
+
         public MessageBus()
         {
             _threadPool = new MessagingWorkerThreadPool();
             _pubSubStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
             _eavesdropStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
             _reqResStrategy = new SimpleReqResChannelDispatchStrategy(_threadPool);
+            SubscriptionFactory = new SubscriptionFactory(_threadPool);
         }
 
         public void StartWorkers(int numThreads = 2)
@@ -49,10 +53,10 @@ namespace Acquaintance
                 channel.Publish(payload);
         }
 
-        public IDisposable Subscribe<TPayload>(string name, Action<TPayload> subscriber, Func<TPayload, bool> filter, SubscribeOptions options = null)
+        public IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription)
         {
             var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(name);
-            return channel.Subscribe(subscriber, filter, options ?? SubscribeOptions.Default);
+            return channel.Subscribe(subscription);
         }
 
         public IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request)
@@ -70,7 +74,7 @@ namespace Acquaintance
                 foreach (var channel in eavesdropChannels)
                     channel.Publish(conversation);
             }
-            
+
             return new BrokeredResponse<TResponse>(responses);
         }
 
@@ -88,7 +92,8 @@ namespace Acquaintance
         public IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
         {
             var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(name);
-            return channel.Subscribe(subscriber, filter, options ?? SubscribeOptions.Default);
+            var subscription = SubscriptionFactory.CreateSubscription<Conversation<TRequest, TResponse>>(subscriber, filter, options);
+            return channel.Subscribe(subscription);
         }
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)
@@ -122,7 +127,5 @@ namespace Acquaintance
             _reqResStrategy.Dispose();
             _threadPool.Dispose();
         }
-
-        
     }
 }

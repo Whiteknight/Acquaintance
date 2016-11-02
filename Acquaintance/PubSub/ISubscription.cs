@@ -1,6 +1,6 @@
 namespace Acquaintance.PubSub
 {
-    public interface IPubSubSubscription<in TPayload>
+    public interface ISubscription<in TPayload>
     {
         void Publish(TPayload payload);
     }

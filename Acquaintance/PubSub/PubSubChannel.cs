@@ -6,13 +6,13 @@ namespace Acquaintance.PubSub
 {
     public class PubSubChannel<TPayload> : IPubSubChannel<TPayload>
     {
-        private readonly PubSubSubscriptionFactory _factory;
-        private readonly Dictionary<Guid, IPubSubSubscription<TPayload>> _subscriptions;
+        private readonly SubscriptionFactory _factory;
+        private readonly Dictionary<Guid, ISubscription<TPayload>> _subscriptions;
 
         public PubSubChannel(MessagingWorkerThreadPool threadPool)
         {
-            _factory = new PubSubSubscriptionFactory(threadPool);
-            _subscriptions = new Dictionary<Guid, IPubSubSubscription<TPayload>>();
+            _factory = new SubscriptionFactory(threadPool);
+            _subscriptions = new Dictionary<Guid, ISubscription<TPayload>>();
         }
 
         public void Publish(TPayload payload)
@@ -21,10 +21,9 @@ namespace Acquaintance.PubSub
                 subscriber.Publish(payload);
         }
 
-        public SubscriptionToken Subscribe(Action<TPayload> act, Func<TPayload, bool> filter, SubscribeOptions options)
+        public SubscriptionToken Subscribe(ISubscription<TPayload> subscription)
         {
             var id = Guid.NewGuid();
-            var subscription = _factory.CreateSubscription(act, filter, options);
             _subscriptions.Add(id, subscription);
             return new SubscriptionToken(this, id);
         }

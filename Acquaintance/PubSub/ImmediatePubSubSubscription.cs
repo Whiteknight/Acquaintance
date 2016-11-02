@@ -2,7 +2,7 @@ using System;
 
 namespace Acquaintance.PubSub
 {
-    public class ImmediatePubSubSubscription<TPayload> : IPubSubSubscription<TPayload>
+    public class ImmediatePubSubSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly Action<TPayload> _act;
         private readonly Func<TPayload, bool> _filter;

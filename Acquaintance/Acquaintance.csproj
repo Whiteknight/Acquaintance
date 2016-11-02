@@ -46,7 +46,8 @@
     <Compile Include="Dispatching\IReqResChannelDispatchStrategy.cs" />
     <Compile Include="Dispatching\SimplePubSubChannelDispatchStrategy.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
-    <Compile Include="PubSub\PubSubSubscriptionFactory.cs" />
+    <Compile Include="PubSub\EventRouter.cs" />
+    <Compile Include="PubSub\SubscriptionFactory.cs" />
     <Compile Include="PubSub\SubscriptionBuilder.cs" />
     <Compile Include="RequestResponse\BrokeredResponse.cs" />
     <Compile Include="IBrokeredResponse.cs" />
@@ -61,7 +62,7 @@
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />
     <Compile Include="PubSub\IPubSubChannel.cs" />
-    <Compile Include="PubSub\IPubSubSubscription.cs" />
+    <Compile Include="PubSub\ISubscription.cs" />
     <Compile Include="PubSub\PublishEventThreadAction.cs" />
     <Compile Include="PubSub\PubSubChannel.cs" />
     <Compile Include="PubSub\SpecificThreadPubSubSubscription.cs" />
