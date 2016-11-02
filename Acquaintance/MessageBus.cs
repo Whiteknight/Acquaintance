@@ -20,7 +20,7 @@ namespace Acquaintance
             _threadPool = new MessagingWorkerThreadPool();
             _pubSubStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
             _eavesdropStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
-            _reqResStrategy = new SimpleReqResChannelDispatchStrategy(_threadPool);
+            _reqResStrategy = new SimpleReqResChannelDispatchStrategy();
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
             ListenerFactory = new ListenerFactory(_threadPool);
         }
@@ -90,9 +90,9 @@ namespace Acquaintance
             return new BrokeredResponse<TResponse>(responses);
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener, bool requestExclusivity = false)
         {
-            var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
+            var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name, requestExclusivity);
             return channel.Listen(listener);
         }
 
@@ -102,7 +102,6 @@ namespace Acquaintance
             var subscription = SubscriptionFactory.CreateSubscription(subscriber, filter, options);
             return channel.Subscribe(subscription);
         }
-
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)
         {

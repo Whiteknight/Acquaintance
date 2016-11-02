@@ -6,7 +6,7 @@ namespace Acquaintance.Dispatching
 {
     public interface IReqResChannelDispatchStrategy : IDisposable
     {
-        IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name);
+        IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, bool requestExclusivity);
 
         IEnumerable<IReqResChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name);
     }

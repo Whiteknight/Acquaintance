@@ -23,7 +23,7 @@ namespace Acquaintance
 
     public interface IListenable
     {
-        IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
+        IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener, bool requestExclusivity = false);
         IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null);
 
         ListenerFactory ListenerFactory { get; }

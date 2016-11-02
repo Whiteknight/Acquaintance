@@ -33,9 +33,9 @@ namespace Acquaintance
             return token;
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener, bool requestExclusivity = false)
         {
-            var token = _messageBus.Listen(name, listener);
+            var token = _messageBus.Listen(name, listener, requestExclusivity);
             _subscriptions.Add(token);
             return token;
         }

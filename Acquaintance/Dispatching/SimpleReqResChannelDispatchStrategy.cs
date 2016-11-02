@@ -1,6 +1,6 @@
 ﻿using Acquaintance.RequestResponse;
-using Acquaintance.Threading;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,28 +8,29 @@ namespace Acquaintance.Dispatching
 {
     public class SimpleReqResChannelDispatchStrategy : IReqResChannelDispatchStrategy
     {
-        private readonly MessagingWorkerThreadPool _threadPool;
-        private readonly Dictionary<string, IReqResChannel> _reqResChannels;
+        private readonly ConcurrentDictionary<string, IReqResChannel> _reqResChannels;
 
-        public SimpleReqResChannelDispatchStrategy(MessagingWorkerThreadPool threadPool)
+        public SimpleReqResChannelDispatchStrategy()
         {
-            _threadPool = threadPool;
-            _reqResChannels = new Dictionary<string, IReqResChannel>();
+            _reqResChannels = new ConcurrentDictionary<string, IReqResChannel>();
         }
 
-        private string GetReqResKey(Type requestType, Type responseType, string name)
-        {
-            return $"Request={requestType.AssemblyQualifiedName}:Response={responseType.AssemblyQualifiedName}:Name={name ?? string.Empty}";
-        }
-
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, bool requestExclusivity)
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
-                _reqResChannels.Add(key, new ReqResChannel<TRequest, TResponse>());
+            {
+                IReqResChannel<TRequest, TResponse> newChannel;
+                if (requestExclusivity)
+                    newChannel = new ExclusiveReqResChannel<TRequest, TResponse>();
+                else
+                    newChannel = new ReqResChannel<TRequest, TResponse>();
+
+                _reqResChannels.TryAdd(key, newChannel);
+            }
             var channel = _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
             if (channel == null)
-                throw new Exception("Channel has incorrect type");
+                throw new Exception("Channel is missing or has incorrect type");
             return channel;
         }
 
@@ -49,6 +50,11 @@ namespace Acquaintance.Dispatching
             foreach (var channel in _reqResChannels.Values)
                 channel.Dispose();
             _reqResChannels.Clear();
+        }
+
+        private static string GetReqResKey(Type requestType, Type responseType, string name)
+        {
+            return $"Request={requestType.AssemblyQualifiedName}:Response={responseType.AssemblyQualifiedName}:Name={name ?? string.Empty}";
         }
     }
 }
