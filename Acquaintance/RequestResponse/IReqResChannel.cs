@@ -4,7 +4,7 @@ namespace Acquaintance.RequestResponse
 {
     public interface IReqResChannel<TRequest, TResponse> : IReqResChannel
     {
-        IEnumerable<TResponse> Request(TRequest request);
+        IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request);
         SubscriptionToken Listen(IListener<TRequest, TResponse> listener);
     }
 

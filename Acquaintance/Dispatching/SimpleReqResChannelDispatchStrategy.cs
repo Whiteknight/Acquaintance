@@ -26,7 +26,7 @@ namespace Acquaintance.Dispatching
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
-                _reqResChannels.Add(key, new ReqResChannel<TRequest, TResponse>(_threadPool));
+                _reqResChannels.Add(key, new ReqResChannel<TRequest, TResponse>());
             var channel = _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");

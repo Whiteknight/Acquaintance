@@ -57,6 +57,7 @@
     <Compile Include="MessageBus.cs" />
     <Compile Include="ReqResMessageBusExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RequestResponse\ExclusiveReqResChannel.cs" />
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ListenerFactory.cs" />

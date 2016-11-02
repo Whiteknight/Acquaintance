@@ -64,12 +64,21 @@ namespace Acquaintance
 
         public IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request)
         {
-            var responses = new List<TResponse>();
+            var waiters = new List<IDispatchableRequest<TResponse>>();
             // TODO: Be able to specify a timeout for this operation to complete.
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
             foreach (var channel in _reqResStrategy.GetExistingChannels<TRequest, TResponse>(name))
-                responses.AddRange(channel.Request(request));
+                waiters.AddRange(channel.Request(request));
+
+            List<TResponse> responses = new List<TResponse>();
+            foreach (var waiter in waiters)
+            {
+                bool complete = waiter.WaitForResponse();
+                responses.Add(complete ? waiter.Response : default(TResponse));
+                waiter.Dispose();
+            }
+
             var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
             if (eavesdropChannels.Any())
             {

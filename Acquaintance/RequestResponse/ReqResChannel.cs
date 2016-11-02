@@ -1,4 +1,3 @@
-using Acquaintance.Threading;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,22 +7,16 @@ namespace Acquaintance.RequestResponse
 {
     public class ReqResChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
     {
-        private readonly MessagingWorkerThreadPool _threadPool;
         private readonly ConcurrentDictionary<Guid, IListener<TRequest, TResponse>> _listeners;
+        private bool _isExclusive;
 
-        public ReqResChannel(MessagingWorkerThreadPool threadPool)
+        public ReqResChannel()
         {
-            _threadPool = threadPool;
             _listeners = new ConcurrentDictionary<Guid, IListener<TRequest, TResponse>>();
+            _isExclusive = false;
         }
 
-        public void Unsubscribe(Guid id)
-        {
-            IListener<TRequest, TResponse> subscription;
-            _listeners.TryRemove(id, out subscription);
-        }
-
-        public IEnumerable<TResponse> Request(TRequest request)
+        public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
         {
             List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
             foreach (var subscription in _listeners.Values.Where(s => s.CanHandle(request)))
@@ -33,18 +26,7 @@ namespace Acquaintance.RequestResponse
                 var responseWaiter = subscription.Request(request);
                 waiters.Add(responseWaiter);
             }
-            List<TResponse> responses = new List<TResponse>();
-            foreach (var waiter in waiters)
-            {
-                bool complete = waiter.WaitForResponse();
-                if (!complete)
-                    responses.Add(default(TResponse));
-                else
-                    responses.Add(waiter.Response);
-                waiter.Dispose();
-            }
-
-            return responses;
+            return waiters;
         }
 
         public SubscriptionToken Listen(IListener<TRequest, TResponse> listener)
@@ -55,6 +37,15 @@ namespace Acquaintance.RequestResponse
             Guid id = Guid.NewGuid();
             _listeners.TryAdd(id, listener);
             return new SubscriptionToken(this, id);
+        }
+
+        public void Unsubscribe(Guid id)
+        {
+            IListener<TRequest, TResponse> subscription;
+            _listeners.TryRemove(id, out subscription);
+
+            if (_isExclusive && _listeners.IsEmpty)
+                _isExclusive = false;
         }
 
         public void Dispose()
