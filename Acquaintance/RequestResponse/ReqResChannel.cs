@@ -1,5 +1,6 @@
 using Acquaintance.Threading;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,17 +9,18 @@ namespace Acquaintance.RequestResponse
     public class ReqResChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
     {
         private readonly MessagingWorkerThreadPool _threadPool;
-        private readonly Dictionary<Guid, IReqResSubscription<TRequest, TResponse>> _subscriptions;
+        private readonly ConcurrentDictionary<Guid, IReqResSubscription<TRequest, TResponse>> _subscriptions;
 
         public ReqResChannel(MessagingWorkerThreadPool threadPool)
         {
             _threadPool = threadPool;
-            _subscriptions = new Dictionary<Guid, IReqResSubscription<TRequest, TResponse>>();
+            _subscriptions = new ConcurrentDictionary<Guid, IReqResSubscription<TRequest, TResponse>>();
         }
 
         public void Unsubscribe(Guid id)
         {
-            _subscriptions.Remove(id);
+            IReqResSubscription<TRequest, TResponse> subscription;
+            _subscriptions.TryRemove(id, out subscription);
         }
 
         public IEnumerable<TResponse> Request(TRequest request)
@@ -49,7 +51,7 @@ namespace Acquaintance.RequestResponse
         {
             Guid id = Guid.NewGuid();
             var subscription = CreateSubscription(act, filter, options);
-            _subscriptions.Add(id, subscription);
+            _subscriptions.TryAdd(id, subscription);
             return new SubscriptionToken(this, id);
         }
 

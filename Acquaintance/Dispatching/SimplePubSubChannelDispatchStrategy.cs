@@ -26,7 +26,7 @@ namespace Acquaintance.Dispatching
         {
             string key = GetPubSubKey(typeof(TPayload), name);
             if (!_pubSubChannels.ContainsKey(key))
-                _pubSubChannels.Add(key, new PubSubChannel<TPayload>(_threadPool));
+                _pubSubChannels.Add(key, new PubSubChannel<TPayload>());
             var channel = _pubSubChannels[key] as IPubSubChannel<TPayload>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");

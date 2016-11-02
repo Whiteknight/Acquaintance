@@ -1,18 +1,15 @@
-using Acquaintance.Threading;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Acquaintance.PubSub
 {
     public class PubSubChannel<TPayload> : IPubSubChannel<TPayload>
     {
-        private readonly SubscriptionFactory _factory;
-        private readonly Dictionary<Guid, ISubscription<TPayload>> _subscriptions;
+        private readonly ConcurrentDictionary<Guid, ISubscription<TPayload>> _subscriptions;
 
-        public PubSubChannel(MessagingWorkerThreadPool threadPool)
+        public PubSubChannel()
         {
-            _factory = new SubscriptionFactory(threadPool);
-            _subscriptions = new Dictionary<Guid, ISubscription<TPayload>>();
+            _subscriptions = new ConcurrentDictionary<Guid, ISubscription<TPayload>>();
         }
 
         public void Publish(TPayload payload)
@@ -24,13 +21,14 @@ namespace Acquaintance.PubSub
         public SubscriptionToken Subscribe(ISubscription<TPayload> subscription)
         {
             var id = Guid.NewGuid();
-            _subscriptions.Add(id, subscription);
+            _subscriptions.TryAdd(id, subscription);
             return new SubscriptionToken(this, id);
         }
 
         public void Unsubscribe(Guid id)
         {
-            _subscriptions.Remove(id);
+            ISubscription<TPayload> subscription;
+            _subscriptions.TryRemove(id, out subscription);
         }
 
         public void Dispose()
