@@ -29,7 +29,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void FilteredSubscriber()
+        public void SubscribeAndPublish_Filtered()
         {
             var target = new MessageBus();
             string text = null;
@@ -42,7 +42,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void PublishOnWorkerThread()
+        public void SubscribeAndPublish_WorkerThread()
         {
             var target = new MessageBus();
             target.StartWorkers(1);

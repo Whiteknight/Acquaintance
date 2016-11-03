@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance.RequestResponse;
+using System;
 using System.Linq;
 
 namespace Acquaintance
@@ -57,6 +58,14 @@ namespace Acquaintance
         public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter = null, SubscribeOptions options = null)
         {
             return messageBus.Eavesdrop(string.Empty, subscriber, filter, options);
+        }
+
+        public static RequestRouter<TRequest, TResponse> RequestRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
+        {
+            var router = new RequestRouter<TRequest, TResponse>(messageBus, channelName);
+            var token = messageBus.Listen(channelName, router);
+            router.SetToken(token);
+            return router;
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Acquaintance
             return new SubscriptionBuilder<TPayload>(messageBus, subscriber);
         }
 
-        public static IDisposable Transform<TInput, TOutput>(this IPubSubBus messageBus, string inName, Func<TInput, TOutput> transform, Func<TInput, bool> filter, string outName, SubscribeOptions options = null)
+        public static IDisposable SubscribeTransform<TInput, TOutput>(this IPubSubBus messageBus, string inName, Func<TInput, TOutput> transform, Func<TInput, bool> filter, string outName, SubscribeOptions options = null)
         {
             return messageBus.Subscribe(inName, input =>
             {

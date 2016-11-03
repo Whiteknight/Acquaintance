@@ -60,6 +60,7 @@
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ListenerFactory.cs" />
+    <Compile Include="RequestResponse\RequestRouter.cs" />
     <Compile Include="RequestResponse\ScatterGatherChannel.cs" />
     <Compile Include="SubscribeOptions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />

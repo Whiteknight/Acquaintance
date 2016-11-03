@@ -32,7 +32,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             string text = null;
             target.Subscribe<OutputEvent>("Test", e => text = e.Text + "Output");
-            target.Transform<InputEvent, OutputEvent>("Test", input => new OutputEvent(input.Text + "Translated"), null, "Test");
+            target.SubscribeTransform<InputEvent, OutputEvent>("Test", input => new OutputEvent(input.Text + "Translated"), null, "Test");
             target.Publish("Test", new InputEvent("Test2"));
             text.Should().Be("Test2TranslatedOutput");
         }

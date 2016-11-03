@@ -16,7 +16,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscribeAndPublish()
+        public void SubscriptionRouter_Publish()
         {
             var target = new MessageBus();
             int evens = 0;

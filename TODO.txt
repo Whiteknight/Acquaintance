@@ -4,8 +4,11 @@ Threading
 Eavesdrop
     Eavesdrop should work for request/response and scatter/gather (with tests)
 
+Publish/Subscribe
+
 Scatter/Gather
     Routing
 
 Request/Response
-    Routing
+    Transforming
+    
