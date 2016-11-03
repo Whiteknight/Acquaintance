@@ -33,20 +33,25 @@ namespace Acquaintance
             return token;
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener, bool requestExclusivity = false)
+        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
         {
-            var token = _messageBus.Listen(name, listener, requestExclusivity);
+            var token = _messageBus.Listen(name, listener);
             _subscriptions.Add(token);
             return token;
         }
 
-        public IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
+        public IDisposable Participate<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
         {
-            var token = _messageBus.Eavesdrop(name, subscriber, filter, options);
+            var token = _messageBus.Participate(name, listener);
             _subscriptions.Add(token);
             return token;
         }
 
-
+        public IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscriber)
+        {
+            var token = _messageBus.Eavesdrop(name, subscriber);
+            _subscriptions.Add(token);
+            return token;
+        }
     }
 }

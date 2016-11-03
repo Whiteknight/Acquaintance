@@ -9,15 +9,14 @@ messaging technology such as Acquaintance, individual components in your softwar
 without having to maintain explicit references to each other or worry about order of 
 initialization.
 
-Acquaintance implements two messaging patterns: Publish/Subscribe and Request/Response. To start
-using these, first create an `IMessageBus`:
+Acquaintance implements several messaging patterns: Publish/Subscribe, Request/Response and
+Scatter/Gather. To start using these, first create an `IMessageBus`:
 
     var messageBus = new MessageBus();
 
 ## Publish/Subscribe
 
 Pub/Sub is a pattern where a publisher sends an event message payload to zero or more subscribers.
-The following example will print the classic "Hello World" greeting to the console:
 
     // Create a subscription
     messageBus.Subscribe("test event", e => Console.WriteLine(e.Message))) 
@@ -36,11 +35,13 @@ but unlike `event` you don't need an explicit reference to the publisher in orde
 it. Using Acquaintance, you can subscribe to a channel where there are no publishers at all, and 
 create those publishers later as needed (Or, conversely, publish to a channel with no subscribers).
 
+Pub/Sub is used in cases where you need to alert many disconnected parts of your application about
+an event, but don't need any responses in return.
+
 ## Request/Response
 
-Request/Response is a pattern where a client sends a request to zero or more servers, and receives 
-back zero or more responses in return. This example prints the classic "Hello World" greeting to the
-console:
+Request/Response is a pattern where a client sends a request to zero or one listeners, and receives 
+back zero or one response in return. 
 
     // Setup a Listener
     messageBus.Listen<MyRequest, MyResponse>("test", req => new MyResponse { 
@@ -51,12 +52,13 @@ console:
     var response = messageBus.Request<MyRequest, MyResponse>("test", new MyRequest {
         Message = "World"
     });
-    foreach (var message in response.Responses)
-        Console.WriteLine(message);
+    Console.WriteLine(response);
 
 The types of Request, Response and the name (`"test"` in the example above) define the req/res
-channel. A channel may contain any number of listeners. Any number of clients may make requests
-on the channel.
+channel. 
+
+Request/Response is used in cases where you need to serialize access to a single resource (DB, 
+Search Engine, Socket, File, etc).
 
 ### Eavesdropping
 
@@ -73,10 +75,36 @@ all responses are received.
 It is possible to make modifications to the request and response objects in an eavesdropper, but as
 a matter of best practices it is strongly recommended against.
 
+## Scatter/Gather
+
+Scatter/Gather is a pattern very similar to Request/Response except it allows multiple listeners
+to participate in the conversation and the client will return many responses.
+
+    // Setup a Listener
+    messageBus.Participate<MyRequest, MyResponse>("test", req => new MyResponse { 
+        Message = "Hello " + req.Message"
+    });
+    
+    // Send a request
+    var response = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
+        Message = "World"
+    });
+    foreach (var message in response.Responses)
+        Console.WriteLine(response);
+
+Scatter/Gather can be used in places where you want to compare multiple results together:
+
+1. You need to gather several bids so you can select the best one
+2. You need to read values from multiple sensors to calculate an average
+3. You need to read data from several storage locations to assemble a single aggregate object
+
+Scatter/Gather functions very similarly to Request/Response, and shares almost all of the same
+mechanisms and options.
+
 ## Managing Subscriptions
 
-Every `Subscribe` and `Listen` method variant returns an `IDisposable`. This is a 
-**subscription token** and can be used to cancel the subscription. 
+Every `Subscribe`, `Listen`, `Participate` and `Eavesdrop` method variant returns an \
+`IDisposable` **subscription token**. This token can be disposed to cancel the subscription:
 
     // Create a subscription
     var subscription = messageBus.Subscribe("test event", e => Console.WriteLine(e.Message))) 
@@ -103,11 +131,13 @@ of them.
     
 ## Thread Safety
 
-Thread safety is handled by the subscriber or listener. Every `Subscribe` or `Listen` method call 
-takes an optional `SubscribeOptions` parameter, which can be used to control how the message is 
-received.
+Thread safety is handled by the subscriber or listener. When setting up a subscription or listener,
+there will be several options for specifying how those callbacks are invoked.
 
-    var subscription = messageBus.Subscribe("", ..., new SubscribeOptions {
+    var token = messageBus.Subscribe(..., new SubscribeOptions {
+        ...
+    });
+    var token = messageBus.Listen(..., new ListenerOptions {
         ...
     });
     
@@ -129,11 +159,6 @@ blocking operation for the publisher or client.
     new SubscribeOptions {
         DispatchType = DispatchThreadType.Immediate
     };
-
-Immediate delivery is the simplest and fastest option, but it does cause the client to block. A 
-large number of subscribers or listeners all using Immediate dispatch will create performance 
-problems. Use this if your callbacks are few, small and lightweight, but consider one of the 
-asynchronous options otherwise.
     
 ### Random Worker Thread
 
@@ -150,8 +175,8 @@ blocked, dispatching the message to a worker thread is a good choice.
         DispatchType = DispatchThreadType.AnyWorkerThread
     };
 
-Notice that if you don't have any worker threads started, a `AnyWorkerThread` subscription will be
-treated like an `Immediate` subscription instead.
+Notice that if you don't have any worker threads started, a `AnyWorkerThread` subscription will 
+be treated like an `Immediate` subscription instead.
     
 ### Specific Thread
 

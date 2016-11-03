@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="EventRouterTests.cs" />
     <Compile Include="PubSubStressTests.cs" />
+    <Compile Include="ScatterGatherTests.cs" />
     <Compile Include="RequestResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PubSubTests.cs" />

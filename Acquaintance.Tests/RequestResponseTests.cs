@@ -27,8 +27,7 @@ namespace Acquaintance.Tests
             target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
-            response.Responses.Should().HaveCount(1);
-            response.Responses[0].Text.Should().Be("RequestResponded");
+            response.Text.Should().Be("RequestResponded");
         }
 
         [Test]
@@ -38,8 +37,7 @@ namespace Acquaintance.Tests
             target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
             var response = target.Request("Test", typeof(TestRequest), new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
-            response.Responses.Should().HaveCount(1);
-            response.Responses[0].Should().BeOfType(typeof(TestResponse));
+            response.Should().BeOfType(typeof(TestResponse));
         }
 
         [Test]
@@ -49,7 +47,7 @@ namespace Acquaintance.Tests
             target.StartWorkers(1);
             try
             {
-                target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId }, new ListenOptions
+                target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId }, null, new ListenOptions
                 {
                     DispatchType = DispatchThreadType.AnyWorkerThread,
                     WaitTimeoutMs = 2000
@@ -57,7 +55,6 @@ namespace Acquaintance.Tests
                 var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
 
                 response.Should().NotBeNull();
-                response.Responses.Should().HaveCount(1);
             }
             finally
             {

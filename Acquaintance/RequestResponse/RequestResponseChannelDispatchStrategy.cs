@@ -6,26 +6,23 @@ using System.Linq;
 
 namespace Acquaintance.Dispatching
 {
-    public class SimpleReqResChannelDispatchStrategy : IReqResChannelDispatchStrategy
+    public class RequestResponseChannelDispatchStrategy : IReqResChannelDispatchStrategy
     {
         private readonly ConcurrentDictionary<string, IReqResChannel> _reqResChannels;
+        private readonly bool _isExclusive;
 
-        public SimpleReqResChannelDispatchStrategy()
+        public RequestResponseChannelDispatchStrategy(bool isExclusive)
         {
             _reqResChannels = new ConcurrentDictionary<string, IReqResChannel>();
+            _isExclusive = isExclusive;
         }
 
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, bool requestExclusivity)
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
             {
-                IReqResChannel<TRequest, TResponse> newChannel;
-                if (requestExclusivity)
-                    newChannel = new ExclusiveReqResChannel<TRequest, TResponse>();
-                else
-                    newChannel = new ReqResChannel<TRequest, TResponse>();
-
+                IReqResChannel<TRequest, TResponse> newChannel = CreateChannel<TRequest, TResponse>();
                 _reqResChannels.TryAdd(key, newChannel);
             }
             var channel = _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
@@ -50,6 +47,14 @@ namespace Acquaintance.Dispatching
             foreach (var channel in _reqResChannels.Values)
                 channel.Dispose();
             _reqResChannels.Clear();
+        }
+
+        private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
+        {
+            if (_isExclusive)
+                return new ExclusiveReqResChannel<TRequest, TResponse>();
+            else
+                return new RequestResponseChannel<TRequest, TResponse>();
         }
 
         private static string GetReqResKey(Type requestType, Type responseType, string name)

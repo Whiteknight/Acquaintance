@@ -13,21 +13,22 @@ namespace Acquaintance
         private readonly MessagingWorkerThreadPool _threadPool;
         private readonly IPubSubChannelDispatchStrategy _pubSubStrategy;
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
-        private readonly IReqResChannelDispatchStrategy _reqResStrategy;
+        private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
+        private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
 
         public MessageBus()
         {
             _threadPool = new MessagingWorkerThreadPool();
-            _pubSubStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
-            _eavesdropStrategy = new SimplePubSubChannelDispatchStrategy(_threadPool);
-            _reqResStrategy = new SimpleReqResChannelDispatchStrategy();
+            _pubSubStrategy = new PubSubChannelDispatchStrategy();
+            _eavesdropStrategy = new PubSubChannelDispatchStrategy();
+            _requestResponseStrategy = new RequestResponseChannelDispatchStrategy(true);
+            _scatterGatherStrategy = new RequestResponseChannelDispatchStrategy(false);
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
             ListenerFactory = new ListenerFactory(_threadPool);
         }
 
         public SubscriptionFactory SubscriptionFactory { get; }
         public ListenerFactory ListenerFactory { get; }
-
 
         public void StartWorkers(int numThreads = 2)
         {
@@ -62,13 +63,23 @@ namespace Acquaintance
             return channel.Subscribe(subscription);
         }
 
-        public IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request)
+        public TResponse Request<TRequest, TResponse>(string name, TRequest request)
+        {
+            return RequestInternal<TRequest, TResponse>(name, request, _requestResponseStrategy).Responses.SingleOrDefault();
+        }
+
+        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request)
+        {
+            return RequestInternal<TRequest, TResponse>(name, request, _scatterGatherStrategy);
+        }
+
+        private IGatheredResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
         {
             var waiters = new List<IDispatchableRequest<TResponse>>();
             // TODO: Be able to specify a timeout for this operation to complete.
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
-            foreach (var channel in _reqResStrategy.GetExistingChannels<TRequest, TResponse>(name))
+            foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))
                 waiters.AddRange(channel.Request(request));
 
             List<TResponse> responses = new List<TResponse>();
@@ -87,20 +98,25 @@ namespace Acquaintance
                     channel.Publish(conversation);
             }
 
-            return new BrokeredResponse<TResponse>(responses);
+            return new GatheredResponse<TResponse>(responses);
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener, bool requestExclusivity = false)
+        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
         {
-            var channel = _reqResStrategy.GetChannelForSubscription<TRequest, TResponse>(name, requestExclusivity);
+            var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
             return channel.Listen(listener);
         }
 
-        public IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
+        public IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscription)
         {
             var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(name);
-            var subscription = SubscriptionFactory.CreateSubscription(subscriber, filter, options);
             return channel.Subscribe(subscription);
+        }
+
+        public IDisposable Participate<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        {
+            var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
+            return channel.Listen(listener);
         }
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)
@@ -131,8 +147,10 @@ namespace Acquaintance
         public void Dispose()
         {
             _pubSubStrategy.Dispose();
-            _reqResStrategy.Dispose();
+            _requestResponseStrategy.Dispose();
             _threadPool.Dispose();
         }
+
+
     }
 }

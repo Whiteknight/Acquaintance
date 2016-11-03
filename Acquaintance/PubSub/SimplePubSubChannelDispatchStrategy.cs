@@ -1,19 +1,16 @@
 ﻿using Acquaintance.PubSub;
-using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Acquaintance.Dispatching
 {
-    public class SimplePubSubChannelDispatchStrategy : IPubSubChannelDispatchStrategy
+    public class PubSubChannelDispatchStrategy : IPubSubChannelDispatchStrategy
     {
-        private readonly MessagingWorkerThreadPool _threadPool;
         private readonly Dictionary<string, IPubSubChannel> _pubSubChannels;
 
-        public SimplePubSubChannelDispatchStrategy(MessagingWorkerThreadPool threadPool)
+        public PubSubChannelDispatchStrategy()
         {
-            _threadPool = threadPool;
             _pubSubChannels = new Dictionary<string, IPubSubChannel>();
         }
 

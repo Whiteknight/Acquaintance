@@ -1,19 +1,17 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
-    public class ReqResChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
+    public class ScatterGatherChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
     {
         private readonly ConcurrentDictionary<Guid, IListener<TRequest, TResponse>> _listeners;
-        private bool _isExclusive;
 
-        public ReqResChannel()
+        public ScatterGatherChannel()
         {
             _listeners = new ConcurrentDictionary<Guid, IListener<TRequest, TResponse>>();
-            _isExclusive = false;
         }
 
         public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
@@ -43,9 +41,6 @@ namespace Acquaintance.RequestResponse
         {
             IListener<TRequest, TResponse> subscription;
             _listeners.TryRemove(id, out subscription);
-
-            if (_isExclusive && _listeners.IsEmpty)
-                _isExclusive = false;
         }
 
         public void Dispose()

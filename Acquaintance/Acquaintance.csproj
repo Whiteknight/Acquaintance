@@ -41,17 +41,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conversation.cs" />
-    <Compile Include="Dispatching\SimpleReqResChannelDispatchStrategy.cs" />
-    <Compile Include="Dispatching\IPubSubChannelDispatchStrategy.cs" />
-    <Compile Include="Dispatching\IReqResChannelDispatchStrategy.cs" />
-    <Compile Include="Dispatching\SimplePubSubChannelDispatchStrategy.cs" />
+    <Compile Include="RequestResponse\RequestResponseChannelDispatchStrategy.cs" />
+    <Compile Include="PubSub\IPubSubChannelDispatchStrategy.cs" />
+    <Compile Include="RequestResponse\IReqResChannelDispatchStrategy.cs" />
+    <Compile Include="PubSub\SimplePubSubChannelDispatchStrategy.cs" />
     <Compile Include="ListenOptions.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\EventRouter.cs" />
     <Compile Include="PubSub\SubscriptionFactory.cs" />
     <Compile Include="PubSub\SubscriptionBuilder.cs" />
-    <Compile Include="RequestResponse\BrokeredResponse.cs" />
-    <Compile Include="IBrokeredResponse.cs" />
+    <Compile Include="RequestResponse\GatheredResponse.cs" />
+    <Compile Include="GatheredResponse.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="IMessageBus.cs" />
     <Compile Include="MessageBus.cs" />
@@ -61,6 +61,7 @@
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ListenerFactory.cs" />
+    <Compile Include="RequestResponse\ScatterGatherChannel.cs" />
     <Compile Include="SubscribeOptions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />
@@ -75,7 +76,7 @@
     <Compile Include="RequestResponse\IReqResChannel.cs" />
     <Compile Include="RequestResponse\IListener.cs" />
     <Compile Include="IRequest.cs" />
-    <Compile Include="RequestResponse\ReqResChannel.cs" />
+    <Compile Include="RequestResponse\RequestResponseChannel.cs" />
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="SubscriptionCollection.cs" />
     <Compile Include="SubscriptionToken.cs" />

@@ -4,15 +4,19 @@ using System;
 
 namespace Acquaintance
 {
-    public interface ISubscribable
+    public interface IBusBase
+    {
+        ListenerFactory ListenerFactory { get; }
+        SubscriptionFactory SubscriptionFactory { get; }
+    }
+
+    public interface ISubscribable : IBusBase
     {
         IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription);
-        SubscriptionFactory SubscriptionFactory { get; }
     }
 
     public interface IPublishable
     {
-        // Sub-Sub Broadcasting
         void Publish<TPayload>(string name, TPayload payload);
     }
 
@@ -21,18 +25,18 @@ namespace Acquaintance
 
     }
 
-    public interface IListenable
+    public interface IListenable : IBusBase
     {
-        IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener, bool requestExclusivity = false);
-        IDisposable Eavesdrop<TRequest, TResponse>(string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null);
-
-        ListenerFactory ListenerFactory { get; }
+        IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
+        IDisposable Participate<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
+        IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscriber);
     }
 
     public interface IRequestable
     {
         // Request-Response
-        IBrokeredResponse<TResponse> Request<TRequest, TResponse>(string name, TRequest request);
+        TResponse Request<TRequest, TResponse>(string name, TRequest request);
+        IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request);
     }
 
     public interface IReqResBus : IListenable, IRequestable

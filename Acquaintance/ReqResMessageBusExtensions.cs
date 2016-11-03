@@ -1,63 +1,57 @@
-﻿using Acquaintance.RequestResponse;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 
 namespace Acquaintance
 {
     public static class ReqResMessageBusExtensions
     {
-        public static IBrokeredResponse<TResponse> Request<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
+        public static TResponse Request<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
         {
             return messageBus.Request<TRequest, TResponse>(string.Empty, request);
         }
 
-        public static IBrokeredResponse<object> Request(this IRequestable messageBus, string name, Type requestType, object request)
+        public static object Request(this IRequestable messageBus, string name, Type requestType, object request)
         {
             var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
             if (requestInterface == null)
-                return new BrokeredResponse<object>(new List<object>());
+                return null;
             var responseType = requestInterface.GetGenericArguments().Single();
 
             var method = messageBus.GetType().GetMethod("Request").MakeGenericMethod(requestType, responseType);
-            var response = method.Invoke(messageBus, new[] { name, request }) as IBrokeredResponse<object>;
-            return response ?? new BrokeredResponse<object>(new List<object>());
+            return method.Invoke(messageBus, new[] { name, request });
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> func, Func<TRequest, bool> filter, ListenOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
         {
-            var listener = messageBus.ListenerFactory.CreateListener(func, filter, options);
-            return messageBus.Listen(name, listener);
+            var subscription = messageBus.ListenerFactory.CreateListener<TRequest, TResponse>(subscriber, filter, options);
+            return messageBus.Listen(name, subscription);
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, ListenOptions options = null)
-        {
-            return messageBus.Listen(name, subscriber, null, options);
-        }
-
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter, ListenOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
         {
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, ListenOptions options = null)
+        public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
         {
-            return messageBus.Listen(string.Empty, subscriber, null, options);
+            var subscription = messageBus.ListenerFactory.CreateListener<TRequest, TResponse>(subscriber, filter, options);
+            return messageBus.Participate(name, subscription);
         }
 
-        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter, SubscribeOptions options = null)
+        public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
+        {
+            return messageBus.Participate(string.Empty, subscriber, null, options);
+        }
+
+        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter = null, SubscribeOptions options = null)
+        {
+            var subscription = messageBus.SubscriptionFactory.CreateSubscription(subscriber, filter, options);
+            return messageBus.Eavesdrop(name, subscription);
+        }
+
+        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter = null, SubscribeOptions options = null)
         {
             return messageBus.Eavesdrop(string.Empty, subscriber, filter, options);
-        }
-
-        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, string name, Action<Conversation<TRequest, TResponse>> subscriber, SubscribeOptions options = null)
-        {
-            return messageBus.Eavesdrop(name, subscriber, null, options);
-        }
-
-        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, SubscribeOptions options = null)
-        {
-            return messageBus.Eavesdrop(string.Empty, subscriber, null, options);
         }
     }
 }

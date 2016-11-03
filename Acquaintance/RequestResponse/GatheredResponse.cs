@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace Acquaintance.RequestResponse
 {
-    public class BrokeredResponse<TResponse> : IBrokeredResponse<TResponse>
+    public class GatheredResponse<TResponse> : IGatheredResponse<TResponse>
     {
-        public BrokeredResponse(IReadOnlyList<TResponse> responses)
+        public GatheredResponse(IReadOnlyList<TResponse> responses)
         {
             Responses = responses;
         }
