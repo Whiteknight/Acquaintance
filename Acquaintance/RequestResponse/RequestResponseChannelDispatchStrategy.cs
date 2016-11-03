@@ -1,10 +1,9 @@
-﻿using Acquaintance.RequestResponse;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Acquaintance.Dispatching
+namespace Acquaintance.RequestResponse
 {
     public class RequestResponseChannelDispatchStrategy : IReqResChannelDispatchStrategy
     {
@@ -52,9 +51,9 @@ namespace Acquaintance.Dispatching
         private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
         {
             if (_isExclusive)
-                return new ExclusiveReqResChannel<TRequest, TResponse>();
-            else
                 return new RequestResponseChannel<TRequest, TResponse>();
+            else
+                return new ScatterGatherChannel<TRequest, TResponse>();
         }
 
         private static string GetReqResKey(Type requestType, Type responseType, string name)

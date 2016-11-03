@@ -32,6 +32,11 @@ namespace Acquaintance
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
 
+        public static IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
+        {
+            return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
+        }
+
         public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
         {
             var subscription = messageBus.ListenerFactory.CreateListener<TRequest, TResponse>(subscriber, filter, options);

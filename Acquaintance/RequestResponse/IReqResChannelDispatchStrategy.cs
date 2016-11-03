@@ -1,8 +1,7 @@
-﻿using Acquaintance.RequestResponse;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Acquaintance.Dispatching
+namespace Acquaintance.RequestResponse
 {
     public interface IReqResChannelDispatchStrategy : IDisposable
     {

@@ -1,7 +1,9 @@
-﻿using Acquaintance.Threading;
+﻿using Acquaintance.RequestResponse;
+using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading;
 
 namespace Acquaintance.Tests
@@ -52,6 +54,23 @@ namespace Acquaintance.Tests
             }
         }
 
+        [Test]
+        public void ParticipateScatterGather_MapReduce()
+        {
+            var target = new MessageBus();
+
+            target.Participate<TestRequest, TestResponse>(r => new TestResponse { Text = r.Text + "A" });
+            target.Participate<TestRequest, TestResponse>(r => new TestResponse { Text = r.Text + "B" });
+            target.Participate<TestRequest, TestResponse>(r => new TestResponse { Text = r.Text + "C" });
+            target.Participate<TestRequest, TestResponse>(r => new TestResponse { Text = r.Text + "D" });
+            target.Participate<TestRequest, TestResponse>(r => new TestResponse { Text = r.Text + "E" });
+
+            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" });
+
+            var reduced = string.Join("", response.Responses.Select(r => r.Text).OrderBy(s => s));
+            reduced.Should().Be("xAxBxCxDxE");
+        }
+
         private class GenericRequest<T> { }
         private class GenericResponse<T> { }
 
@@ -68,6 +87,16 @@ namespace Acquaintance.Tests
             act.ShouldNotThrow();
         }
 
+        [Test]
+        public void Participate_SecondListener()
+        {
+            var target = new MessageBus();
+            var listener1 = new ImmediateListener<TestRequest, TestResponse>(req => null, null);
+            var listener2 = new ImmediateListener<TestRequest, TestResponse>(req => null, null);
+            target.Participate("test", listener1);
+            Action act = () => target.Participate("test", listener2);
+            act.ShouldNotThrow<Exception>();
+        }
     }
 
 }

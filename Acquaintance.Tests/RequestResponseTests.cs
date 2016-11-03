@@ -1,4 +1,5 @@
-﻿using Acquaintance.Threading;
+﻿using Acquaintance.RequestResponse;
+using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
@@ -89,6 +90,15 @@ namespace Acquaintance.Tests
             act.ShouldNotThrow();
         }
 
+        [Test]
+        public void Listen_SecondListener()
+        {
+            var target = new MessageBus();
+            var listener1 = new ImmediateListener<TestRequest, TestResponse>(req => null, null);
+            var listener2 = new ImmediateListener<TestRequest, TestResponse>(req => null, null);
+            target.Listen("test", listener1);
+            Action act = () => target.Listen("test", listener2);
+            act.ShouldThrow<Exception>();
+        }
     }
-
 }
