@@ -1,8 +1,7 @@
-﻿using Acquaintance.PubSub;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Acquaintance.Dispatching
+namespace Acquaintance.PubSub
 {
     public interface IPubSubChannelDispatchStrategy : IDisposable
     {

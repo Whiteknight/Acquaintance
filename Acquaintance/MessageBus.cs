@@ -1,5 +1,4 @@
-﻿using Acquaintance.Dispatching;
-using Acquaintance.PubSub;
+﻿using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using System;

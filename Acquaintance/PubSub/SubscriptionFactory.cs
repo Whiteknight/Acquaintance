@@ -15,15 +15,23 @@ namespace Acquaintance.PubSub
         public ISubscription<TPayload> CreateSubscription<TPayload>(Action<TPayload> act, Func<TPayload, bool> filter, SubscribeOptions options)
         {
             options = options ?? SubscribeOptions.Default;
+            ISubscription<TPayload> subscription;
             switch (options.DispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadPubSubSubscription<TPayload>(act, filter, _threadPool);
+                    subscription = new AnyThreadPubSubSubscription<TPayload>(act, _threadPool);
+                    break;
                 case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadPubSubSubscription<TPayload>(act, filter, options.ThreadId, _threadPool);
+                    subscription = new SpecificThreadPubSubSubscription<TPayload>(act, options.ThreadId, _threadPool);
+                    break;
                 default:
-                    return new ImmediatePubSubSubscription<TPayload>(act, filter);
+                    subscription = new ImmediatePubSubSubscription<TPayload>(act);
+                    break;
             }
+
+            if (filter != null)
+                subscription = new FilteredSubscription<TPayload>(subscription, filter);
+            return subscription;
         }
     }
 }

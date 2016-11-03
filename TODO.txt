@@ -1,5 +1,5 @@
 Threading
-    Free worker threads should all pull from the same queue, instead of using a dispatcher
+    Free worker threads should all pull from the same queue, instead of using a dispatch algorithm
 
 Eavesdrop
     Eavesdrop should work for request/response and scatter/gather (with tests)

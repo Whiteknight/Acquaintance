@@ -1,9 +1,8 @@
-﻿using Acquaintance.PubSub;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Acquaintance.Dispatching
+namespace Acquaintance.PubSub
 {
     public class PubSubChannelDispatchStrategy : IPubSubChannelDispatchStrategy
     {
