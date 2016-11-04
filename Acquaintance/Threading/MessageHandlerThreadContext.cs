@@ -1,61 +1,52 @@
 ﻿using System.Collections.Concurrent;
-using System.Threading;
 
 namespace Acquaintance.Threading
 {
     public class MessageHandlerThreadContext : IMessageHandlerThreadContext
     {
-        private readonly ConcurrentQueue<IThreadAction> _queue;
-        private readonly ManualResetEventSlim _resetEvent;
+        private readonly BlockingCollection<IThreadAction> _queue;
 
         public MessageHandlerThreadContext()
         {
-            _queue = new ConcurrentQueue<IThreadAction>();
-            _resetEvent = new ManualResetEventSlim(false);
+            _queue = new BlockingCollection<IThreadAction>();
         }
 
         public bool ShouldStop { get; private set; }
 
         public void DispatchAction(IThreadAction action)
         {
-            _queue.Enqueue(action);
-            _resetEvent.Set();
+            _queue.Add(action);
         }
 
         public void Stop()
         {
             ShouldStop = true;
-            _resetEvent.Set();
+            _queue.CompleteAdding();
         }
 
-        public void WaitForEvent(int? timeoutMs = null)
+        public IThreadAction GetAction(int? timeoutMs = null)
         {
-            if (timeoutMs == null)
+            try
             {
-                _resetEvent.Wait();
-                _resetEvent.Reset();
-                return;
+                if (!timeoutMs.HasValue || timeoutMs.Value > 0)
+                    return _queue.Take();
+
+                IThreadAction action;
+                bool hasValue = _queue.TryTake(out action, timeoutMs.Value);
+                if (!hasValue || action == null)
+                    return null;
+                return action;
             }
-
-            if (timeoutMs.Value <= 0)
-                return;
-            bool isSet = _resetEvent.Wait(timeoutMs.Value);
-            if (isSet)
-                _resetEvent.Reset();
-        }
-
-        public IThreadAction GetAction()
-        {
-            IThreadAction action;
-            bool hasValue = _queue.TryDequeue(out action);
-            if (!hasValue || action == null)
+            catch
+            {
                 return null;
-            return action;
+            }
         }
 
         public void Dispose()
         {
-            _resetEvent.Dispose();
+            ShouldStop = true;
+            _queue.Dispose();
         }
     }
 }

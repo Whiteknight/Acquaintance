@@ -16,11 +16,7 @@
         {
         }
 
-        public void WaitForEvent(int? timeoutMs = null)
-        {
-        }
-
-        public IThreadAction GetAction()
+        public IThreadAction GetAction(int? timeoutMs = null)
         {
             return null;
         }

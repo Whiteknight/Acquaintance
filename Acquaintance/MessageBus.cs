@@ -125,8 +125,7 @@ namespace Acquaintance
             var threadContext = _threadPool.GetCurrentThread();
             while (!shouldStop() && !threadContext.ShouldStop)
             {
-                threadContext.WaitForEvent(timeoutMs);
-                var action = threadContext.GetAction();
+                var action = threadContext.GetAction(timeoutMs);
                 action?.Execute(threadContext);
             }
         }

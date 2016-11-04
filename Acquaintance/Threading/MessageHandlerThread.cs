@@ -50,11 +50,9 @@ namespace Acquaintance.Threading
 
             while (true)
             {
-                context.WaitForEvent();
+                IThreadAction action = context.GetAction();
                 if (context.ShouldStop)
                     return;
-
-                IThreadAction action = context.GetAction();
                 while (action != null)
                 {
                     try

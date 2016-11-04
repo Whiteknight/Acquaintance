@@ -7,7 +7,6 @@ namespace Acquaintance.Threading
         bool ShouldStop { get; }
         void DispatchAction(IThreadAction action);
         void Stop();
-        void WaitForEvent(int? timeoutMs = null);
-        IThreadAction GetAction();
+        IThreadAction GetAction(int? timeoutMs = null);
     }
 }
