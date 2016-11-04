@@ -71,6 +71,17 @@ namespace Acquaintance.Tests
             reduced.Should().Be("xAxBxCxDxE");
         }
 
+        [Test]
+        public void ParticipateScatterGather_Eavesdrop()
+        {
+            var target = new MessageBus();
+            string eavesdropped = null;
+            target.Participate<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
+            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null);
+            var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            eavesdropped.Should().Be("RequestResponded");
+        }
+
         private class GenericRequest<T> { }
         private class GenericResponse<T> { }
 

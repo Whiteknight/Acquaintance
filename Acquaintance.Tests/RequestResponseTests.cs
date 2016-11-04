@@ -64,7 +64,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void EavesdropRequestAndResponse()
+        public void RequestAndResponse_Eavesdrop()
         {
             var target = new MessageBus();
             string eavesdropped = null;

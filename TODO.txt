@@ -2,13 +2,16 @@ Threading
     Free worker threads should all pull from the same queue, instead of using a dispatch algorithm
 
 Eavesdrop
-    Eavesdrop should work for request/response and scatter/gather (with tests)
 
 Publish/Subscribe
+    Sagas/Aggregation
+    Service Activation
 
 Scatter/Gather
+    Participants should have an ID, and those should be used in IGatheredResponse
     Routing
 
 Request/Response
     Transforming
+    Service Activation
     
