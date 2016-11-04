@@ -1,9 +1,9 @@
 ﻿using Acquaintance.Logging;
+using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,7 +18,8 @@ namespace Acquaintance
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
-        private readonly ConcurrentDictionary<Guid, IMessageBusModule> _modules;
+
+        private readonly ModuleManager _modules;
 
         public MessageBus(ILogger logger = null)
         {
@@ -30,7 +31,7 @@ namespace Acquaintance
             _scatterGatherStrategy = new RequestResponseChannelDispatchStrategy(false);
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
             ListenerFactory = new ListenerFactory(_threadPool);
-            _modules = new ConcurrentDictionary<Guid, IMessageBusModule>();
+            _modules = new ModuleManager(this, _logger);
         }
 
         public SubscriptionFactory SubscriptionFactory { get; }
@@ -64,16 +65,7 @@ namespace Acquaintance
 
         public IDisposable AddModule(IMessageBusModule module)
         {
-            Guid id = Guid.NewGuid();
-            _logger.Debug("Adding module Id={0} Type={1}", id, module.GetType().Name);
-            module.Attach(this);
-            bool added = _modules.TryAdd(id, module);
-            if (!added)
-                return null;
-
-            _logger.Debug("Starting module Id={0} Type={1}", id, module.GetType().Name);
-            module.Start();
-            return new ModuleToken(this, id);
+            return _modules.Add(module);
         }
 
         public void Publish<TPayload>(string name, TPayload payload)
@@ -189,39 +181,7 @@ namespace Acquaintance
             _eavesdropStrategy.Dispose();
             _scatterGatherStrategy.Dispose();
             _threadPool.Dispose();
-            foreach (var module in _modules.Values)
-            {
-                module.Dispose();
-            }
-        }
 
-        private class ModuleToken : IDisposable
-        {
-            private readonly MessageBus _messageBus;
-            private readonly Guid _moduleId;
-
-            public ModuleToken(MessageBus messageBus, Guid moduleId)
-            {
-                _messageBus = messageBus;
-                _moduleId = moduleId;
-            }
-
-            public void Dispose()
-            {
-                _messageBus.RemoveModule(_moduleId);
-            }
-        }
-
-        private void RemoveModule(Guid id)
-        {
-            IMessageBusModule module;
-            _modules.TryRemove(id, out module);
-
-            _logger.Debug("Stopping module Id={0} Type={1}", id, module.GetType().Name);
-            module.Stop();
-
-            _logger.Debug("Removing module Id={0} Type={1}", id, module.GetType().Name);
-            module.Unattach();
         }
 
         private static ILogger CreateDefaultLogger()
