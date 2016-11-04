@@ -81,7 +81,12 @@ namespace Acquaintance.Threading
                 thread.Stop();
         }
 
-        public IMessageHandlerThreadContext GetThread(int threadId, bool allowAutoCreate)
+        public IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate)
+        {
+            return GetThreadContext(threadId, allowAutoCreate);
+        }
+
+        private IMessageHandlerThreadContext GetThreadContext(int threadId, bool allowAutoCreate)
         {
             IMessageHandlerThreadContext context = _freeWorkers.Where(t => t.ThreadId == threadId).Select(t => t.Context).FirstOrDefault();
             if (context != null)
@@ -105,7 +110,7 @@ namespace Acquaintance.Threading
             return new DummyMessageHandlerThreadContext();
         }
 
-        public IMessageHandlerThreadContext GetAnyFreeWorkerThread()
+        public IActionDispatcher GetFreeWorkerThreadDispatcher()
         {
             if (_freeWorkers.Count == 0)
                 return null;
@@ -113,10 +118,16 @@ namespace Acquaintance.Threading
             return _freeWorkers[_currentThread].Context;
         }
 
-        public IMessageHandlerThreadContext GetCurrentThread()
+        public IActionDispatcher GetCurrentThreadDispatcher()
         {
             var currentThreadId = Thread.CurrentThread.ManagedThreadId;
-            return GetThread(currentThreadId, true);
+            return GetThreadDispatcher(currentThreadId, true);
+        }
+
+        public IMessageHandlerThreadContext GetCurrentThreadContext()
+        {
+            var currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            return GetThreadContext(currentThreadId, true);
         }
 
         private IMessageHandlerThreadContext CreateDetachedContext()

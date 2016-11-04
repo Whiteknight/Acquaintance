@@ -122,7 +122,7 @@ namespace Acquaintance
         {
             if (shouldStop == null)
                 shouldStop = () => false;
-            var threadContext = _threadPool.GetCurrentThread();
+            var threadContext = _threadPool.GetCurrentThreadContext();
             while (!shouldStop() && !threadContext.ShouldStop)
             {
                 var action = threadContext.GetAction(timeoutMs);
@@ -132,7 +132,7 @@ namespace Acquaintance
 
         public void EmptyActionQueue(int max)
         {
-            var threadContext = _threadPool.GetCurrentThread();
+            var threadContext = _threadPool.GetCurrentThreadContext();
             for (int i = 0; i < max; i++)
             {
                 var action = threadContext.GetAction();
@@ -148,7 +148,5 @@ namespace Acquaintance
             _requestResponseStrategy.Dispose();
             _threadPool.Dispose();
         }
-
-
     }
 }

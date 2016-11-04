@@ -16,13 +16,7 @@ namespace Acquaintance.PubSub
 
         public void Publish(TPayload payload)
         {
-            if (_threadPool.NumberOfRunningFreeWorkers == 0)
-            {
-                _act(payload);
-                return;
-            }
-
-            var thread = _threadPool.GetAnyFreeWorkerThread();
+            var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)
             {
                 _act(payload);

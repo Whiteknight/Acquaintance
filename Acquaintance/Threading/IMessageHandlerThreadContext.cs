@@ -2,10 +2,14 @@
 
 namespace Acquaintance.Threading
 {
-    public interface IMessageHandlerThreadContext : IDisposable
+    public interface IActionDispatcher
+    {
+        void DispatchAction(IThreadAction action);
+    }
+
+    public interface IMessageHandlerThreadContext : IActionDispatcher, IDisposable
     {
         bool ShouldStop { get; }
-        void DispatchAction(IThreadAction action);
         void Stop();
         IThreadAction GetAction(int? timeoutMs = null);
     }

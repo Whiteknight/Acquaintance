@@ -27,7 +27,7 @@ namespace Acquaintance.RequestResponse
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            var thread = _threadPool.GetThread(_threadId, false);
+            var thread = _threadPool.GetThreadDispatcher(_threadId, false);
             if (thread == null)
                 return new ImmediateResponse<TResponse>(default(TResponse));
 

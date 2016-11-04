@@ -18,7 +18,7 @@ namespace Acquaintance.PubSub
 
         public void Publish(TPayload payload)
         {
-            var thread = _threadPool.GetThread(_threadId, true);
+            var thread = _threadPool.GetThreadDispatcher(_threadId, true);
             thread?.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
         }
     }

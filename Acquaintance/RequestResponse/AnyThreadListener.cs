@@ -25,10 +25,7 @@ namespace Acquaintance.RequestResponse
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            if (_threadPool.NumberOfRunningFreeWorkers == 0)
-                return new ImmediateResponse<TResponse>(_func(request));
-
-            var thread = _threadPool.GetAnyFreeWorkerThread();
+            var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)
                 return new ImmediateResponse<TResponse>(_func(request));
 
