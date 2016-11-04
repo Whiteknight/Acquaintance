@@ -2,6 +2,7 @@
 using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,6 +15,7 @@ namespace Acquaintance
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
+        private readonly ConcurrentDictionary<Guid, IMessageBusModule> _modules;
 
         public MessageBus()
         {
@@ -24,6 +26,7 @@ namespace Acquaintance
             _scatterGatherStrategy = new RequestResponseChannelDispatchStrategy(false);
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
             ListenerFactory = new ListenerFactory(_threadPool);
+            _modules = new ConcurrentDictionary<Guid, IMessageBusModule>();
         }
 
         public SubscriptionFactory SubscriptionFactory { get; }
@@ -48,6 +51,18 @@ namespace Acquaintance
         public void StopDedicatedWorkerThread(int id)
         {
             _threadPool.StopDedicatedWorker(id);
+        }
+
+        public IDisposable AddModule(IMessageBusModule module)
+        {
+            Guid id = Guid.NewGuid();
+            module.Attach(this);
+            bool added = _modules.TryAdd(id, module);
+            if (!added)
+                return null;
+
+            module.Start();
+            return new ModuleToken(this, id);
         }
 
         public void Publish<TPayload>(string name, TPayload payload)
@@ -146,7 +161,38 @@ namespace Acquaintance
         {
             _pubSubStrategy.Dispose();
             _requestResponseStrategy.Dispose();
+            _eavesdropStrategy.Dispose();
+            _scatterGatherStrategy.Dispose();
             _threadPool.Dispose();
+            foreach (var module in _modules.Values)
+            {
+                module.Dispose();
+            }
+        }
+
+        private class ModuleToken : IDisposable
+        {
+            private readonly MessageBus _messageBus;
+            private readonly Guid _moduleId;
+
+            public ModuleToken(MessageBus messageBus, Guid moduleId)
+            {
+                _messageBus = messageBus;
+                _moduleId = moduleId;
+            }
+
+            public void Dispose()
+            {
+                _messageBus.RemoveModule(_moduleId);
+            }
+        }
+
+        private void RemoveModule(Guid id)
+        {
+            IMessageBusModule module;
+            _modules.TryRemove(id, out module);
+            module.Stop();
+            module.Unattach();
         }
     }
 }

@@ -4,6 +4,14 @@ using System;
 
 namespace Acquaintance
 {
+    public interface IMessageBusModule : IDisposable
+    {
+        void Attach(IMessageBus messageBus);
+        void Unattach();
+        void Start();
+        void Stop();
+    }
+
     public interface IBusBase
     {
         ListenerFactory ListenerFactory { get; }
@@ -51,6 +59,8 @@ namespace Acquaintance
         void StopWorkers();
         int StartDedicatedWorkerThread();
         void StopDedicatedWorkerThread(int id);
+
+        IDisposable AddModule(IMessageBusModule module);
 
         // Runloops and Event Processing
         void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500);

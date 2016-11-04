@@ -38,32 +38,68 @@ namespace Acquaintance.Tests
             text.Should().BeNull();
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
-
         }
 
         [Test]
-        public void SubscribeAndPublish_WorkerThread()
+        public void SubscribeAndPublish_FreeWorkerThread()
         {
             var target = new MessageBus();
             target.StartWorkers(1);
+            var resetEvent = new ManualResetEvent(false);
             try
             {
-                string text = null;
-                var testThread = Thread.CurrentThread.ManagedThreadId;
-                target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text + Thread.CurrentThread.ManagedThreadId, new SubscribeOptions
+                target.Subscribe<TestPubSubEvent>("Test", e => resetEvent.Set(), new SubscribeOptions
                 {
                     DispatchType = DispatchThreadType.AnyWorkerThread,
                 });
                 target.Publish("Test", new TestPubSubEvent("Test"));
-                // TODO: Find a better way to test without hard-coded timeout.
-                Thread.Sleep(2000);
-
-                text.Should().NotBeNull();
-                text.Should().NotBe("Test");
-                text.Should().NotBe("Test" + testThread);
+                resetEvent.WaitOne(5000).Should().BeTrue();
             }
             finally
             {
+                resetEvent.Dispose();
+                target.Dispose();
+            }
+        }
+
+        [Test]
+        public void SubscribeAndPublish_SpecificThread()
+        {
+            var target = new MessageBus();
+            var resetEvent = new ManualResetEvent(false);
+            var id = target.StartDedicatedWorkerThread();
+            try
+            {
+
+                target.Subscribe<TestPubSubEvent>("Test", e => resetEvent.Set(), SubscribeOptions.SpecificThread(id));
+                target.Publish("Test", new TestPubSubEvent("Test"));
+
+                resetEvent.WaitOne(5000).Should().BeTrue();
+            }
+            finally
+            {
+                resetEvent.Dispose();
+                target.Dispose();
+            }
+        }
+
+        [Test]
+        public void SubscribeAndPublish_SpecificThread_Stopped()
+        {
+            var target = new MessageBus();
+            var resetEvent = new ManualResetEvent(false);
+            var id = target.StartDedicatedWorkerThread();
+            try
+            {
+                target.StopDedicatedWorkerThread(id);
+                target.Subscribe<TestPubSubEvent>("Test", e => resetEvent.Set(), SubscribeOptions.SpecificThread(id));
+                target.Publish("Test", new TestPubSubEvent("Test"));
+
+                resetEvent.WaitOne(1000).Should().BeFalse();
+            }
+            finally
+            {
+                resetEvent.Dispose();
                 target.Dispose();
             }
         }

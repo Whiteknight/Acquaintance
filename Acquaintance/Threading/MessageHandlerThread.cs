@@ -37,11 +37,6 @@ namespace Acquaintance.Threading
             _started = false;
         }
 
-        public void DispatchAction(IThreadAction action)
-        {
-            _context.DispatchAction(action);
-        }
-
         private static void HandlerThreadFunc(object contextObject)
         {
             IMessageHandlerThreadContext context = contextObject as IMessageHandlerThreadContext;
