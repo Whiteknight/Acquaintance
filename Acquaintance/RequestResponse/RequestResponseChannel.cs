@@ -9,6 +9,13 @@ namespace Acquaintance.RequestResponse
         private Guid _tokenId;
         private IListener<TRequest, TResponse> _listener;
 
+        public RequestResponseChannel()
+        {
+            Id = Guid.NewGuid();
+        }
+
+        public Guid Id { get; }
+
         public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
         {
             var listener = _listener;

@@ -12,7 +12,10 @@ namespace Acquaintance.RequestResponse
         public ScatterGatherChannel()
         {
             _listeners = new ConcurrentDictionary<Guid, IListener<TRequest, TResponse>>();
+            Id = Guid.NewGuid();
         }
+
+        public Guid Id { get; }
 
         public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
         {

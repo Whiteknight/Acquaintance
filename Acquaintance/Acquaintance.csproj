@@ -41,6 +41,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conversation.cs" />
+    <Compile Include="IMessageBusModule.cs" />
+    <Compile Include="Logging\DelegateLogger.cs" />
+    <Compile Include="Logging\ILogger.cs" />
+    <Compile Include="Logging\SilentLogger.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="RequestResponse\RequestResponseChannelDispatchStrategy.cs" />
     <Compile Include="PubSub\IPubSubChannelDispatchStrategy.cs" />

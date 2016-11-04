@@ -10,7 +10,10 @@ namespace Acquaintance.PubSub
         public PubSubChannel()
         {
             _subscriptions = new ConcurrentDictionary<Guid, ISubscription<TPayload>>();
+            Id = Guid.NewGuid();
         }
+
+        public Guid Id { get; }
 
         public void Publish(TPayload payload)
         {

@@ -1,7 +1,7 @@
-using System.Threading;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System.Threading;
 
 namespace Acquaintance.Tests
 {
@@ -15,12 +15,13 @@ namespace Acquaintance.Tests
         [Test]
         public void WorkerThread_Stress()
         {
-            const int numEvents = 1000000;
+            const int numEvents = 10000;
             var target = new MessageBus();
             target.StartWorkers(4);
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
-            target.Subscribe<TestPubSubEvent>("Test", e => {
+            target.Subscribe<TestPubSubEvent>("Test", e =>
+            {
                 int c = Interlocked.Increment(ref count);
                 if (c >= numEvents)
                     resetEvent.Set();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Acquaintance.RequestResponse
@@ -10,6 +11,6 @@ namespace Acquaintance.RequestResponse
 
     public interface IReqResChannel : IChannel
     {
-
+        Guid Id { get; }
     }
 }
