@@ -18,4 +18,9 @@ Request/Response
     Transforming
     Service Activation
     Exception propagation
+
+Testing
+    Store Payload/Request objects for verification
+    Allow callbacks
+    Allow throwing exceptions?
     

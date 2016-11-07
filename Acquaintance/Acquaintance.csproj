@@ -86,6 +86,12 @@
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="SubscriptionCollection.cs" />
     <Compile Include="SubscriptionToken.cs" />
+    <Compile Include="Testing\ExpectationFailedException.cs" />
+    <Compile Include="Testing\IExpectation.cs" />
+    <Compile Include="Testing\PublishExpectation.cs" />
+    <Compile Include="Testing\RequestExpectation.cs" />
+    <Compile Include="Testing\TestingExtensions.cs" />
+    <Compile Include="Testing\TestingModule.cs" />
     <Compile Include="Threading\DispatchThreadType.cs" />
     <Compile Include="Threading\DummyMessageHandlerThreadContext.cs" />
     <Compile Include="Threading\IMessageHandlerThreadContext.cs" />
@@ -101,6 +107,7 @@
   <ItemGroup>
     <None Include="Acquaintance.nuspec" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

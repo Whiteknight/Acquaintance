@@ -1,4 +1,5 @@
-﻿using Acquaintance.PubSub;
+﻿using Acquaintance.Modules;
+using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
 using System;
 
@@ -52,7 +53,7 @@ namespace Acquaintance
         int StartDedicatedWorkerThread();
         void StopDedicatedWorkerThread(int id);
 
-        IDisposable AddModule(IMessageBusModule module);
+        IModuleManager Modules { get; }
 
         // Runloops and Event Processing
         void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500);

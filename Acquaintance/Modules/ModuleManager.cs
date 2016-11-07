@@ -1,10 +1,21 @@
 ﻿using Acquaintance.Logging;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Acquaintance.Modules
 {
-    public class ModuleManager : IDisposable
+    public interface IModuleManager
+    {
+        IDisposable Add(IMessageBusModule module);
+
+        IEnumerable<TModule> GetByType<TModule>()
+            where TModule : IMessageBusModule;
+
+    }
+
+    public class ModuleManager : IDisposable, IModuleManager
     {
         private readonly IMessageBus _messageBus;
         private readonly ILogger _logger;
@@ -29,6 +40,12 @@ namespace Acquaintance.Modules
             _logger.Debug("Starting module Id={0} Type={1}", id, module.GetType().Name);
             module.Start();
             return new ModuleToken(this, id);
+        }
+
+        public IEnumerable<TModule> GetByType<TModule>()
+            where TModule : IMessageBusModule
+        {
+            return _modules.Values.OfType<TModule>().ToList();
         }
 
         public void Dispose()

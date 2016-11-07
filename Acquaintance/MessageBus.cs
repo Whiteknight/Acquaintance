@@ -19,8 +19,6 @@ namespace Acquaintance
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
 
-        private readonly ModuleManager _modules;
-
         public MessageBus(ILogger logger = null)
         {
             _logger = logger ?? CreateDefaultLogger();
@@ -31,11 +29,12 @@ namespace Acquaintance
             _scatterGatherStrategy = new RequestResponseChannelDispatchStrategy(false);
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
             ListenerFactory = new ListenerFactory(_threadPool);
-            _modules = new ModuleManager(this, _logger);
+            Modules = new ModuleManager(this, _logger);
         }
 
         public SubscriptionFactory SubscriptionFactory { get; }
         public ListenerFactory ListenerFactory { get; }
+        public IModuleManager Modules { get; }
 
         public void StartWorkers(int numThreads = 2)
         {
@@ -61,11 +60,6 @@ namespace Acquaintance
         {
             _logger.Debug("Stopping dedicated worker thread {0}", id);
             _threadPool.StopDedicatedWorker(id);
-        }
-
-        public IDisposable AddModule(IMessageBusModule module)
-        {
-            return _modules.Add(module);
         }
 
         public void Publish<TPayload>(string name, TPayload payload)
