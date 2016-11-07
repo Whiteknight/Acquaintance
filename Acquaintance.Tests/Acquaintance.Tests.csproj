@@ -72,6 +72,7 @@
     <Compile Include="SubscriptionBuilderTests.cs" />
     <Compile Include="TestingTests.cs" />
     <Compile Include="TranslateTests.cs" />
+    <Compile Include="Utility\StringTrieTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Acquaintance\Acquaintance.csproj">

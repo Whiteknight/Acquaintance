@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace Acquaintance.PubSub
 {
-    public class PubSubChannelDispatchStrategy : IPubSubChannelDispatchStrategy
+    public class SimpleDispatchStrategy : IPubSubChannelDispatchStrategy
     {
         private readonly Dictionary<string, IPubSubChannel> _pubSubChannels;
 
-        public PubSubChannelDispatchStrategy()
+        public SimpleDispatchStrategy()
         {
             _pubSubChannels = new Dictionary<string, IPubSubChannel>();
         }

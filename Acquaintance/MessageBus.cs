@@ -19,17 +19,19 @@ namespace Acquaintance
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
 
-        public MessageBus(ILogger logger = null)
+        public MessageBus(ILogger logger = null, IDispatchStrategyFactory dispatcherFactory = null)
         {
             _logger = logger ?? CreateDefaultLogger();
             _threadPool = new MessagingWorkerThreadPool();
-            _pubSubStrategy = new PubSubChannelDispatchStrategy();
-            _eavesdropStrategy = new PubSubChannelDispatchStrategy();
-            _requestResponseStrategy = new RequestResponseChannelDispatchStrategy(true);
-            _scatterGatherStrategy = new RequestResponseChannelDispatchStrategy(false);
             SubscriptionFactory = new SubscriptionFactory(_threadPool);
             ListenerFactory = new ListenerFactory(_threadPool);
             Modules = new ModuleManager(this, _logger);
+
+            dispatcherFactory = dispatcherFactory ?? new SimpleDispatchStrategyFactory();
+            _pubSubStrategy = dispatcherFactory.CreatePubSubStrategy();
+            _eavesdropStrategy = dispatcherFactory.CreatePubSubStrategy();
+            _requestResponseStrategy = dispatcherFactory.CreateRequestResponseStrategy();
+            _scatterGatherStrategy = dispatcherFactory.CreateScatterGatherStrategy();
         }
 
         public SubscriptionFactory SubscriptionFactory { get; }

@@ -41,16 +41,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Conversation.cs" />
+    <Compile Include="DispatchStrategyFactory.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\SilentLogger.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
+    <Compile Include="PubSub\TrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestResponseChannelDispatchStrategy.cs" />
     <Compile Include="PubSub\IPubSubChannelDispatchStrategy.cs" />
     <Compile Include="RequestResponse\IReqResChannelDispatchStrategy.cs" />
-    <Compile Include="PubSub\SimplePubSubChannelDispatchStrategy.cs" />
+    <Compile Include="PubSub\SimpleDispatchStrategy.cs" />
     <Compile Include="ListenOptions.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\EventRouter.cs" />

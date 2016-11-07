@@ -113,5 +113,17 @@ namespace Acquaintance.Tests
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
         }
+
+        [Test]
+        public void SubscribeAndPublish_Wildcards()
+        {
+            var target = new MessageBus(allowWildcards: true);
+            int count = 0;
+            target.Subscribe<TestPubSubEvent>("1.X.c", e => count += 1);
+            target.Subscribe<TestPubSubEvent>("1.Y.c", e => count += 10);
+            target.Subscribe<TestPubSubEvent>("1.Y.d", e => count += 100);
+            target.Publish("1.*.c", new TestPubSubEvent("Test2"));
+            count.Should().Be(11);
+        }
     }
 }
