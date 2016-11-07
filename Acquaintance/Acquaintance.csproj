@@ -96,6 +96,7 @@
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />
     <Compile Include="Timers\TimerMessageBusExtensions.cs" />
+    <Compile Include="Utility\StringTrie.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Acquaintance.nuspec" />

@@ -12,8 +12,10 @@ Publish/Subscribe
 Scatter/Gather
     Participants should have an ID, and those should be used in IGatheredResponse
     Routing
+    Exception propagation
 
 Request/Response
     Transforming
     Service Activation
+    Exception propagation
     

@@ -11,6 +11,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Internal messaging for loosely-coupled applications</description>
     <copyright>Copyright 2016</copyright>
-    <tags>Messaging Pub/Sub Request/Response</tags>
+    <tags>Messaging Pub/Sub Request/Response Scatter/Gather</tags>
   </metadata>
 </package>
