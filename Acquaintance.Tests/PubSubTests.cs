@@ -10,7 +10,7 @@ namespace Acquaintance.Tests
     {
         private class TestPubSubEvent
         {
-            public string Text { get; set; }
+            public string Text { get; }
 
             public TestPubSubEvent(string text)
             {
@@ -117,7 +117,7 @@ namespace Acquaintance.Tests
         [Test]
         public void SubscribeAndPublish_Wildcards()
         {
-            var target = new MessageBus(allowWildcards: true);
+            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
             int count = 0;
             target.Subscribe<TestPubSubEvent>("1.X.c", e => count += 1);
             target.Subscribe<TestPubSubEvent>("1.Y.c", e => count += 10);

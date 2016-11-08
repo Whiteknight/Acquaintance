@@ -36,7 +36,7 @@ namespace Acquaintance.Tests
         public void WorkerThread_Stress_Wildcards()
         {
             const int numEvents = 100000;
-            var target = new MessageBus(allowWildcards: true);
+            var target = new MessageBus(dispatcherFactory:new TrieDispatchStrategyFactory());
             target.StartWorkers(4);
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
