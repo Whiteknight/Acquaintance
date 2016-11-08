@@ -100,5 +100,15 @@ namespace Acquaintance.Tests
             Action act = () => target.Listen("test", listener2);
             act.ShouldThrow<Exception>();
         }
+
+        [Test]
+        public void ListenRequestAndResponse_Wildcards()
+        {
+            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
+            target.Listen<TestRequest, TestResponse>("Test.A", req => new TestResponse { Text = req.Text + "Responded" });
+            var response = target.Request<TestRequest, TestResponse>("Test.*", new TestRequest { Text = "Request" });
+            response.Should().NotBeNull();
+            response.Text.Should().Be("RequestResponded");
+        }
     }
 }

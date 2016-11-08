@@ -5,12 +5,12 @@ using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
-    public class RequestResponseChannelDispatchStrategy : IReqResChannelDispatchStrategy
+    public class ReqResSimpleDispatchStrategy : IReqResChannelDispatchStrategy
     {
         private readonly ConcurrentDictionary<string, IReqResChannel> _reqResChannels;
         private readonly bool _isExclusive;
 
-        public RequestResponseChannelDispatchStrategy(bool isExclusive)
+        public ReqResSimpleDispatchStrategy(bool isExclusive)
         {
             _reqResChannels = new ConcurrentDictionary<string, IReqResChannel>();
             _isExclusive = isExclusive;

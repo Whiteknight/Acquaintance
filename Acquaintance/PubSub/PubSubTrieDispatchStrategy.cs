@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Acquaintance.Utility;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
-    public class TrieDispatchStrategy : IPubSubChannelDispatchStrategy
+    public class PubSubTrieDispatchStrategy : IPubSubChannelDispatchStrategy
     {
         private readonly StringTrie<IPubSubChannel> _channels;
 
-        public TrieDispatchStrategy()
+        public PubSubTrieDispatchStrategy()
         {
             _channels = new StringTrie<IPubSubChannel>();
         }

@@ -48,11 +48,11 @@
     <Compile Include="Logging\SilentLogger.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
-    <Compile Include="PubSub\TrieDispatchStrategy.cs" />
-    <Compile Include="RequestResponse\RequestResponseChannelDispatchStrategy.cs" />
+    <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
+    <Compile Include="RequestResponse\ReqResSimpleDispatchStrategy.cs" />
     <Compile Include="PubSub\IPubSubChannelDispatchStrategy.cs" />
     <Compile Include="RequestResponse\IReqResChannelDispatchStrategy.cs" />
-    <Compile Include="PubSub\SimpleDispatchStrategy.cs" />
+    <Compile Include="PubSub\PubSubSimpleDispatchStrategy.cs" />
     <Compile Include="ListenOptions.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\EventRouter.cs" />
@@ -68,6 +68,7 @@
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ListenerFactory.cs" />
+    <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
     <Compile Include="RequestResponse\ScatterGatherChannel.cs" />
     <Compile Include="SubscribeOptions.cs" />

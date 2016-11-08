@@ -54,12 +54,60 @@ namespace Acquaintance.Utility
             return node.Value;
         }
 
+        public T GetOrInsert(string root1, string root2, IEnumerable<string> path, Func<T> getValue)
+        {
+            TrieNode node = _root;
+            if (!string.IsNullOrEmpty(root1))
+            {
+                if (root1 == "*")
+                    throw new Exception("Cannot use wildcards for GetOrInsert");
+                node = node.Children.GetOrAdd(root1, k => new TrieNode(root1));
+            }
+
+            if (!string.IsNullOrEmpty(root2))
+            {
+                if (root2 == "*")
+                    throw new Exception("Cannot use wildcards for GetOrInsert");
+                node = node.Children.GetOrAdd(root2, k => new TrieNode(root2));
+            }
+
+            foreach (string key in path)
+            {
+                if (key == "*")
+                    throw new Exception("Cannot use wildcards for GetOrInsert");
+                node = node.Children.GetOrAdd(key, k => new TrieNode(k));
+            }
+            node.SetValueIfMissing(getValue());
+            return node.Value;
+        }
+
+
         public IEnumerable<T> Get(string root, string[] path)
         {
             TrieNode node = _root;
             if (!string.IsNullOrEmpty(root))
             {
                 bool ok = node.Children.TryGetValue(root, out node);
+                if (!ok)
+                    return Enumerable.Empty<T>();
+            }
+            List<TrieNode> foundNodes = new List<TrieNode>();
+            GetInternal(path, 0, node, foundNodes, true);
+            return foundNodes.Select(n => n.Value);
+        }
+
+        public IEnumerable<T> Get(string root1, string root2, string[] path)
+        {
+            TrieNode node = _root;
+            if (!string.IsNullOrEmpty(root1))
+            {
+                bool ok = node.Children.TryGetValue(root1, out node);
+                if (!ok)
+                    return Enumerable.Empty<T>();
+            }
+            if (!string.IsNullOrEmpty(root2))
+            {
+                bool ok = node.Children.TryGetValue(root2, out node);
                 if (!ok)
                     return Enumerable.Empty<T>();
             }

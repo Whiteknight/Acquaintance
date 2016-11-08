@@ -14,13 +14,11 @@ Scatter/Gather
     Participants should have an ID, and those should be used in IGatheredResponse
     Routing
     Exception propagation
-    Wildcards
 
 Request/Response
     Transforming
     Service Activation
     Exception propagation
-    Wildcards
 
 Testing
     Store Payload/Request objects for verification

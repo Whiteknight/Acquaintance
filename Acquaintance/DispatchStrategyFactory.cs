@@ -15,17 +15,17 @@ namespace Acquaintance
     {
         public IPubSubChannelDispatchStrategy CreatePubSubStrategy()
         {
-            return new SimpleDispatchStrategy();
+            return new PubSubSimpleDispatchStrategy();
         }
 
         public IReqResChannelDispatchStrategy CreateRequestResponseStrategy()
         {
-            return new RequestResponseChannelDispatchStrategy(true);
+            return new ReqResSimpleDispatchStrategy(true);
         }
 
         public IReqResChannelDispatchStrategy CreateScatterGatherStrategy()
         {
-            return new RequestResponseChannelDispatchStrategy(false);
+            return new ReqResSimpleDispatchStrategy(false);
         }
     }
 
@@ -33,17 +33,17 @@ namespace Acquaintance
     {
         public IPubSubChannelDispatchStrategy CreatePubSubStrategy()
         {
-            return new TrieDispatchStrategy();
+            return new PubSubTrieDispatchStrategy();
         }
 
         public IReqResChannelDispatchStrategy CreateRequestResponseStrategy()
         {
-            return new RequestResponseChannelDispatchStrategy(true);
+            return new ReqResTrieDispatchStrategy(true);
         }
 
         public IReqResChannelDispatchStrategy CreateScatterGatherStrategy()
         {
-            return new RequestResponseChannelDispatchStrategy(false);
+            return new ReqResTrieDispatchStrategy(false);
         }
     }
 }

@@ -108,6 +108,17 @@ namespace Acquaintance.Tests
             Action act = () => target.Participate("test", listener2);
             act.ShouldNotThrow<Exception>();
         }
+
+        [Test]
+        public void ParticipateScatterGather_Wildcards()
+        {
+            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
+            target.Participate<int, int>("Test.A", req => 1);
+            target.Participate<int, int>("Test.B", req => 2);
+            target.Participate<int, int>("Test.C", req => 3);
+            var response = target.Scatter<int, int>("Test.*", 0).Responses;
+            response.Should().BeEquivalentTo(1, 2, 3);
+        }
     }
 
 }

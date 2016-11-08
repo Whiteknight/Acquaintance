@@ -5,11 +5,11 @@ using System.Linq;
 
 namespace Acquaintance.PubSub
 {
-    public class SimpleDispatchStrategy : IPubSubChannelDispatchStrategy
+    public class PubSubSimpleDispatchStrategy : IPubSubChannelDispatchStrategy
     {
         private readonly ConcurrentDictionary<string, IPubSubChannel> _pubSubChannels;
 
-        public SimpleDispatchStrategy()
+        public PubSubSimpleDispatchStrategy()
         {
             _pubSubChannels = new ConcurrentDictionary<string, IPubSubChannel>();
         }

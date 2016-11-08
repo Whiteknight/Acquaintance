@@ -62,6 +62,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="MessageTimerTests.cs" />
+    <Compile Include="RequestResponseStressTests.cs" />
     <Compile Include="RequestRouterTests.cs" />
     <Compile Include="EventRouterTests.cs" />
     <Compile Include="PubSubStressTests.cs" />
