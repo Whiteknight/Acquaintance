@@ -15,6 +15,11 @@ namespace Acquaintance.Testing
             return GetTestingModule(messageBus).ExpectRequest<TRequest, TResponse>(name, filter, description);
         }
 
+        public static ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(this IMessageBus messageBus, string name, Func<TRequest, bool> filter = null, string description = null)
+        {
+            return GetTestingModule(messageBus).ExpectScatter<TRequest, TResponse>(name, filter, description);
+        }
+
         public static void VerifyAllExpectations(this IMessageBus messageBus)
         {
             GetTestingModule(messageBus).VerifyAllExpectations();

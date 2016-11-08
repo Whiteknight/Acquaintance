@@ -38,6 +38,14 @@ namespace Acquaintance.Testing
             return expectation;
         }
 
+        public ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(string name, Func<TRequest, bool> filter, string description)
+        {
+            var expectation = new ScatterExpectation<TRequest, TResponse>(name, description, filter);
+            _expectations.Add(expectation);
+            _subscriptions.Participate(name, r => expectation.TryHandle(r), filter);
+            return expectation;
+        }
+
         public void Dispose()
         {
         }

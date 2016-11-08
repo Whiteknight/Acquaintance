@@ -92,6 +92,7 @@
     <Compile Include="Testing\IExpectation.cs" />
     <Compile Include="Testing\PublishExpectation.cs" />
     <Compile Include="Testing\RequestExpectation.cs" />
+    <Compile Include="Testing\ScatterExpectation.cs" />
     <Compile Include="Testing\TestingExtensions.cs" />
     <Compile Include="Testing\TestingModule.cs" />
     <Compile Include="Threading\DispatchThreadType.cs" />
