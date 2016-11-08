@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,11 +7,11 @@ namespace Acquaintance.PubSub
 {
     public class SimpleDispatchStrategy : IPubSubChannelDispatchStrategy
     {
-        private readonly Dictionary<string, IPubSubChannel> _pubSubChannels;
+        private readonly ConcurrentDictionary<string, IPubSubChannel> _pubSubChannels;
 
         public SimpleDispatchStrategy()
         {
-            _pubSubChannels = new Dictionary<string, IPubSubChannel>();
+            _pubSubChannels = new ConcurrentDictionary<string, IPubSubChannel>();
         }
 
         private string GetPubSubKey(Type type, string name)
@@ -22,7 +23,7 @@ namespace Acquaintance.PubSub
         {
             string key = GetPubSubKey(typeof(TPayload), name);
             if (!_pubSubChannels.ContainsKey(key))
-                _pubSubChannels.Add(key, new PubSubChannel<TPayload>());
+                _pubSubChannels.TryAdd(key, new PubSubChannel<TPayload>());
             var channel = _pubSubChannels[key] as IPubSubChannel<TPayload>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");
