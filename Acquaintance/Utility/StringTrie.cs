@@ -63,7 +63,9 @@ namespace Acquaintance.Utility
                 if (!ok)
                     return Enumerable.Empty<T>();
             }
-            return GetInternal(path, 0, node, true).Select(n => n.Value);
+            List<TrieNode> foundNodes = new List<TrieNode>();
+            GetInternal(path, 0, node, foundNodes, true);
+            return foundNodes.Select(n => n.Value);
         }
 
         public void OnEach(Action<T> act)
@@ -78,30 +80,28 @@ namespace Acquaintance.Utility
                 OnEach(child, act);
         }
 
-        private IEnumerable<TrieNode> GetInternal(string[] path, int i, TrieNode node, bool allowWildcards)
+        private void GetInternal(string[] path, int i, TrieNode node, List<TrieNode> resultNodes, bool allowWildcards)
         {
             if (i >= path.Length)
-                return new[] { node };
+            {
+                resultNodes.Add(node);
+                return;
+            }
 
             string key = path[i];
             if (key != "*")
             {
                 bool ok = node.Children.TryGetValue(key, out node);
                 if (ok)
-                    return GetInternal(path, i + 1, node, allowWildcards);
-                return Enumerable.Empty<TrieNode>();
+                    GetInternal(path, i + 1, node, resultNodes, allowWildcards);
+                return;
             }
 
             if (!allowWildcards)
                 throw new Exception("Cannot use a wildcard here");
 
-            List<TrieNode> matches = new List<TrieNode>();
             foreach (var child in node.Children.Values)
-            {
-                var values = GetInternal(path, i + 1, child, true);
-                matches.AddRange(values);
-            }
-            return matches;
+                GetInternal(path, i + 1, child, resultNodes, true);
         }
 
         // TODO: Logic to remove entries from the Trie
