@@ -129,5 +129,33 @@ namespace Acquaintance.Tests
 
             responses.Should().BeEquivalentTo(5, 6, 7, 0, 0);
         }
+
+        [Test]
+        public void ListenTransformRequest_Test()
+        {
+            var target = new MessageBus();
+            string request = null;
+            target.Listen<string, int>("test string", r =>
+            {
+                request = r;
+                return 5;
+            });
+            target.ListenTransformRequest<int, string, int>("test int", r => r.ToString() + "A", null, "test string");
+            var response = target.Request<int, int>("test int", 4);
+
+            response.Should().Be(5);
+            request.Should().Be("4A");
+        }
+
+        [Test]
+        public void ListenTransformResponse_Test()
+        {
+            var target = new MessageBus();
+            target.Listen<int, string>("test string", r => "5");
+            target.ListenTransformResponse<int, string, int>("test int", int.Parse, null, "test string");
+            var response = target.Request<int, int>("test int", 4);
+
+            response.Should().Be(5);
+        }
     }
 }

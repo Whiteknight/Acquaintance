@@ -12,15 +12,13 @@ Publish/Subscribe
 
 Scatter/Gather
     Participants should have an ID, and those should be used in IGatheredResponse
-    Routing
     Exception propagation
-    N Events (subcribe to N events and then unsubscribe automatically)
+    Request/Response Transforms (Requires IListener to be able to return more than one result
+    Request routing (Requires IListener to be able to return more than one result
 
 Request/Response
-    Transforming
     Service Activation
     Exception propagation
-    N Events (subcribe to N events and then unsubscribe automatically)
 
 Testing
     Store Payload/Request objects for verification

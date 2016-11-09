@@ -24,7 +24,7 @@ namespace Acquaintance
 
         public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
         {
-            var subscription = messageBus.ListenerFactory.CreateListener<TRequest, TResponse>(subscriber, filter, options);
+            var subscription = messageBus.ListenerFactory.CreateListener(subscriber, filter, options);
             return messageBus.Listen(name, subscription);
         }
 
@@ -33,39 +33,30 @@ namespace Acquaintance
             return messageBus.Listen(string.Empty, subscriber, null, options);
         }
 
-        public static IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
-        {
-            return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
-        }
-
-        public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
-        {
-            var subscription = messageBus.ListenerFactory.CreateListener<TRequest, TResponse>(subscriber, filter, options);
-            return messageBus.Participate(name, subscription);
-        }
-
-        public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
-        {
-            return messageBus.Participate(string.Empty, subscriber, null, options);
-        }
-
-        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, string name, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter = null, SubscribeOptions options = null)
-        {
-            var subscription = messageBus.SubscriptionFactory.CreateSubscription(subscriber, filter, options);
-            return messageBus.Eavesdrop(name, subscription);
-        }
-
-        public static IDisposable Eavesdrop<TRequest, TResponse>(this IListenable messageBus, Action<Conversation<TRequest, TResponse>> subscriber, Func<Conversation<TRequest, TResponse>, bool> filter = null, SubscribeOptions options = null)
-        {
-            return messageBus.Eavesdrop(string.Empty, subscriber, filter, options);
-        }
-
         public static RequestRouter<TRequest, TResponse> RequestRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
         {
             var router = new RequestRouter<TRequest, TResponse>(messageBus, channelName);
             var token = messageBus.Listen(channelName, router);
             router.SetToken(token);
             return router;
+        }
+
+        public static IDisposable ListenTransformRequest<TRequestIn, TRequestOut, TResponse>(this IReqResBus messageBus, string inName, Func<TRequestIn, TRequestOut> transform, Func<TRequestIn, bool> filter, string outName = null, ListenOptions options = null)
+        {
+            return messageBus.Listen<TRequestIn, TResponse>(inName, rin =>
+            {
+                var rout = transform(rin);
+                return messageBus.Request<TRequestOut, TResponse>(outName, rout);
+            });
+        }
+
+        public static IDisposable ListenTransformResponse<TRequest, TResponseIn, TResponseOut>(this IReqResBus messageBus, string inName, Func<TResponseIn, TResponseOut> transform, Func<TRequest, bool> filter, string outName = null, ListenOptions options = null)
+        {
+            return messageBus.Listen<TRequest, TResponseOut>(inName, request =>
+            {
+                var rin = messageBus.Request<TRequest, TResponseIn>(outName, request);
+                return transform(rin);
+            });
         }
     }
 }
