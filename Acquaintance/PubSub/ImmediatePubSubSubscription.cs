@@ -15,5 +15,7 @@ namespace Acquaintance.PubSub
         {
             _act(payload);
         }
+
+        public bool ShouldUnsubscribe => false;
     }
 }

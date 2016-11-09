@@ -21,5 +21,7 @@ namespace Acquaintance.PubSub
             var thread = _threadPool.GetThreadDispatcher(_threadId, true);
             thread?.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
         }
+
+        public bool ShouldUnsubscribe => false;
     }
 }

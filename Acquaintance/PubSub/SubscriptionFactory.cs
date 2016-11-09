@@ -31,6 +31,8 @@ namespace Acquaintance.PubSub
 
             if (filter != null)
                 subscription = new FilteredSubscription<TPayload>(subscription, filter);
+            if (options.MaxEvents > 0)
+                subscription = new MaxEventsSubscription<TPayload>(subscription, options.MaxEvents);
             return subscription;
         }
     }

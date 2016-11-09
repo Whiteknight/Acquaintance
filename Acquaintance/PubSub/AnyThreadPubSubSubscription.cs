@@ -7,6 +7,7 @@ namespace Acquaintance.PubSub
     {
         private readonly Action<TPayload> _act;
         private readonly MessagingWorkerThreadPool _threadPool;
+        private bool _shouldUnsubscribe;
 
         public AnyThreadPubSubSubscription(Action<TPayload> act, MessagingWorkerThreadPool threadPool)
         {
@@ -24,5 +25,7 @@ namespace Acquaintance.PubSub
             }
             thread.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
         }
+
+        public bool ShouldUnsubscribe => false;
     }
 }

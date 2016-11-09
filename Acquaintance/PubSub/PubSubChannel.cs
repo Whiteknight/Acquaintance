@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Acquaintance.PubSub
 {
@@ -17,8 +18,16 @@ namespace Acquaintance.PubSub
 
         public void Publish(TPayload payload)
         {
-            foreach (var subscriber in _subscriptions.Values)
+            List<Guid> toUnsubscribe = new List<Guid>();
+            foreach (var kvp in _subscriptions)
+            {
+                var subscriber = kvp.Value;
                 subscriber.Publish(payload);
+                if (subscriber.ShouldUnsubscribe)
+                    toUnsubscribe.Add(kvp.Key);
+            }
+            foreach (var id in toUnsubscribe)
+                Unsubscribe(id);
         }
 
         public SubscriptionToken Subscribe(ISubscription<TPayload> subscription)

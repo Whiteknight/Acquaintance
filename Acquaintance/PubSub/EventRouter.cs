@@ -31,6 +31,8 @@ namespace Acquaintance.PubSub
         private readonly List<EventRoute> _routes;
         private readonly IPubSubBus _messageBus;
 
+        public bool ShouldUnsubscribe => false;
+
         internal void SetToken(IDisposable token)
         {
             Token = new EventRouterSubscription(this, token);

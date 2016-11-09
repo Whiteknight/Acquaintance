@@ -24,5 +24,7 @@ namespace Acquaintance.PubSub
 
             _inner.Publish(payload);
         }
+
+        public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe;
     }
 }

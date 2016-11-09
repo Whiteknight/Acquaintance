@@ -1,4 +1,5 @@
 General
+    Weak references for subscribers/listeners
 
 Threading
     Free worker threads should all pull from the same queue, instead of using a dispatch algorithm
@@ -9,17 +10,18 @@ Eavesdrop
 Publish/Subscribe
     Sagas/Aggregation
     Service Activation
-    N Events (subcribe to N events and then unsubscribe automatically)
 
 Scatter/Gather
     Participants should have an ID, and those should be used in IGatheredResponse
     Routing
     Exception propagation
+    N Events (subcribe to N events and then unsubscribe automatically)
 
 Request/Response
     Transforming
     Service Activation
     Exception propagation
+    N Events (subcribe to N events and then unsubscribe automatically)
 
 Testing
     Store Payload/Request objects for verification

@@ -125,5 +125,19 @@ namespace Acquaintance.Tests
             target.Publish("1.*.c", new TestPubSubEvent("Test2"));
             count.Should().Be(11);
         }
+
+        [Test]
+        public void SubscribeAndPublish_MaxEvents()
+        {
+            var target = new MessageBus();
+            int x = 0;
+            target.Subscribe<int>("Test", e => x += e, new SubscribeOptions
+            {
+                MaxEvents = 3
+            });
+            for (int i = 1; i < 100000; i *= 10)
+                target.Publish("Test", i);
+            x.Should().Be(111);
+        }
     }
 }

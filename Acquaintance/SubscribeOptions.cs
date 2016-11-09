@@ -12,6 +12,7 @@ namespace Acquaintance
 
         public DispatchThreadType DispatchType { get; set; }
         public int ThreadId { get; set; }
+        public int MaxEvents { get; set; }
 
         public static SubscribeOptions Default => new SubscribeOptions();
 

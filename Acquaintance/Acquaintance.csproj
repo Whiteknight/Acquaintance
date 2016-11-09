@@ -48,6 +48,7 @@
     <Compile Include="Logging\SilentLogger.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
+    <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\ReqResSimpleDispatchStrategy.cs" />
     <Compile Include="PubSub\IPubSubChannelDispatchStrategy.cs" />
