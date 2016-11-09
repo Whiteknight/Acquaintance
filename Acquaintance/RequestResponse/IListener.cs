@@ -4,5 +4,6 @@ namespace Acquaintance.RequestResponse
     {
         bool CanHandle(TRequest request);
         IDispatchableRequest<TResponse> Request(TRequest request);
+        bool ShouldStopListening { get; }
     }
 }

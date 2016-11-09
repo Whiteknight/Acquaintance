@@ -3,6 +3,7 @@ using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -109,6 +110,24 @@ namespace Acquaintance.Tests
             var response = target.Request<TestRequest, TestResponse>("Test.*", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
+        }
+
+        [Test]
+        public void ListenRequestAndResponse_MaxRequests()
+        {
+            var target = new MessageBus();
+            target.Listen<int, int>("Test", e => e + 5, options: new ListenOptions
+            {
+                MaxRequests = 3
+            });
+            var responses = new List<int>();
+            for (int i = 0; i < 5; i++)
+            {
+                var response = target.Request<int, int>("Test", i);
+                responses.Add(response);
+            }
+
+            responses.Should().BeEquivalentTo(5, 6, 7, 0, 0);
         }
     }
 }

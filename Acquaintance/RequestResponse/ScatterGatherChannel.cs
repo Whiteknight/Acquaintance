@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
@@ -20,13 +19,22 @@ namespace Acquaintance.RequestResponse
         public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
         {
             List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
-            foreach (var subscription in _listeners.Values.Where(s => s.CanHandle(request)))
+            List<Guid> toRemove = new List<Guid>();
+            foreach (var kvp in _listeners)
             {
+                var listener = kvp.Value;
+                if (!listener.CanHandle(request))
+                    continue;
+
                 // TODO: We should order these so worker thread requests are dispatched first, followed by
                 // immediate requests.
-                var responseWaiter = subscription.Request(request);
+                var responseWaiter = listener.Request(request);
+                if (listener.ShouldStopListening)
+                    toRemove.Add(kvp.Key);
                 waiters.Add(responseWaiter);
             }
+            foreach (var id in toRemove)
+                Unsubscribe(id);
             return waiters;
         }
 

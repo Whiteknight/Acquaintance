@@ -10,12 +10,14 @@ namespace Acquaintance
             ThreadId = 0;
             DispatchType = DispatchThreadType.NoPreference;
             KeepAlive = true;
+            MaxRequests = 0;
         }
 
         public DispatchThreadType DispatchType { get; set; }
         public int ThreadId { get; set; }
         public int WaitTimeoutMs { get; set; }
         public bool KeepAlive { get; set; }
+        public int MaxRequests { get; set; }
 
         public static ListenOptions Default => new ListenOptions();
 

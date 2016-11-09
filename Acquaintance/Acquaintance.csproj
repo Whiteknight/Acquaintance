@@ -55,6 +55,7 @@
     <Compile Include="PubSub\WeakSubscriberReference.cs" />
     <Compile Include="RequestResponse\FilteredListener.cs" />
     <Compile Include="RequestResponse\IListenerReference.cs" />
+    <Compile Include="RequestResponse\MaxRequestsListener.cs" />
     <Compile Include="RequestResponse\ReqResSimpleDispatchStrategy.cs" />
     <Compile Include="PubSub\IPubSubChannelDispatchStrategy.cs" />
     <Compile Include="RequestResponse\IReqResChannelDispatchStrategy.cs" />

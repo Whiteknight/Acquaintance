@@ -32,6 +32,8 @@ namespace Acquaintance.RequestResponse
             }
             if (filter != null)
                 listener = new FilteredListener<TRequest, TResponse>(listener, filter);
+            if (options.MaxRequests > 0)
+                listener = new MaxRequestsListener<TRequest, TResponse>(listener, options.MaxRequests);
             return listener;
         }
 

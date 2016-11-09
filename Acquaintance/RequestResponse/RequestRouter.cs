@@ -77,5 +77,7 @@ namespace Acquaintance.RequestResponse
             var response = _messageBus.Request<TRequest, TResponse>(route.ChannelName, request);
             return new ImmediateResponse<TResponse>(response);
         }
+
+        public bool ShouldStopListening => false;
     }
 }

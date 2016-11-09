@@ -23,6 +23,9 @@ namespace Acquaintance.RequestResponse
                 return Enumerable.Empty<IDispatchableRequest<TResponse>>();
 
             var waiter = listener.Request(request);
+            if (listener.ShouldStopListening)
+                _listener = null;
+
             return new List<IDispatchableRequest<TResponse>> { waiter };
         }
 

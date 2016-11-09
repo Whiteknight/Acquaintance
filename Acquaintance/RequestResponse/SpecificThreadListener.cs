@@ -32,5 +32,7 @@ namespace Acquaintance.RequestResponse
             thread.DispatchAction(responseWaiter);
             return responseWaiter;
         }
+
+        public bool ShouldStopListening => !_func.IsAlive;
     }
 }

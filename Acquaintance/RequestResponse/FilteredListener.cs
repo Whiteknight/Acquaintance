@@ -22,5 +22,7 @@ namespace Acquaintance.RequestResponse
         {
             return _inner.Request(request);
         }
+
+        public bool ShouldStopListening => _inner.ShouldStopListening;
     }
 }

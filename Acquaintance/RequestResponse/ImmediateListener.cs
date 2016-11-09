@@ -26,5 +26,7 @@ namespace Acquaintance.RequestResponse
         {
             return new ImmediateListener<TRequest, TResponse>(new StrongListenerReference<TRequest, TResponse>(func));
         }
+
+        public bool ShouldStopListening => !_func.IsAlive;
     }
 }
