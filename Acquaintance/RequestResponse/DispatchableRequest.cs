@@ -6,13 +6,13 @@ namespace Acquaintance.RequestResponse
 {
     public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDispatchableRequest<TResponse>
     {
-        private readonly Func<TRequest, TResponse> _func;
+        private readonly IListenerReference<TRequest, TResponse> _func;
         private readonly TRequest _request;
         private readonly int _timeoutMs;
         private readonly ManualResetEvent _resetEvent;
         public TResponse Response { get; private set; }
 
-        public DispatchableRequest(Func<TRequest, TResponse> func, TRequest request, int timeoutMs = 1000)
+        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, TRequest request, int timeoutMs = 1000)
         {
             if (timeoutMs <= 0)
                 throw new ArgumentOutOfRangeException(nameof(timeoutMs));
@@ -25,7 +25,7 @@ namespace Acquaintance.RequestResponse
 
         public void Execute(IMessageHandlerThreadContext threadContext)
         {
-            Response = _func(_request);
+            Response = _func.Invoke(_request);
             _resetEvent.Set();
         }
 

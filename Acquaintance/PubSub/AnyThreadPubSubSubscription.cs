@@ -1,17 +1,15 @@
 using Acquaintance.Threading;
-using System;
 
 namespace Acquaintance.PubSub
 {
     public class AnyThreadPubSubSubscription<TPayload> : ISubscription<TPayload>
     {
-        private readonly Action<TPayload> _act;
+        private readonly ISubscriberReference<TPayload> _action;
         private readonly MessagingWorkerThreadPool _threadPool;
-        private bool _shouldUnsubscribe;
 
-        public AnyThreadPubSubSubscription(Action<TPayload> act, MessagingWorkerThreadPool threadPool)
+        public AnyThreadPubSubSubscription(ISubscriberReference<TPayload> action, MessagingWorkerThreadPool threadPool)
         {
-            _act = act;
+            _action = action;
             _threadPool = threadPool;
         }
 
@@ -20,10 +18,10 @@ namespace Acquaintance.PubSub
             var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)
             {
-                _act(payload);
+                _action.Invoke(payload);
                 return;
             }
-            thread.DispatchAction(new PublishEventThreadAction<TPayload>(_act, payload));
+            thread.DispatchAction(new PublishEventThreadAction<TPayload>(_action, payload));
         }
 
         public bool ShouldUnsubscribe => false;

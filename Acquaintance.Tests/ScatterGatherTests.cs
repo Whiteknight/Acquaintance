@@ -102,8 +102,8 @@ namespace Acquaintance.Tests
         public void Participate_SecondListener()
         {
             var target = new MessageBus();
-            var listener1 = new ImmediateListener<TestRequest, TestResponse>(req => null, null);
-            var listener2 = new ImmediateListener<TestRequest, TestResponse>(req => null, null);
+            var listener1 = ImmediateListener<TestRequest, TestResponse>.Create(req => null);
+            var listener2 = ImmediateListener<TestRequest, TestResponse>.Create(req => null);
             target.Participate("test", listener1);
             Action act = () => target.Participate("test", listener2);
             act.ShouldNotThrow<Exception>();

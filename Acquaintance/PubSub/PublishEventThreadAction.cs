@@ -1,22 +1,21 @@
 using Acquaintance.Threading;
-using System;
 
 namespace Acquaintance.PubSub
 {
     public class PublishEventThreadAction<TPayload> : IThreadAction
     {
-        private readonly Action<TPayload> _act;
+        private readonly ISubscriberReference<TPayload> _action;
         private readonly TPayload _payload;
 
-        public PublishEventThreadAction(Action<TPayload> act, TPayload payload)
+        public PublishEventThreadAction(ISubscriberReference<TPayload> action, TPayload payload)
         {
-            _act = act;
+            _action = action;
             _payload = payload;
         }
 
         public void Execute(IMessageHandlerThreadContext threadContext)
         {
-            _act(_payload);
+            _action.Invoke(_payload);
         }
     }
 }

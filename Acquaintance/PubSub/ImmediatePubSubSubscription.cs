@@ -1,21 +1,19 @@
-using System;
-
 namespace Acquaintance.PubSub
 {
     public class ImmediatePubSubSubscription<TPayload> : ISubscription<TPayload>
     {
-        private readonly Action<TPayload> _act;
+        private readonly ISubscriberReference<TPayload> _action;
 
-        public ImmediatePubSubSubscription(Action<TPayload> act)
+        public ImmediatePubSubSubscription(ISubscriberReference<TPayload> action)
         {
-            _act = act;
+            _action = action;
         }
 
         public void Publish(TPayload payload)
         {
-            _act(payload);
+            _action.Invoke(payload);
         }
 
-        public bool ShouldUnsubscribe => false;
+        public bool ShouldUnsubscribe => !_action.IsAlive;
     }
 }

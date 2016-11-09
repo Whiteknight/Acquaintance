@@ -1,20 +1,17 @@
 using Acquaintance.Threading;
-using System;
 
 namespace Acquaintance.RequestResponse
 {
     public class SpecificThreadListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
-        private readonly Func<TRequest, TResponse> _func;
-        private readonly Func<TRequest, bool> _filter;
+        private readonly IListenerReference<TRequest, TResponse> _func;
         private readonly int _threadId;
         private readonly MessagingWorkerThreadPool _threadPool;
         private readonly int _timeoutMs;
 
-        public SpecificThreadListener(Func<TRequest, TResponse> func, Func<TRequest, bool> filter, int threadId, MessagingWorkerThreadPool threadPool, int timeoutMs)
+        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, MessagingWorkerThreadPool threadPool, int timeoutMs)
         {
             _func = func;
-            _filter = filter;
             _threadId = threadId;
             _threadPool = threadPool;
             _timeoutMs = timeoutMs;
@@ -22,7 +19,7 @@ namespace Acquaintance.RequestResponse
 
         public bool CanHandle(TRequest request)
         {
-            return _filter == null || _filter(request);
+            return _func.IsAlive;
         }
 
         public IDispatchableRequest<TResponse> Request(TRequest request)

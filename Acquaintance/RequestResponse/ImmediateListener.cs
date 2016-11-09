@@ -4,24 +4,27 @@ namespace Acquaintance.RequestResponse
 {
     public class ImmediateListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
-        private readonly Func<TRequest, TResponse> _request;
-        private readonly Func<TRequest, bool> _filter;
+        private readonly IListenerReference<TRequest, TResponse> _func;
 
-        public ImmediateListener(Func<TRequest, TResponse> request, Func<TRequest, bool> filter)
+        public ImmediateListener(IListenerReference<TRequest, TResponse> func)
         {
-            _request = request;
-            _filter = filter;
+            _func = func;
         }
 
         public bool CanHandle(TRequest request)
         {
-            return _filter == null || _filter(request);
+            return _func.IsAlive;
         }
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            var value = _request(request);
+            var value = _func.Invoke(request);
             return new ImmediateResponse<TResponse>(value);
+        }
+
+        public static IListener<TRequest, TResponse> Create(Func<TRequest, TResponse> func)
+        {
+            return new ImmediateListener<TRequest, TResponse>(new StrongListenerReference<TRequest, TResponse>(func));
         }
     }
 }

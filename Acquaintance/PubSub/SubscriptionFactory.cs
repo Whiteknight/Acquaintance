@@ -15,17 +15,19 @@ namespace Acquaintance.PubSub
         public ISubscription<TPayload> CreateSubscription<TPayload>(Action<TPayload> act, Func<TPayload, bool> filter, SubscribeOptions options)
         {
             options = options ?? SubscribeOptions.Default;
+            ISubscriberReference<TPayload> actionReference = CreateActionReference(act, options);
+
             ISubscription<TPayload> subscription;
             switch (options.DispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    subscription = new AnyThreadPubSubSubscription<TPayload>(act, _threadPool);
+                    subscription = new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
                     break;
                 case DispatchThreadType.SpecificThread:
-                    subscription = new SpecificThreadPubSubSubscription<TPayload>(act, options.ThreadId, _threadPool);
+                    subscription = new SpecificThreadPubSubSubscription<TPayload>(actionReference, options.ThreadId, _threadPool);
                     break;
                 default:
-                    subscription = new ImmediatePubSubSubscription<TPayload>(act);
+                    subscription = new ImmediatePubSubSubscription<TPayload>(actionReference);
                     break;
             }
 
@@ -34,6 +36,13 @@ namespace Acquaintance.PubSub
             if (options.MaxEvents > 0)
                 subscription = new MaxEventsSubscription<TPayload>(subscription, options.MaxEvents);
             return subscription;
+        }
+
+        private static ISubscriberReference<TPayload> CreateActionReference<TPayload>(Action<TPayload> act, SubscribeOptions options)
+        {
+            if (options.KeepAlive)
+                return new StrongSubscriberReference<TPayload>(act);
+            return new WeakSubscriberReference<TPayload>(act);
         }
     }
 }

@@ -1,5 +1,4 @@
 General
-    Weak references for subscribers/listeners
 
 Threading
     Free worker threads should all pull from the same queue, instead of using a dispatch algorithm

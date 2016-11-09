@@ -8,11 +8,13 @@ namespace Acquaintance
         {
             ThreadId = 0;
             DispatchType = DispatchThreadType.NoPreference;
+            KeepAlive = true;
         }
 
         public DispatchThreadType DispatchType { get; set; }
         public int ThreadId { get; set; }
         public int MaxEvents { get; set; }
+        public bool KeepAlive { get; set; }
 
         public static SubscribeOptions Default => new SubscribeOptions();
 
