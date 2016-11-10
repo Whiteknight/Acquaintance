@@ -22,16 +22,20 @@ namespace Acquaintance.RequestResponse
             List<Guid> toRemove = new List<Guid>();
             foreach (var kvp in _listeners)
             {
-                var listener = kvp.Value;
-                if (!listener.CanHandle(request))
-                    continue;
+                try
+                {
+                    var listener = kvp.Value;
+                    if (!listener.CanHandle(request))
+                        continue;
 
-                // TODO: We should order these so worker thread requests are dispatched first, followed by
-                // immediate requests.
-                var responseWaiter = listener.Request(request);
-                if (listener.ShouldStopListening)
-                    toRemove.Add(kvp.Key);
-                waiters.Add(responseWaiter);
+                    // TODO: We should order these so worker thread requests are dispatched first, followed by
+                    // immediate requests.
+                    var responseWaiter = listener.Request(request);
+                    if (listener.ShouldStopListening)
+                        toRemove.Add(kvp.Key);
+                    waiters.Add(responseWaiter);
+                }
+                catch { }
             }
             foreach (var id in toRemove)
                 Unsubscribe(id);

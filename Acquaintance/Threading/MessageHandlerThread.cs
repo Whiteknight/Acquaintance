@@ -39,7 +39,7 @@ namespace Acquaintance.Threading
 
         private static void HandlerThreadFunc(object contextObject)
         {
-            IMessageHandlerThreadContext context = contextObject as IMessageHandlerThreadContext;
+            var context = contextObject as IMessageHandlerThreadContext;
             if (context == null)
                 return;
 

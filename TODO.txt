@@ -1,4 +1,5 @@
 General
+    Error handling
 
 Threading
     Free worker threads should all pull from the same queue, instead of using a dispatch algorithm

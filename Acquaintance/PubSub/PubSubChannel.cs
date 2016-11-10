@@ -21,10 +21,14 @@ namespace Acquaintance.PubSub
             List<Guid> toUnsubscribe = new List<Guid>();
             foreach (var kvp in _subscriptions)
             {
-                var subscriber = kvp.Value;
-                subscriber.Publish(payload);
-                if (subscriber.ShouldUnsubscribe)
-                    toUnsubscribe.Add(kvp.Key);
+                try
+                {
+                    var subscriber = kvp.Value;
+                    subscriber.Publish(payload);
+                    if (subscriber.ShouldUnsubscribe)
+                        toUnsubscribe.Add(kvp.Key);
+                }
+                catch { }
             }
             foreach (var id in toUnsubscribe)
                 Unsubscribe(id);

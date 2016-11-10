@@ -22,11 +22,18 @@ namespace Acquaintance.RequestResponse
             if (listener == null)
                 return Enumerable.Empty<IDispatchableRequest<TResponse>>();
 
-            var waiter = listener.Request(request);
-            if (listener.ShouldStopListening)
-                _listener = null;
+            try
+            {
+                IDispatchableRequest<TResponse> waiter = listener.Request(request);
+                if (listener.ShouldStopListening)
+                    _listener = null;
 
-            return new List<IDispatchableRequest<TResponse>> { waiter };
+                return new List<IDispatchableRequest<TResponse>> { waiter };
+            }
+            catch
+            {
+                return Enumerable.Empty<IDispatchableRequest<TResponse>>();
+            }
         }
 
         public SubscriptionToken Listen(IListener<TRequest, TResponse> listener)
