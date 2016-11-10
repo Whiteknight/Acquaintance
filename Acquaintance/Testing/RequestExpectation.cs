@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Acquaintance.Testing
@@ -9,12 +10,14 @@ namespace Acquaintance.Testing
         private readonly string _description;
         private readonly Func<TRequest, bool> _filter;
         private Func<TRequest, TResponse> _getResponse;
+        private readonly List<Action<TRequest, TResponse>> _actions;
 
         public RequestExpectation(string channelName, string description, Func<TRequest, bool> filter)
         {
             _channelName = channelName;
             _description = description;
             _filter = filter;
+            _actions = new List<Action<TRequest, TResponse>>();
         }
 
         public override string ToString()
@@ -39,6 +42,16 @@ namespace Acquaintance.Testing
 
         public TResponse TryHandle(TRequest request)
         {
+            var response = GetResponse(request);
+
+            foreach (var act in _actions)
+                act(request, response);
+
+            return response;
+        }
+
+        private TResponse GetResponse(TRequest request)
+        {
             if (_filter != null && !_filter(request))
                 return default(TResponse);
 
@@ -58,6 +71,12 @@ namespace Acquaintance.Testing
         public RequestExpectation<TRequest, TResponse> WillReturn(Func<TRequest, TResponse> getResponse)
         {
             _getResponse = getResponse;
+            return this;
+        }
+
+        public RequestExpectation<TRequest, TResponse> Callback(Action<TRequest, TResponse> callback)
+        {
+            _actions.Add(callback);
             return this;
         }
     }
