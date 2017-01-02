@@ -53,6 +53,7 @@
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
+    <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />
     <Compile Include="PubSub\WeakSubscriberReference.cs" />
     <Compile Include="RequestResponse\FilteredListener.cs" />
     <Compile Include="RequestResponse\IListenerReference.cs" />

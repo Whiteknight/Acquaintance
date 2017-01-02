@@ -6,10 +6,10 @@ namespace Acquaintance.RequestResponse
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
         private readonly int _threadId;
-        private readonly MessagingWorkerThreadPool _threadPool;
+        private readonly IThreadPool _threadPool;
         private readonly int _timeoutMs;
 
-        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, MessagingWorkerThreadPool threadPool, int timeoutMs)
+        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, IThreadPool threadPool, int timeoutMs)
         {
             _func = func;
             _threadId = threadId;

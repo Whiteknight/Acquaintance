@@ -13,18 +13,18 @@ namespace Acquaintance
     public sealed class MessageBus : IMessageBus
     {
         private readonly ILogger _logger;
-        private readonly MessagingWorkerThreadPool _threadPool;
+        public IThreadPool ThreadPool { get; }
         private readonly IPubSubChannelDispatchStrategy _pubSubStrategy;
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
 
-        public MessageBus(ILogger logger = null, IDispatchStrategyFactory dispatcherFactory = null)
+        public MessageBus(IThreadPool threadPool = null, ILogger logger = null, IDispatchStrategyFactory dispatcherFactory = null)
         {
             _logger = logger ?? CreateDefaultLogger();
-            _threadPool = new MessagingWorkerThreadPool();
-            SubscriptionFactory = new SubscriptionFactory(_threadPool);
-            ListenerFactory = new ListenerFactory(_threadPool);
+            ThreadPool = threadPool ?? new MessagingWorkerThreadPool(2);
+            SubscriptionFactory = new SubscriptionFactory(ThreadPool);
+            ListenerFactory = new ListenerFactory(ThreadPool);
             Modules = new ModuleManager(this, _logger);
 
             dispatcherFactory = dispatcherFactory ?? new SimpleDispatchStrategyFactory();
@@ -38,22 +38,9 @@ namespace Acquaintance
         public ListenerFactory ListenerFactory { get; }
         public IModuleManager Modules { get; }
 
-        public void StartWorkers(int numThreads = 2)
-        {
-            _logger.Debug("Starting {0} workers", numThreads);
-            _threadPool.StartFreeWorkers(numThreads);
-        }
-
-        public void StopWorkers()
-        {
-            _logger.Debug("Stopping all workers");
-            _threadPool.StopFreeWorkers();
-            _threadPool.StopAllDedicatedWorkers();
-        }
-
         public int StartDedicatedWorkerThread()
         {
-            int id = _threadPool.StartDedicatedWorker();
+            int id = ThreadPool.StartDedicatedWorker();
             _logger.Debug("Starting dedicated worker thread {0}", id);
             return id;
         }
@@ -61,7 +48,7 @@ namespace Acquaintance
         public void StopDedicatedWorkerThread(int id)
         {
             _logger.Debug("Stopping dedicated worker thread {0}", id);
-            _threadPool.StopDedicatedWorker(id);
+            ThreadPool.StopDedicatedWorker(id);
         }
 
         public void Publish<TPayload>(string name, TPayload payload)
@@ -150,7 +137,7 @@ namespace Acquaintance
         {
             if (shouldStop == null)
                 shouldStop = () => false;
-            var threadContext = _threadPool.GetCurrentThreadContext();
+            var threadContext = ThreadPool.GetCurrentThreadContext();
             while (!shouldStop() && !threadContext.ShouldStop)
             {
                 var action = threadContext.GetAction(timeoutMs);
@@ -160,7 +147,7 @@ namespace Acquaintance
 
         public void EmptyActionQueue(int max)
         {
-            var threadContext = _threadPool.GetCurrentThreadContext();
+            var threadContext = ThreadPool.GetCurrentThreadContext();
             for (int i = 0; i < max; i++)
             {
                 var action = threadContext.GetAction();
@@ -176,8 +163,7 @@ namespace Acquaintance
             _requestResponseStrategy.Dispose();
             _eavesdropStrategy.Dispose();
             _scatterGatherStrategy.Dispose();
-            _threadPool.Dispose();
-
+            ThreadPool.Dispose();
         }
 
         private static ILogger CreateDefaultLogger()

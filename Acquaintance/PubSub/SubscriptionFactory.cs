@@ -5,9 +5,9 @@ namespace Acquaintance.PubSub
 {
     public class SubscriptionFactory
     {
-        private readonly MessagingWorkerThreadPool _threadPool;
+        private readonly IThreadPool _threadPool;
 
-        public SubscriptionFactory(MessagingWorkerThreadPool threadPool)
+        public SubscriptionFactory(IThreadPool threadPool)
         {
             _threadPool = threadPool;
         }
@@ -26,8 +26,14 @@ namespace Acquaintance.PubSub
                 case DispatchThreadType.SpecificThread:
                     subscription = new SpecificThreadPubSubSubscription<TPayload>(actionReference, options.ThreadId, _threadPool);
                     break;
-                default:
+                case DispatchThreadType.ThreadpoolThread:
+                    subscription = new ThreadpoolThreadSubscription<TPayload>(actionReference);
+                    break;
+                case DispatchThreadType.Immediate:
                     subscription = new ImmediatePubSubSubscription<TPayload>(actionReference);
+                    break;
+                default:
+                    subscription = CreateDefaultSubscription<TPayload>(actionReference, _threadPool);
                     break;
             }
 
@@ -36,6 +42,13 @@ namespace Acquaintance.PubSub
             if (options.MaxEvents > 0)
                 subscription = new MaxEventsSubscription<TPayload>(subscription, options.MaxEvents);
             return subscription;
+        }
+
+        private static ISubscription<TPayload> CreateDefaultSubscription<TPayload>(ISubscriberReference<TPayload> actionReference, IThreadPool threadPool)
+        {
+            if (threadPool != null && threadPool.NumberOfRunningFreeWorkers > 0)
+                return new AnyThreadPubSubSubscription<TPayload>(actionReference, threadPool);
+            return new ThreadpoolThreadSubscription<TPayload>(actionReference);
         }
 
         private static ISubscriberReference<TPayload> CreateActionReference<TPayload>(Action<TPayload> act, SubscribeOptions options)

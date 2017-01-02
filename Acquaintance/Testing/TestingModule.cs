@@ -26,7 +26,10 @@ namespace Acquaintance.Testing
         {
             var expectation = new PublishExpectation<TPayload>(name, description, filter);
             _expectations.Add(expectation);
-            _subscriptions.Subscribe(name, p => expectation.TryReceive(p), filter);
+            _subscriptions.Subscribe(name, p => expectation.TryReceive(p), filter, new SubscribeOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            });
             return expectation;
         }
 
@@ -34,7 +37,10 @@ namespace Acquaintance.Testing
         {
             var expectation = new RequestExpectation<TRequest, TResponse>(name, description, filter);
             _expectations.Add(expectation);
-            _subscriptions.Listen(name, r => expectation.TryHandle(r), filter);
+            _subscriptions.Listen(name, r => expectation.TryHandle(r), filter, new ListenOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            });
             return expectation;
         }
 
@@ -42,7 +48,10 @@ namespace Acquaintance.Testing
         {
             var expectation = new ScatterExpectation<TRequest, TResponse>(name, description, filter);
             _expectations.Add(expectation);
-            _subscriptions.Participate(name, r => expectation.TryHandle(r), filter);
+            _subscriptions.Participate(name, r => expectation.TryHandle(r), filter, new ListenOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            });
             return expectation;
         }
 

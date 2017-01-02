@@ -31,10 +31,11 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<OutputEvent>("Test", e => text = e.Text + "Output");
-            target.SubscribeTransform<InputEvent, OutputEvent>("Test", input => new OutputEvent(input.Text + "Translated"), null, "Test");
-            target.Publish("Test", new InputEvent("Test2"));
-            text.Should().Be("Test2TranslatedOutput");
+            var options = new SubscribeOptions { DispatchType = Threading.DispatchThreadType.Immediate };
+            target.Subscribe<OutputEvent>("Test", e => text = e.Text + "Output", options);
+            target.SubscribeTransform<InputEvent, OutputEvent>("Test", input => new OutputEvent(input.Text + "Translated"), null, "Test", options);
+            target.Publish("Test", new InputEvent("TestPayload"));
+            text.Should().Be("TestPayloadTranslatedOutput");
         }
 
     }

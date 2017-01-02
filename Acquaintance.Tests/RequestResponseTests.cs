@@ -45,8 +45,7 @@ namespace Acquaintance.Tests
         [Test]
         public void ListenRequestAndResponse_WorkerThread()
         {
-            var target = new MessageBus();
-            target.StartWorkers(1);
+            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
             try
             {
                 target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId }, null, new ListenOptions
@@ -69,8 +68,11 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             string eavesdropped = null;
-            target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
-            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null);
+            target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" }, options: new ListenOptions { DispatchType = DispatchThreadType.Immediate });
+            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null, new SubscribeOptions
+            {
+                DispatchType = DispatchThreadType.Immediate
+            });
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             eavesdropped.Should().Be("RequestResponded");
         }
@@ -82,11 +84,12 @@ namespace Acquaintance.Tests
         public void ListenRequestAndResponse_Generics()
         {
             var target = new MessageBus();
+            var options = new ListenOptions { DispatchType = DispatchThreadType.Immediate };
 
             Action act = () =>
             {
-                target.Listen<GenericRequest<string>, GenericResponse<string>>("Test", req => new GenericResponse<string>());
-                target.Listen<GenericRequest<int>, GenericResponse<int>>("Test", req => new GenericResponse<int>());
+                target.Listen<GenericRequest<string>, GenericResponse<string>>("Test", req => new GenericResponse<string>(), options: options);
+                target.Listen<GenericRequest<int>, GenericResponse<int>>("Test", req => new GenericResponse<int>(), options: options);
             };
             act.ShouldNotThrow();
         }

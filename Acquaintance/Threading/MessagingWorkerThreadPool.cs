@@ -6,31 +6,32 @@ using System.Threading;
 
 namespace Acquaintance.Threading
 {
-    public class MessagingWorkerThreadPool : IDisposable
+    public interface IThreadPool : IDisposable
     {
-        private bool _started;
+        int NumberOfRunningFreeWorkers { get; }
+        int StartDedicatedWorker();
+        void StopDedicatedWorker(int threadId);
+        IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate);
+        IActionDispatcher GetFreeWorkerThreadDispatcher();
+        IActionDispatcher GetCurrentThreadDispatcher();
+        IMessageHandlerThreadContext GetCurrentThreadContext();
+    }
+
+    public class MessagingWorkerThreadPool : IThreadPool
+    {
         private readonly List<MessageHandlerThread> _freeWorkers;
         private readonly ConcurrentDictionary<int, IMessageHandlerThreadContext> _detachedContexts;
         private readonly ConcurrentDictionary<int, MessageHandlerThread> _dedicatedWorkers;
         private int _currentThread;
 
-        public MessagingWorkerThreadPool()
+        public MessagingWorkerThreadPool(int numFreeWorkers = 0)
         {
             _freeWorkers = new List<MessageHandlerThread>();
 
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
             _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
             _currentThread = 0;
-            _started = false;
-        }
 
-        public int NumberOfRunningFreeWorkers => !_started ? 0 : _freeWorkers.Count;
-
-        public void StartFreeWorkers(int numFreeWorkers)
-        {
-            if (_started)
-                throw new Exception("Thread pool already started");
-            _started = true;
             if (numFreeWorkers < 0)
                 throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
             for (int i = 0; i < numFreeWorkers; i++)
@@ -42,16 +43,7 @@ namespace Acquaintance.Threading
             }
         }
 
-        public void StopFreeWorkers()
-        {
-            if (!_started)
-                return;
-            foreach (var thread in _freeWorkers)
-                thread.Stop();
-            _freeWorkers.Clear();
-
-            _started = false;
-        }
+        public int NumberOfRunningFreeWorkers => _freeWorkers.Count;
 
         public int StartDedicatedWorker()
         {
@@ -73,12 +65,6 @@ namespace Acquaintance.Threading
                 worker.Stop();
                 worker.Dispose();
             }
-        }
-
-        public void StopAllDedicatedWorkers()
-        {
-            foreach (var thread in _dedicatedWorkers.Values)
-                thread.Stop();
         }
 
         public IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate)
@@ -137,8 +123,12 @@ namespace Acquaintance.Threading
 
         public void Dispose()
         {
-            StopFreeWorkers();
-            StopAllDedicatedWorkers();
+            foreach (var thread in _freeWorkers)
+                thread.Stop();
+            _freeWorkers.Clear();
+
+            foreach (var thread in _dedicatedWorkers.Values)
+                thread.Stop();
 
             foreach (var thread in _freeWorkers)
                 thread.Dispose();

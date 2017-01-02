@@ -5,10 +5,10 @@ namespace Acquaintance.RequestResponse
     public class AnyThreadListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
-        private readonly MessagingWorkerThreadPool _threadPool;
+        private readonly IThreadPool _threadPool;
         private readonly int _timeoutMs;
 
-        public AnyThreadListener(IListenerReference<TRequest, TResponse> func, MessagingWorkerThreadPool threadPool, int timeoutMs)
+        public AnyThreadListener(IListenerReference<TRequest, TResponse> func, IThreadPool threadPool, int timeoutMs)
         {
             _func = func;
             _threadPool = threadPool;

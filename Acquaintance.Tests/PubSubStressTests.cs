@@ -16,8 +16,7 @@ namespace Acquaintance.Tests
         public void WorkerThread_Stress()
         {
             const int numEvents = 100000;
-            var target = new MessageBus();
-            target.StartWorkers(4);
+            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4));
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubEvent>("Test", e =>
@@ -36,8 +35,7 @@ namespace Acquaintance.Tests
         public void WorkerThread_Stress_Wildcards()
         {
             const int numEvents = 100000;
-            var target = new MessageBus(dispatcherFactory:new TrieDispatchStrategyFactory());
-            target.StartWorkers(4);
+            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4), dispatcherFactory: new TrieDispatchStrategyFactory());
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubEvent>("Test.XYZ", e =>

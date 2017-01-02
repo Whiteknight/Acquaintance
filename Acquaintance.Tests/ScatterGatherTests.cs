@@ -35,8 +35,8 @@ namespace Acquaintance.Tests
         [Test]
         public void ParticipateScatterGather_WorkerThread()
         {
-            var target = new MessageBus();
-            target.StartWorkers(1);
+            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
+
             try
             {
                 target.Participate<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId }, null, new ListenOptions
@@ -76,7 +76,8 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             string eavesdropped = null;
-            target.Participate<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" });
+            var options = new ListenOptions { DispatchType = DispatchThreadType.Immediate };
+            target.Participate<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" }, options: options);
             target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null);
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             eavesdropped.Should().Be("RequestResponded");

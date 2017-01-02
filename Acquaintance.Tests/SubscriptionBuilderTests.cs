@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Acquaintance.Threading;
+using FluentAssertions;
 using NUnit.Framework;
 using System.Threading;
 
@@ -24,6 +25,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.CreateSubscription<TestPubSubEvent>(e => text = e.Text)
                 .WithChannelName("Test")
+                .Immediate()
                 .Subscribe();
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
@@ -36,6 +38,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.CreateSubscription<TestPubSubEvent>(e => text = e.Text)
                 .WithChannelName("Test")
+                .Immediate()
                 .WithFilter(e => e.Text == "Test2")
                 .Subscribe();
 
@@ -48,8 +51,7 @@ namespace Acquaintance.Tests
         [Test]
         public void PublishOnWorkerThread()
         {
-            var target = new MessageBus();
-            target.StartWorkers(1);
+            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
             try
             {
                 var resetEvent = new AutoResetEvent(false);

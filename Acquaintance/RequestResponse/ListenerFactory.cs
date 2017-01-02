@@ -5,9 +5,9 @@ namespace Acquaintance.RequestResponse
 {
     public class ListenerFactory
     {
-        private readonly MessagingWorkerThreadPool _threadPool;
+        private readonly IThreadPool _threadPool;
 
-        public ListenerFactory(MessagingWorkerThreadPool threadPool)
+        public ListenerFactory(IThreadPool threadPool)
         {
             _threadPool = threadPool;
         }

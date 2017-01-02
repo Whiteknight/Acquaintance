@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
+using Acquaintance.Threading;
 using System;
 
 namespace Acquaintance
@@ -47,12 +48,7 @@ namespace Acquaintance
 
     public interface IMessageBus : IPubSubBus, IReqResBus, IDisposable
     {
-        // Worker Thread Management
-        void StartWorkers(int numWorkers = 2);
-        void StopWorkers();
-        int StartDedicatedWorkerThread();
-        void StopDedicatedWorkerThread(int id);
-
+        IThreadPool ThreadPool { get; }
         IModuleManager Modules { get; }
 
         // Runloops and Event Processing

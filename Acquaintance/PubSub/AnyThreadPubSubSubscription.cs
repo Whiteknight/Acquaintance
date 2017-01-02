@@ -5,9 +5,9 @@ namespace Acquaintance.PubSub
     public class AnyThreadPubSubSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscriberReference<TPayload> _action;
-        private readonly MessagingWorkerThreadPool _threadPool;
+        private readonly IThreadPool _threadPool;
 
-        public AnyThreadPubSubSubscription(ISubscriberReference<TPayload> action, MessagingWorkerThreadPool threadPool)
+        public AnyThreadPubSubSubscription(ISubscriberReference<TPayload> action, IThreadPool threadPool)
         {
             _action = action;
             _threadPool = threadPool;

@@ -23,7 +23,10 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text);
+            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, new SubscribeOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            });
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
         }
@@ -33,7 +36,10 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, e => e.Text == "Test2");
+            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, e => e.Text == "Test2", new SubscribeOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            });
             target.Publish("Test", new TestPubSubEvent("Test1"));
             text.Should().BeNull();
             target.Publish("Test", new TestPubSubEvent("Test2"));
@@ -43,8 +49,7 @@ namespace Acquaintance.Tests
         [Test]
         public void SubscribeAndPublish_FreeWorkerThread()
         {
-            var target = new MessageBus();
-            target.StartWorkers(1);
+            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
             var resetEvent = new ManualResetEvent(false);
             try
             {
@@ -109,7 +114,10 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text);
+            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, new SubscribeOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            });
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
         }
@@ -119,9 +127,13 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
             int count = 0;
-            target.Subscribe<TestPubSubEvent>("1.X.c", e => count += 1);
-            target.Subscribe<TestPubSubEvent>("1.Y.c", e => count += 10);
-            target.Subscribe<TestPubSubEvent>("1.Y.d", e => count += 100);
+            var options = new SubscribeOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            };
+            target.Subscribe<TestPubSubEvent>("1.X.c", e => count += 1, options);
+            target.Subscribe<TestPubSubEvent>("1.Y.c", e => count += 10, options);
+            target.Subscribe<TestPubSubEvent>("1.Y.d", e => count += 100, options);
             target.Publish("1.*.c", new TestPubSubEvent("Test2"));
             count.Should().Be(11);
         }

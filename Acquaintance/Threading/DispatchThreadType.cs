@@ -5,6 +5,7 @@
         NoPreference,
         Immediate,
         SpecificThread,
-        AnyWorkerThread
+        AnyWorkerThread,
+        ThreadpoolThread
     }
 }

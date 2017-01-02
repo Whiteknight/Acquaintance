@@ -40,10 +40,22 @@ namespace Acquaintance.PubSub
             return this;
         }
 
+        public SubscriptionBuilder<TPayload> Immediate()
+        {
+            _options.DispatchType = Threading.DispatchThreadType.Immediate;
+            return this;
+        }
+
         public SubscriptionBuilder<TPayload> OnThread(int threadId)
         {
             _options.DispatchType = Threading.DispatchThreadType.SpecificThread;
             _options.ThreadId = threadId;
+            return this;
+        }
+
+        public SubscriptionBuilder<TPayload> OnThreadPool()
+        {
+            _options.DispatchType = Threading.DispatchThreadType.ThreadpoolThread;
             return this;
         }
     }
