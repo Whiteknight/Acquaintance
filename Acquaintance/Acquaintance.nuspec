@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Acquaintance</id>
-    <version>0.5.0-beta</version>
+    <version>0.6.0-beta</version>
     <title>$title$</title>
     <authors>Andrew F. Whitworth</authors>
     <owners>$author$</owners>
