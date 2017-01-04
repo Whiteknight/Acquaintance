@@ -41,6 +41,14 @@ namespace Acquaintance
             return router;
         }
 
+        public static ScatterRouter<TRequest, TResponse> ScatterRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
+        {
+            var router = new ScatterRouter<TRequest, TResponse>(messageBus, channelName);
+            var token = messageBus.Participate(channelName, router);
+            router.SetToken(token);
+            return router;
+        }
+
         public static IDisposable ListenTransformRequest<TRequestIn, TRequestOut, TResponse>(this IReqResBus messageBus, string inName, Func<TRequestIn, TRequestOut> transform, Func<TRequestIn, bool> filter, string outName = null, ListenOptions options = null)
         {
             return messageBus.Listen<TRequestIn, TResponse>(inName, rin =>

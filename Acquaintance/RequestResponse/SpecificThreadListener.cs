@@ -26,7 +26,7 @@ namespace Acquaintance.RequestResponse
         {
             var thread = _threadPool.GetThreadDispatcher(_threadId, false);
             if (thread == null)
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(null);
 
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, _timeoutMs);
             thread.DispatchAction(responseWaiter);

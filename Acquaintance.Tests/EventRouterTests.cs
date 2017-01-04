@@ -22,9 +22,13 @@ namespace Acquaintance.Tests
             int evens = 0;
             int odds = 0;
             int all = 0;
-            target.Subscribe<TestPubSubEvent>(e => all += e.Number);
-            target.Subscribe<TestPubSubEvent>("Evens", e => evens += e.Number);
-            target.Subscribe<TestPubSubEvent>("Odds", e => odds += e.Number);
+            var options = new SubscribeOptions
+            {
+                DispatchType = Threading.DispatchThreadType.Immediate
+            };
+            target.Subscribe<TestPubSubEvent>(e => all += e.Number, options);
+            target.Subscribe<TestPubSubEvent>("Evens", e => evens += e.Number, options);
+            target.Subscribe<TestPubSubEvent>("Odds", e => odds += e.Number, options);
 
             target.SubscriptionRouter<TestPubSubEvent>(string.Empty)
                 .Route("Evens", e => e.Number % 2 == 0)

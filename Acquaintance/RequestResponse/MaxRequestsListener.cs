@@ -21,13 +21,13 @@ namespace Acquaintance.RequestResponse
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
             if (ShouldStopListening)
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(null);
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
             if (maxRequests >= 0)
                 return _inner.Request(request);
 
             ShouldStopListening = true;
-            return new ImmediateResponse<TResponse>(default(TResponse));
+            return new ImmediateResponse<TResponse>(null);
         }
 
         public bool ShouldStopListening { get; private set; }

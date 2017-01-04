@@ -4,7 +4,7 @@ namespace Acquaintance.RequestResponse
 {
     public interface IDispatchableRequest<out TResponse> : IDisposable
     {
-        TResponse Response { get; }
+        TResponse[] Responses { get; }
         bool WaitForResponse();
     }
 }

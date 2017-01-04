@@ -78,7 +78,10 @@ namespace Acquaintance.Tests
             string eavesdropped = null;
             var options = new ListenOptions { DispatchType = DispatchThreadType.Immediate };
             target.Participate<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" }, options: options);
-            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null);
+            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), options: new SubscribeOptions
+            {
+                DispatchType = DispatchThreadType.Immediate
+            });
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             eavesdropped.Should().Be("RequestResponded");
         }

@@ -93,7 +93,8 @@ namespace Acquaintance
             foreach (var waiter in waiters)
             {
                 bool complete = waiter.WaitForResponse();
-                responses.Add(complete ? waiter.Response : default(TResponse));
+                if (complete)
+                    responses.AddRange(waiter.Responses);
                 waiter.Dispose();
             }
 
