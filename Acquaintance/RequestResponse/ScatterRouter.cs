@@ -4,13 +4,13 @@ using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
-    public class RequestRouter<TRequest, TResponse> : IListener<TRequest, TResponse>
+    public class ScatterRouter<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly string _sourceName;
         private readonly List<RequestRoute> _routes;
         private readonly IReqResBus _messageBus;
 
-        public RequestRouter(IReqResBus messageBus, string sourceName)
+        public ScatterRouter(IReqResBus messageBus, string sourceName)
         {
             _sourceName = sourceName ?? string.Empty;
             _routes = new List<RequestRoute>();
@@ -38,10 +38,10 @@ namespace Acquaintance.RequestResponse
 
         private class Subscription : IDisposable
         {
-            private readonly RequestRouter<TRequest, TResponse> _router;
+            private readonly ScatterRouter<TRequest, TResponse> _router;
             private readonly IDisposable _token;
 
-            public Subscription(RequestRouter<TRequest, TResponse> router, IDisposable token)
+            public Subscription(ScatterRouter<TRequest, TResponse> router, IDisposable token)
             {
                 _router = router;
                 _token = token;
@@ -53,7 +53,7 @@ namespace Acquaintance.RequestResponse
             }
         }
 
-        public RequestRouter<TRequest, TResponse> Route(string name, Func<TRequest, bool> predicate, ListenOptions options = null)
+        public ScatterRouter<TRequest, TResponse> Route(string name, Func<TRequest, bool> predicate, ListenOptions options = null)
         {
             name = name ?? string.Empty;
             if (name == _sourceName)
@@ -71,11 +71,14 @@ namespace Acquaintance.RequestResponse
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            RequestRoute route = _routes.FirstOrDefault(r => r.Predicate(request));
-            if (route == null)
-                return new ImmediateResponse<TResponse>(null);
-            var response = _messageBus.Request<TRequest, TResponse>(route.ChannelName, request);
-            return new ImmediateResponse<TResponse>(new[] { response });
+            var routes = _routes.Where(r => r.Predicate(request));
+            List<TResponse> responses = new List<TResponse>();
+            foreach (var route in routes)
+            {
+                var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
+                responses.AddRange(response.ToArray());
+            }
+            return new ImmediateResponse<TResponse>(responses.ToArray());
         }
 
         public bool ShouldStopListening => false;

@@ -27,7 +27,7 @@ namespace Acquaintance.PubSub
                     subscription = new SpecificThreadPubSubSubscription<TPayload>(actionReference, options.ThreadId, _threadPool);
                     break;
                 case DispatchThreadType.ThreadpoolThread:
-                    subscription = new ThreadpoolThreadSubscription<TPayload>(actionReference);
+                    subscription = new ThreadPoolThreadSubscription<TPayload>(actionReference);
                     break;
                 case DispatchThreadType.Immediate:
                     subscription = new ImmediatePubSubSubscription<TPayload>(actionReference);
@@ -48,7 +48,7 @@ namespace Acquaintance.PubSub
         {
             if (threadPool != null && threadPool.NumberOfRunningFreeWorkers > 0)
                 return new AnyThreadPubSubSubscription<TPayload>(actionReference, threadPool);
-            return new ThreadpoolThreadSubscription<TPayload>(actionReference);
+            return new ThreadPoolThreadSubscription<TPayload>(actionReference);
         }
 
         private static ISubscriberReference<TPayload> CreateActionReference<TPayload>(Action<TPayload> act, SubscribeOptions options)

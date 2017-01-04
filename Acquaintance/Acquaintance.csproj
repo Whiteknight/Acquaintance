@@ -47,6 +47,7 @@
     <Compile Include="Logging\DelegateLogger.cs" />
     <Compile Include="Logging\ILogger.cs" />
     <Compile Include="Logging\SilentLogger.cs" />
+    <Compile Include="Modules\IModuleManager.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
@@ -80,6 +81,7 @@
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
     <Compile Include="RequestResponse\ScatterGatherChannel.cs" />
+    <Compile Include="RequestResponse\ScatterRouter.cs" />
     <Compile Include="ScatterGatherMessageBusExtensions.cs" />
     <Compile Include="SubscribeOptions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
@@ -108,8 +110,10 @@
     <Compile Include="Testing\TestingModule.cs" />
     <Compile Include="Threading\DispatchThreadType.cs" />
     <Compile Include="Threading\DummyMessageHandlerThreadContext.cs" />
+    <Compile Include="Threading\IActionDispatcher.cs" />
     <Compile Include="Threading\IMessageHandlerThreadContext.cs" />
     <Compile Include="Threading\IThreadAction.cs" />
+    <Compile Include="Threading\IThreadPool.cs" />
     <Compile Include="Threading\MessageHandlerThread.cs" />
     <Compile Include="Threading\MessageHandlerThreadContext.cs" />
     <Compile Include="Threading\MessagingWorkerThreadPool.cs" />

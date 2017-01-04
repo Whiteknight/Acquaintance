@@ -6,15 +6,6 @@ using System.Linq;
 
 namespace Acquaintance.Modules
 {
-    public interface IModuleManager
-    {
-        IDisposable Add(IMessageBusModule module);
-
-        IEnumerable<TModule> GetByType<TModule>()
-            where TModule : IMessageBusModule;
-
-    }
-
     public class ModuleManager : IDisposable, IModuleManager
     {
         private readonly IMessageBus _messageBus;

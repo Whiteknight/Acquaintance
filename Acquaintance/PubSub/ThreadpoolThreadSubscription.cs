@@ -1,15 +1,13 @@
-﻿using Acquaintance.Threading;
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Acquaintance.PubSub
 {
-    public class ThreadpoolThreadSubscription<TPayload> : ISubscription<TPayload>
+    public class ThreadPoolThreadSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscriberReference<TPayload> _action;
-        private readonly MessagingWorkerThreadPool _threadPool;
 
-        public ThreadpoolThreadSubscription(ISubscriberReference<TPayload> action)
+        public ThreadPoolThreadSubscription(ISubscriberReference<TPayload> action)
         {
             _action = action;
         }

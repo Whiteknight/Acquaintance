@@ -3,7 +3,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.Testing
 {
     [TestFixture]
     public class ExpectPublishTests

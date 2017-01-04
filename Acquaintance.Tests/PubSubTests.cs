@@ -145,6 +145,7 @@ namespace Acquaintance.Tests
             int x = 0;
             target.Subscribe<int>("Test", e => x += e, new SubscribeOptions
             {
+                DispatchType = DispatchThreadType.Immediate,
                 MaxEvents = 3
             });
             for (int i = 1; i < 100000; i *= 10)

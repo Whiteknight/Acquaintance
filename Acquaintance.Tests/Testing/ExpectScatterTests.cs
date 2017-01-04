@@ -1,10 +1,10 @@
-﻿using Acquaintance.Testing;
+﻿using System;
+using System.Linq;
+using Acquaintance.Testing;
 using FluentAssertions;
 using NUnit.Framework;
-using System;
-using System.Linq;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.Testing
 {
     [TestFixture]
     public class ExpectScatterTests
