@@ -19,28 +19,28 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void CreateSubscription()
+        public void Subscribe_SubscriptionBuilder()
         {
             var target = new MessageBus();
             string text = null;
-            target.CreateSubscription<TestPubSubEvent>(e => text = e.Text)
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .InvokeAction(e => text = e.Text)
                 .WithChannelName("Test")
-                .Immediate()
-                .Subscribe();
+                .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
         }
 
         [Test]
-        public void CreateSubscription_Filter()
+        public void Subscribe_SubscriptionBuilder_Filter()
         {
             var target = new MessageBus();
             string text = null;
-            target.CreateSubscription<TestPubSubEvent>(e => text = e.Text)
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .InvokeAction(e => text = e.Text)
                 .WithChannelName("Test")
                 .Immediate()
-                .WithFilter(e => e.Text == "Test2")
-                .Subscribe();
+                .WithFilter(e => e.Text == "Test2"));
 
             target.Publish("Test", new TestPubSubEvent("Test1"));
             text.Should().BeNull();
@@ -49,16 +49,16 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void PublishOnWorkerThread()
+        public void Subscribe_SubscriptionBuilder_WorkerThread()
         {
             var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
             try
             {
                 var resetEvent = new AutoResetEvent(false);
-                target.CreateSubscription<TestPubSubEvent>(e => resetEvent.Set())
+                target.Subscribe<TestPubSubEvent>(builder => builder
+                .InvokeAction(e => resetEvent.Set())
                     .WithChannelName("Test")
-                    .OnWorkerThread()
-                    .Subscribe();
+                    .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(2000).Should().BeTrue();
             }

@@ -15,8 +15,8 @@ namespace Acquaintance.Tests
             var bus = new MessageBus();
             try
             {
-                List<long> ids = new List<long>();
-                bus.Subscribe<MessageTimerEvent>(MessageTimerEvent.EventName, mte => ids.Add(mte.Id));
+                var ids = new List<long>();
+                bus.TimerSubscribe(1, builder => builder.InvokeAction(mte => ids.Add(mte.Id)));
                 var target = new MessageTimer(100, 100);
                 var token = bus.Modules.Add(target);
 

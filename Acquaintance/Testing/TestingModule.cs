@@ -26,10 +26,11 @@ namespace Acquaintance.Testing
         {
             var expectation = new PublishExpectation<TPayload>(name, description, filter);
             _expectations.Add(expectation);
-            _subscriptions.Subscribe(name, p => expectation.TryReceive(p), filter, new SubscribeOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            });
+            _subscriptions.Subscribe<TPayload>(builder => builder
+                .WithChannelName(name)
+                .InvokeAction(p => expectation.TryReceive(p))
+                .WithFilter(filter)
+                .Immediate());
             return expectation;
         }
 

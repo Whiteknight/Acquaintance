@@ -49,6 +49,7 @@
     <Compile Include="Logging\SilentLogger.cs" />
     <Compile Include="Modules\IModuleManager.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
+    <Compile Include="PubSub\EventRoute.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
@@ -65,8 +66,6 @@
     <Compile Include="PubSub\PubSubSimpleDispatchStrategy.cs" />
     <Compile Include="ListenOptions.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
-    <Compile Include="PubSub\EventRouter.cs" />
-    <Compile Include="PubSub\SubscriptionFactory.cs" />
     <Compile Include="PubSub\SubscriptionBuilder.cs" />
     <Compile Include="RequestResponse\GatheredResponse.cs" />
     <Compile Include="GatheredResponse.cs" />
@@ -83,7 +82,6 @@
     <Compile Include="RequestResponse\ScatterGatherChannel.cs" />
     <Compile Include="RequestResponse\ScatterRouter.cs" />
     <Compile Include="ScatterGatherMessageBusExtensions.cs" />
-    <Compile Include="SubscribeOptions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />
     <Compile Include="PubSub\IPubSubChannel.cs" />
@@ -120,6 +118,7 @@
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />
     <Compile Include="Timers\TimerMessageBusExtensions.cs" />
+    <Compile Include="Utility\DisposableCollection.cs" />
     <Compile Include="Utility\StringTrie.cs" />
   </ItemGroup>
   <ItemGroup>

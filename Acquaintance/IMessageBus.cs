@@ -9,7 +9,7 @@ namespace Acquaintance
     public interface IBusBase
     {
         ListenerFactory ListenerFactory { get; }
-        SubscriptionFactory SubscriptionFactory { get; }
+        IThreadPool ThreadPool { get; }
     }
 
     public interface ISubscribable : IBusBase
@@ -48,7 +48,6 @@ namespace Acquaintance
 
     public interface IMessageBus : IPubSubBus, IReqResBus, IDisposable
     {
-        IThreadPool ThreadPool { get; }
         IModuleManager Modules { get; }
 
         // Runloops and Event Processing

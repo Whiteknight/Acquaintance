@@ -69,10 +69,10 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             string eavesdropped = null;
             target.Listen<TestRequest, TestResponse>("Test", req => new TestResponse { Text = req.Text + "Responded" }, options: new ListenOptions { DispatchType = DispatchThreadType.Immediate });
-            target.Eavesdrop<TestRequest, TestResponse>("Test", conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault(), null, new SubscribeOptions
-            {
-                DispatchType = DispatchThreadType.Immediate
-            });
+            target.Eavesdrop<TestRequest, TestResponse>(s => s
+                .WithChannelName("Test")
+                .InvokeAction(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
+                .Immediate());
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             eavesdropped.Should().Be("RequestResponded");
         }

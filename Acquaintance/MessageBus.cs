@@ -23,7 +23,6 @@ namespace Acquaintance
         {
             _logger = logger ?? CreateDefaultLogger();
             ThreadPool = threadPool ?? new MessagingWorkerThreadPool(2);
-            SubscriptionFactory = new SubscriptionFactory(ThreadPool);
             ListenerFactory = new ListenerFactory(ThreadPool);
             Modules = new ModuleManager(this, _logger);
 
@@ -34,7 +33,6 @@ namespace Acquaintance
             _scatterGatherStrategy = dispatcherFactory.CreateScatterGatherStrategy();
         }
 
-        public SubscriptionFactory SubscriptionFactory { get; }
         public ListenerFactory ListenerFactory { get; }
         public IModuleManager Modules { get; }
 

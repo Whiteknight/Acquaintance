@@ -19,12 +19,15 @@ namespace Acquaintance.Tests
             var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4));
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
-            target.Subscribe<TestPubSubEvent>("Test", e =>
-            {
-                int c = Interlocked.Increment(ref count);
-                if (c >= numEvents)
-                    resetEvent.Set();
-            }, null, new SubscribeOptions { DispatchType = DispatchThreadType.AnyWorkerThread });
+            target.Subscribe<TestPubSubEvent>(s => s
+                .WithChannelName("Test")
+                .InvokeAction(e =>
+                {
+                    int c = Interlocked.Increment(ref count);
+                    if (c >= numEvents)
+                        resetEvent.Set();
+                })
+                .OnWorkerThread());
             for (int i = 0; i < numEvents; i++)
                 target.Publish("Test", new TestPubSubEvent());
 
@@ -38,12 +41,15 @@ namespace Acquaintance.Tests
             var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4), dispatcherFactory: new TrieDispatchStrategyFactory());
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
-            target.Subscribe<TestPubSubEvent>("Test.XYZ", e =>
-            {
-                int c = Interlocked.Increment(ref count);
-                if (c >= numEvents)
-                    resetEvent.Set();
-            }, null, new SubscribeOptions { DispatchType = DispatchThreadType.AnyWorkerThread });
+            target.Subscribe<TestPubSubEvent>(s => s
+                .WithChannelName("Test.XYZ")
+                .InvokeAction(e =>
+                {
+                    int c = Interlocked.Increment(ref count);
+                    if (c >= numEvents)
+                        resetEvent.Set();
+                })
+                .OnWorkerThread());
             for (int i = 0; i < numEvents; i++)
                 target.Publish("Test.*", new TestPubSubEvent());
 

@@ -16,23 +16,28 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscriptionRouter_Publish()
+        public void Subscribe_SubscriptionBuilder_RouteForward()
         {
             var target = new MessageBus();
             int evens = 0;
             int odds = 0;
             int all = 0;
-            var options = new SubscribeOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            };
-            target.Subscribe<TestPubSubEvent>(e => all += e.Number, options);
-            target.Subscribe<TestPubSubEvent>("Evens", e => evens += e.Number, options);
-            target.Subscribe<TestPubSubEvent>("Odds", e => odds += e.Number, options);
 
-            target.SubscriptionRouter<TestPubSubEvent>(string.Empty)
-                .Route("Evens", e => e.Number % 2 == 0)
-                .Route("Odds", e => e.Number % 2 == 1);
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .InvokeAction(e => all += e.Number)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Evens")
+                .InvokeAction(e => evens += e.Number)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Odds")
+                .InvokeAction(e => odds += e.Number)
+                .Immediate());
+
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .RouteForward(e => e.Number % 2 == 0, "Evens")
+                .RouteForward(e => e.Number % 2 == 1, "Odds"));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));

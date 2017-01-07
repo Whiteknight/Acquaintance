@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Acquaintance.Tests
 {
     [TestFixture]
-    public class TranslateTests
+    public class TransformTests
     {
         private class InputEvent
         {
@@ -27,16 +27,21 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void Translate()
+        public void Subscribe_SubscriptionBuilder_Transform()
         {
             var target = new MessageBus();
             string text = null;
-            var options = new SubscribeOptions { DispatchType = Threading.DispatchThreadType.Immediate };
-            target.Subscribe<OutputEvent>("Test", e => text = e.Text + "Output", options);
-            target.SubscribeTransform<InputEvent, OutputEvent>("Test", input => new OutputEvent(input.Text + "Translated"), null, "Test", options);
+            target.Subscribe<OutputEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => text = e.Text + "Output")
+                .Immediate());
+            target.Subscribe<InputEvent>(builder => builder
+                .WithChannelName("Test")
+                .TransformTo(input => new OutputEvent(input.Text + "Translated"), "Test")
+                .Immediate()
+            );
             target.Publish("Test", new InputEvent("TestPayload"));
             text.Should().Be("TestPayloadTranslatedOutput");
         }
-
     }
 }

@@ -19,27 +19,28 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscribeAndPublish()
+        public void Subscribe_SubscriptionBuilder_Immediate()
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, new SubscribeOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            });
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => text = e.Text)
+                .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
         }
 
         [Test]
-        public void SubscribeAndPublish_Filtered()
+        public void Subscribe_SubscriptionBuilder_Filtered()
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, e => e.Text == "Test2", new SubscribeOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            });
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => text = e.Text)
+                .WithFilter(e => e.Text == "Test2")
+                .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test1"));
             text.Should().BeNull();
             target.Publish("Test", new TestPubSubEvent("Test2"));
@@ -47,16 +48,16 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscribeAndPublish_FreeWorkerThread()
+        public void Subscribe_SubscriptionBuilder_OnWorkerThread()
         {
             var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
             var resetEvent = new ManualResetEvent(false);
             try
             {
-                target.Subscribe<TestPubSubEvent>("Test", e => resetEvent.Set(), new SubscribeOptions
-                {
-                    DispatchType = DispatchThreadType.AnyWorkerThread,
-                });
+                target.Subscribe<TestPubSubEvent>(builder => builder
+                    .WithChannelName("Test")
+                    .InvokeAction(e => resetEvent.Set())
+                    .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(5000).Should().BeTrue();
             }
@@ -68,7 +69,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscribeAndPublish_SpecificThread()
+        public void Subscribe_SubscriptionBuilder_OnThread()
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
@@ -76,7 +77,10 @@ namespace Acquaintance.Tests
             try
             {
 
-                target.Subscribe<TestPubSubEvent>("Test", e => resetEvent.Set(), SubscribeOptions.SpecificThread(id));
+                target.Subscribe<TestPubSubEvent>(builder => builder
+                    .WithChannelName("Test")
+                    .InvokeAction(e => resetEvent.Set())
+                    .OnThread(id));
                 target.Publish("Test", new TestPubSubEvent("Test"));
 
                 resetEvent.WaitOne(5000).Should().BeTrue();
@@ -89,7 +93,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscribeAndPublish_SpecificThread_Stopped()
+        public void Subscribe_SubscriptionBuilder_OnThread_Stopped()
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
@@ -97,7 +101,10 @@ namespace Acquaintance.Tests
             try
             {
                 target.StopDedicatedWorkerThread(id);
-                target.Subscribe<TestPubSubEvent>("Test", e => resetEvent.Set(), SubscribeOptions.SpecificThread(id));
+                target.Subscribe<TestPubSubEvent>(builder => builder
+                    .WithChannelName("Test")
+                    .InvokeAction(e => resetEvent.Set())
+                    .OnThread(id));
                 target.Publish("Test", new TestPubSubEvent("Test"));
 
                 resetEvent.WaitOne(1000).Should().BeFalse();
@@ -110,14 +117,14 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void SubscribeAndPublish_Object()
+        public void Subscribe_SubscriptionBuilder_Object()
         {
             var target = new MessageBus();
             string text = null;
-            target.Subscribe<TestPubSubEvent>("Test", e => text = e.Text, new SubscribeOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            });
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => text = e.Text)
+                .Immediate());
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
         }
@@ -127,13 +134,19 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
             int count = 0;
-            var options = new SubscribeOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            };
-            target.Subscribe<TestPubSubEvent>("1.X.c", e => count += 1, options);
-            target.Subscribe<TestPubSubEvent>("1.Y.c", e => count += 10, options);
-            target.Subscribe<TestPubSubEvent>("1.Y.d", e => count += 100, options);
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("1.X.c")
+                .InvokeAction(e => count += 1)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(
+                builder => builder
+                .WithChannelName("1.Y.c")
+                .InvokeAction(e => count += 10)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("1.Y.d")
+                .InvokeAction(e => count += 100)
+                .Immediate());
             target.Publish("1.*.c", new TestPubSubEvent("Test2"));
             count.Should().Be(11);
         }
@@ -143,11 +156,11 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             int x = 0;
-            target.Subscribe<int>("Test", e => x += e, new SubscribeOptions
-            {
-                DispatchType = DispatchThreadType.Immediate,
-                MaxEvents = 3
-            });
+            target.Subscribe<int>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => x += e)
+                .Immediate()
+                .MaximumEvents(3));
             for (int i = 1; i < 100000; i *= 10)
                 target.Publish("Test", i);
             x.Should().Be(111);
