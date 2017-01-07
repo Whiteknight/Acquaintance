@@ -10,8 +10,8 @@ namespace Acquaintance.Tests
         public void ScatterRouter_Publish()
         {
             var target = new MessageBus();
-            target.Participate<int, int>("Evens", e => e * 10);
-            target.Participate<int, int>("Odds", e => e * 100);
+            target.Participate<int, int>(l => l.WithChannelName("Evens").InvokeFunction(e => e * 10));
+            target.Participate<int, int>(l => l.WithChannelName("Odds").InvokeFunction(e => e * 100));
 
             target.ScatterRouter<int, int>(string.Empty)
                 .Route("Evens", e => e % 2 == 0)

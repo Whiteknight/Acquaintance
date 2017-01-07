@@ -11,7 +11,7 @@ namespace Acquaintance.Tests
         {
             const int numEvents = 100000;
             var target = new MessageBus();
-            target.Listen<int, int>("Test", x => 5);
+            target.Listen<int, int>(l => l.WithChannelName("Test").InvokeFunction(x => 5));
             int total = 0;
             for (int i = 0; i < numEvents; i++)
             {
@@ -27,7 +27,7 @@ namespace Acquaintance.Tests
         {
             const int numEvents = 100000;
             var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
-            target.Listen<int, int>("Test", x => 5);
+            target.Listen<int, int>(l => l.WithChannelName("Test").InvokeFunction(x => 5));
             int total = 0;
             for (int i = 0; i < numEvents; i++)
             {

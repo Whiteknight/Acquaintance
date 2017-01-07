@@ -38,10 +38,11 @@ namespace Acquaintance.Testing
         {
             var expectation = new RequestExpectation<TRequest, TResponse>(name, description, filter);
             _expectations.Add(expectation);
-            _subscriptions.Listen(name, r => expectation.TryHandle(r), filter, new ListenOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            });
+            _subscriptions.Listen<TRequest, TResponse>(l => l
+                .WithChannelName(name)
+                .InvokeFunction(r => expectation.TryHandle(r))
+                .WithFilter(filter)
+                .Immediate());
             return expectation;
         }
 
@@ -49,10 +50,11 @@ namespace Acquaintance.Testing
         {
             var expectation = new ScatterExpectation<TRequest, TResponse>(name, description, filter);
             _expectations.Add(expectation);
-            _subscriptions.Participate(name, r => expectation.TryHandle(r), filter, new ListenOptions
-            {
-                DispatchType = Threading.DispatchThreadType.Immediate
-            });
+            _subscriptions.Participate<TRequest, TResponse>(p => p
+                .WithChannelName(name)
+                .InvokeFunction(r => expectation.TryHandle(r))
+                .WithFilter(filter)
+                .Immediate());
             return expectation;
         }
 

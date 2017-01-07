@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Acquaintance.RequestResponse;
+using Acquaintance.Utility;
+using System;
 
 namespace Acquaintance
 {
@@ -9,16 +11,42 @@ namespace Acquaintance
             return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
         }
 
-        public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
+        // TODO: Merge into ParticpantBuilder
+        public static ScatterRouter<TRequest, TResponse> ScatterRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
         {
-            var subscription = messageBus.ListenerFactory.CreateListener(subscriber, filter, options);
-            return messageBus.Participate(name, subscription);
+            var router = new ScatterRouter<TRequest, TResponse>(messageBus, channelName);
+            var token = messageBus.Participate(channelName, router);
+            router.SetToken(token);
+            return router;
         }
 
-        public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
+        public static IDisposable Participate<TRequest, TResponse>(this IReqResBus messageBus, Action<ParticipantBuilder<TRequest, TResponse>> build)
         {
-            return messageBus.Participate(string.Empty, subscriber, null, options);
+            var builder = new ParticipantBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
+            build(builder);
+            var listeners = builder.BuildParticipants();
+            if (listeners.Count == 1)
+                return messageBus.Participate(builder.ChannelName, listeners[0]);
+
+            var tokens = new DisposableCollection();
+            foreach (var listener in listeners)
+            {
+                var token = messageBus.Participate(builder.ChannelName, listeners[0]);
+                tokens.Add(token);
+            }
+            return tokens;
         }
+
+        //public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null)
+        //{
+        //    var subscription = messageBus.ListenerFactory.CreateListener(subscriber, filter);
+        //    return messageBus.Participate(name, subscription);
+        //}
+
+        //public static IDisposable Participate<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null)
+        //{
+        //    return messageBus.Participate(string.Empty, subscriber, null);
+        //}
 
         // TODO: We need the ability for an IListener to return several responses, so we can route and transform properly
         //public static RequestRouter<TRequest, TResponse> ParticipateRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)

@@ -53,7 +53,7 @@ namespace Acquaintance.RequestResponse
             }
         }
 
-        public ScatterRouter<TRequest, TResponse> Route(string name, Func<TRequest, bool> predicate, ListenOptions options = null)
+        public ScatterRouter<TRequest, TResponse> Route(string name, Func<TRequest, bool> predicate)
         {
             name = name ?? string.Empty;
             if (name == _sourceName)

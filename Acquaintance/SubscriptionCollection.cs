@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Acquaintance
 {
-    public sealed class SubscriptionCollection : IPubSubBus, IListenable, IDisposable
+    public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IListenable, IDisposable
     {
         private readonly IMessageBus _messageBus;
         private readonly List<IDisposable> _subscriptions;
@@ -18,8 +18,6 @@ namespace Acquaintance
         }
 
         public IThreadPool ThreadPool => _messageBus.ThreadPool;
-
-        public ListenerFactory ListenerFactory => _messageBus.ListenerFactory;
 
         public void Dispose()
         {
@@ -58,6 +56,16 @@ namespace Acquaintance
         public void Publish<TPayload>(string name, TPayload payload)
         {
             _messageBus.Publish<TPayload>(name, payload);
+        }
+
+        public TResponse Request<TRequest, TResponse>(string name, TRequest request)
+        {
+            return _messageBus.Request<TRequest, TResponse>(name, request);
+        }
+
+        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request)
+        {
+            return _messageBus.Scatter<TRequest, TResponse>(name, request);
         }
     }
 }

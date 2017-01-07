@@ -41,6 +41,7 @@ namespace Acquaintance.PubSub
                 subscriptions.Add(subscription);
             }
 
+            // TODO: Try to detect circular references?
             foreach (var route in _routes)
             {
                 var subscription = CreateRouterSubscription(route);

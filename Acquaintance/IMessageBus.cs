@@ -8,7 +8,6 @@ namespace Acquaintance
 {
     public interface IBusBase
     {
-        ListenerFactory ListenerFactory { get; }
         IThreadPool ThreadPool { get; }
     }
 

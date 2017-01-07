@@ -10,12 +10,16 @@ namespace Acquaintance.Tests
         public void RequestRouter_Publish()
         {
             var target = new MessageBus();
-            target.Listen<int, int>("Evens", e => e * 10);
-            target.Listen<int, int>("Odds", e => e * 100);
+            target.Listen<int, int>(l => l
+                .WithChannelName("Evens")
+                .InvokeFunction(e => e * 10));
+            target.Listen<int, int>(l => l
+                .WithChannelName("Odds")
+                .InvokeFunction(e => e * 100));
 
-            target.RequestRouter<int, int>(string.Empty)
-                .Route("Evens", e => e % 2 == 0)
-                .Route("Odds", e => e % 2 == 1);
+            target.Listen<int, int>(l => l
+                .RouteForward(e => e % 2 == 0, "Evens")
+                .RouteForward(e => e % 2 == 1, "Odds"));
 
             target.Request<int, int>(1).Should().Be(100);
             target.Request<int, int>(2).Should().Be(20);

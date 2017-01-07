@@ -22,49 +22,12 @@ namespace Acquaintance
             return method.Invoke(messageBus, new[] { name, request });
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, string name, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
+        public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<ListenerBuilder<TRequest, TResponse>> build)
         {
-            var subscription = messageBus.ListenerFactory.CreateListener(subscriber, filter, options);
-            return messageBus.Listen(name, subscription);
-        }
-
-        public static IDisposable Listen<TRequest, TResponse>(this IListenable messageBus, Func<TRequest, TResponse> subscriber, Func<TRequest, bool> filter = null, ListenOptions options = null)
-        {
-            return messageBus.Listen(string.Empty, subscriber, null, options);
-        }
-
-        public static RequestRouter<TRequest, TResponse> RequestRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
-        {
-            var router = new RequestRouter<TRequest, TResponse>(messageBus, channelName);
-            var token = messageBus.Listen(channelName, router);
-            router.SetToken(token);
-            return router;
-        }
-
-        public static ScatterRouter<TRequest, TResponse> ScatterRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
-        {
-            var router = new ScatterRouter<TRequest, TResponse>(messageBus, channelName);
-            var token = messageBus.Participate(channelName, router);
-            router.SetToken(token);
-            return router;
-        }
-
-        public static IDisposable ListenTransformRequest<TRequestIn, TRequestOut, TResponse>(this IReqResBus messageBus, string inName, Func<TRequestIn, TRequestOut> transform, Func<TRequestIn, bool> filter, string outName = null, ListenOptions options = null)
-        {
-            return messageBus.Listen<TRequestIn, TResponse>(inName, rin =>
-            {
-                var rout = transform(rin);
-                return messageBus.Request<TRequestOut, TResponse>(outName, rout);
-            });
-        }
-
-        public static IDisposable ListenTransformResponse<TRequest, TResponseIn, TResponseOut>(this IReqResBus messageBus, string inName, Func<TResponseIn, TResponseOut> transform, Func<TRequest, bool> filter, string outName = null, ListenOptions options = null)
-        {
-            return messageBus.Listen<TRequest, TResponseOut>(inName, request =>
-            {
-                var rin = messageBus.Request<TRequest, TResponseIn>(outName, request);
-                return transform(rin);
-            });
+            var builder = new ListenerBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
+            build(builder);
+            var listener = builder.BuildListener();
+            return messageBus.Listen(builder.ChannelName, listener);
         }
     }
 }
