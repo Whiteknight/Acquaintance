@@ -1,6 +1,6 @@
 using System;
 
-namespace Acquaintance.RequestResponse
+namespace Acquaintance
 {
     public interface IDispatchableRequest<out TResponse> : IDisposable
     {

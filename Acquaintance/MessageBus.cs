@@ -2,6 +2,7 @@
 using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
+using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace Acquaintance
         private readonly IPubSubChannelDispatchStrategy _pubSubStrategy;
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
-        private readonly IReqResChannelDispatchStrategy _scatterGatherStrategy;
+        private readonly IScatterGatherChannelDispatchStrategy _scatterGatherStrategy;
 
         public MessageBus(IThreadPool threadPool = null, ILogger logger = null, IDispatchStrategyFactory dispatcherFactory = null)
         {
@@ -68,12 +69,48 @@ namespace Acquaintance
             return RequestInternal<TRequest, TResponse>(name, request, _requestResponseStrategy).Responses.SingleOrDefault();
         }
 
-        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request)
+        private IGatheredResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
         {
-            return RequestInternal<TRequest, TResponse>(name, request, _scatterGatherStrategy);
+            var waiters = new List<IDispatchableRequest<TResponse>>();
+            // TODO: Be able to specify a timeout for this operation to complete.
+            // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
+            // the next channel
+            foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))
+            {
+                _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+                waiters.AddRange(channel.Request(request));
+            }
+
+            List<TResponse> responses = new List<TResponse>();
+            foreach (var waiter in waiters)
+            {
+                bool complete = waiter.WaitForResponse();
+                if (complete)
+                    responses.AddRange(waiter.Responses);
+                waiter.Dispose();
+            }
+
+            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
+            if (eavesdropChannels.Any())
+            {
+                var conversation = new Conversation<TRequest, TResponse>(request, responses);
+                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, name, conversation.Responses.Count);
+                foreach (var channel in eavesdropChannels)
+                {
+                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+                    channel.Publish(conversation);
+                }
+            }
+
+            return new GatheredResponse<TResponse>(responses);
         }
 
-        private IGatheredResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
+        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request)
+        {
+            return ScatterInternal<TRequest, TResponse>(name, request, _scatterGatherStrategy);
+        }
+
+        private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string name, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
         {
             var waiters = new List<IDispatchableRequest<TResponse>>();
             // TODO: Be able to specify a timeout for this operation to complete.
@@ -123,7 +160,7 @@ namespace Acquaintance
             return channel.Subscribe(subscription);
         }
 
-        public IDisposable Participate<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        public IDisposable Participate<TRequest, TResponse>(string name, IParticipant<TRequest, TResponse> listener)
         {
             var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
             _logger.Debug("Participating on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);

@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
+using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
 
@@ -29,7 +30,7 @@ namespace Acquaintance
     public interface IListenable : IBusBase
     {
         IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
-        IDisposable Participate<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
+        IDisposable Participate<TRequest, TResponse>(string name, IParticipant<TRequest, TResponse> listener);
         IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscriber);
     }
 

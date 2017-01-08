@@ -8,12 +8,10 @@ namespace Acquaintance.RequestResponse
     public class ReqResTrieDispatchStrategy : IReqResChannelDispatchStrategy
     {
         private readonly StringTrie<IReqResChannel> _channels;
-        private readonly bool _isExclusive;
 
-        public ReqResTrieDispatchStrategy(bool isExclusive)
+        public ReqResTrieDispatchStrategy()
         {
             _channels = new StringTrie<IReqResChannel>();
-            _isExclusive = isExclusive;
         }
 
         public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
@@ -38,10 +36,7 @@ namespace Acquaintance.RequestResponse
 
         private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
         {
-            if (_isExclusive)
-                return new RequestResponseChannel<TRequest, TResponse>();
-            else
-                return new ScatterGatherChannel<TRequest, TResponse>();
+            return new RequestResponseChannel<TRequest, TResponse>();
         }
     }
 }

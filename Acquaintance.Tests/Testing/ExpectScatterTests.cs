@@ -1,8 +1,8 @@
-﻿using System;
-using System.Linq;
-using Acquaintance.Testing;
+﻿using Acquaintance.Testing;
 using FluentAssertions;
 using NUnit.Framework;
+using System;
+using System.Linq;
 
 namespace Acquaintance.Tests.Testing
 {
@@ -39,7 +39,7 @@ namespace Acquaintance.Tests.Testing
         {
             var target = new MessageBus();
             int value = 0;
-            target.ExpectScatter<int, int>(null).WillReturn(x => x + 5).Callback((req, res) => value = req + res);
+            target.ExpectScatter<int, int>(null).WillReturn(x => x + 5).Callback((req, res) => value = req + res.FirstOrDefault());
 
             var result = target.Scatter<int, int>(4).First();
             value.Should().Be(13);

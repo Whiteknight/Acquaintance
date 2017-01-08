@@ -1,9 +1,10 @@
-﻿using Acquaintance.Threading;
+﻿using Acquaintance.RequestResponse;
+using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Acquaintance.RequestResponse
+namespace Acquaintance.ScatterGather
 {
     public class ParticipantBuilder<TRequest, TResponse>
     {
@@ -13,10 +14,10 @@ namespace Acquaintance.RequestResponse
         private DispatchThreadType _dispatchType;
         private int _threadId;
         private int _timeoutMs;
-        private List<IListenerReference<TRequest, TResponse>> _funcReferences;
+        private readonly List<IParticipantReference<TRequest, TResponse>> _funcReferences;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private List<RequestRoute<TRequest>> _routes;
+        private readonly List<RequestRoute<TRequest>> _routes;
 
         public ParticipantBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -27,7 +28,7 @@ namespace Acquaintance.RequestResponse
 
 
             _routes = new List<RequestRoute<TRequest>>();
-            _funcReferences = new List<IListenerReference<TRequest, TResponse>>();
+            _funcReferences = new List<IParticipantReference<TRequest, TResponse>>();
             _messageBus = messageBus;
             _threadPool = threadPool;
         }
@@ -73,9 +74,16 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public ParticipantBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false)
+        public ParticipantBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> participant, bool useWeakReference = false)
         {
-            var reference = CreateReference(listener, useWeakReference);
+            var reference = CreateReference(r => new[] { participant(r) }, useWeakReference);
+            _funcReferences.Add(reference);
+            return this;
+        }
+
+        public ParticipantBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false)
+        {
+            var reference = CreateReference(participant, useWeakReference);
             _funcReferences.Add(reference);
             return this;
         }
@@ -116,21 +124,21 @@ namespace Acquaintance.RequestResponse
         //    });
         //}
 
-        public IList<IListener<TRequest, TResponse>> BuildParticipants()
+        public IList<IParticipant<TRequest, TResponse>> BuildParticipants()
         {
             if (!_funcReferences.Any() && !_routes.Any())
                 throw new Exception("No function or routes supplied");
 
-            var listeners = new List<IListener<TRequest, TResponse>>();
+            var listeners = new List<IParticipant<TRequest, TResponse>>();
             foreach (var route in _routes)
             {
-                IListener<TRequest, TResponse> listener = new RequestRouter<TRequest, TResponse>(_messageBus, _routes, null);
+                IParticipant<TRequest, TResponse> listener = new ScatterRouter<TRequest, TResponse>(_messageBus, _routes);
                 listener = WrapListener(listener, _filter, _maxRequests);
                 listeners.Add(listener);
             }
             foreach (var func in _funcReferences)
             {
-                IListener<TRequest, TResponse> listener = CreateListener(func, _dispatchType, _threadId, _timeoutMs);
+                IParticipant<TRequest, TResponse> listener = CreateListener(func, _dispatchType, _threadId, _timeoutMs);
                 listener = WrapListener(listener, _filter, _maxRequests);
                 listeners.Add(listener);
             }
@@ -138,39 +146,39 @@ namespace Acquaintance.RequestResponse
             return listeners;
         }
 
-        private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
+        private IParticipant<TRequest, TResponse> CreateListener(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
         {
-            IListener<TRequest, TResponse> listener;
+            IParticipant<TRequest, TResponse> listener;
             switch (dispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    listener = new AnyThreadListener<TRequest, TResponse>(reference, _threadPool, timeoutMs);
+                    listener = new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool, timeoutMs);
                     break;
                 case DispatchThreadType.SpecificThread:
-                    listener = new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
+                    listener = new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
                     break;
                 default:
-                    listener = new ImmediateListener<TRequest, TResponse>(reference);
+                    listener = new ImmediateParticipant<TRequest, TResponse>(reference);
                     break;
             }
 
             return listener;
         }
 
-        private IListener<TRequest, TResponse> WrapListener(IListener<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
+        private IParticipant<TRequest, TResponse> WrapListener(IParticipant<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
         {
             if (filter != null)
-                listener = new FilteredListener<TRequest, TResponse>(listener, filter);
+                listener = new FilteredParticipant<TRequest, TResponse>(listener, filter);
             if (maxRequests > 0)
-                listener = new MaxRequestsListener<TRequest, TResponse>(listener, maxRequests);
+                listener = new MaxRequestsParticipant<TRequest, TResponse>(listener, maxRequests);
             return listener;
         }
 
-        private IListenerReference<TRequest, TResponse> CreateReference(Func<TRequest, TResponse> listener, bool useWeakReference)
+        private IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, IEnumerable<TResponse>> listener, bool useWeakReference)
         {
             if (useWeakReference)
-                return new WeakListenerReference<TRequest, TResponse>(listener);
-            return new StrongListenerReference<TRequest, TResponse>(listener);
+                return new WeakParticipantReference<TRequest, TResponse>(listener);
+            return new StrongParticipantReference<TRequest, TResponse>(listener);
         }
     }
 }

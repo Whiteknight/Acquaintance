@@ -13,9 +13,9 @@ namespace Acquaintance.Tests
             target.Participate<int, int>(l => l.WithChannelName("Evens").InvokeFunction(e => e * 10));
             target.Participate<int, int>(l => l.WithChannelName("Odds").InvokeFunction(e => e * 100));
 
-            target.ScatterRouter<int, int>(string.Empty)
-                .Route("Evens", e => e % 2 == 0)
-                .Route("Odds", e => e % 2 == 1);
+            target.Participate<int, int>(l => l
+                .RouteForward(e => e % 2 == 0, "Evens")
+                .RouteForward(e => e % 2 == 1, "Odds"));
 
             target.Scatter<int, int>(1).Should().Contain(100);
             target.Scatter<int, int>(2).Should().Contain(20);

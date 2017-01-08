@@ -1,4 +1,4 @@
-﻿using Acquaintance.RequestResponse;
+﻿using Acquaintance.ScatterGather;
 using Acquaintance.Utility;
 using System;
 
@@ -9,15 +9,6 @@ namespace Acquaintance
         public static IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
         {
             return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
-        }
-
-        // TODO: Merge into ParticpantBuilder
-        public static ScatterRouter<TRequest, TResponse> ScatterRouter<TRequest, TResponse>(this IReqResBus messageBus, string channelName)
-        {
-            var router = new ScatterRouter<TRequest, TResponse>(messageBus, channelName);
-            var token = messageBus.Participate(channelName, router);
-            router.SetToken(token);
-            return router;
         }
 
         public static IDisposable Participate<TRequest, TResponse>(this IReqResBus messageBus, Action<ParticipantBuilder<TRequest, TResponse>> build)
@@ -31,7 +22,7 @@ namespace Acquaintance
             var tokens = new DisposableCollection();
             foreach (var listener in listeners)
             {
-                var token = messageBus.Participate(builder.ChannelName, listeners[0]);
+                var token = messageBus.Participate(builder.ChannelName, listener);
                 tokens.Add(token);
             }
             return tokens;

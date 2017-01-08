@@ -8,12 +8,10 @@ namespace Acquaintance.RequestResponse
     public class ReqResSimpleDispatchStrategy : IReqResChannelDispatchStrategy
     {
         private readonly ConcurrentDictionary<string, IReqResChannel> _reqResChannels;
-        private readonly bool _isExclusive;
 
-        public ReqResSimpleDispatchStrategy(bool isExclusive)
+        public ReqResSimpleDispatchStrategy()
         {
             _reqResChannels = new ConcurrentDictionary<string, IReqResChannel>();
-            _isExclusive = isExclusive;
         }
 
         public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
@@ -50,10 +48,7 @@ namespace Acquaintance.RequestResponse
 
         private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
         {
-            if (_isExclusive)
-                return new RequestResponseChannel<TRequest, TResponse>();
-            else
-                return new ScatterGatherChannel<TRequest, TResponse>();
+            return new RequestResponseChannel<TRequest, TResponse>();
         }
 
         private static string GetReqResKey(Type requestType, Type responseType, string name)

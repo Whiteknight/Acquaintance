@@ -1,12 +1,13 @@
 ﻿using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
+using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 
 namespace Acquaintance
 {
-    public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IListenable, IDisposable
+    public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IDisposable
     {
         private readonly IMessageBus _messageBus;
         private readonly List<IDisposable> _subscriptions;
@@ -39,7 +40,7 @@ namespace Acquaintance
             return token;
         }
 
-        public IDisposable Participate<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        public IDisposable Participate<TRequest, TResponse>(string name, IParticipant<TRequest, TResponse> listener)
         {
             var token = _messageBus.Participate(name, listener);
             _subscriptions.Add(token);

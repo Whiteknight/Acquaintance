@@ -1,5 +1,6 @@
 ﻿using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
+using Acquaintance.ScatterGather;
 
 namespace Acquaintance
 {
@@ -8,7 +9,7 @@ namespace Acquaintance
         IPubSubChannelDispatchStrategy CreatePubSubStrategy();
 
         IReqResChannelDispatchStrategy CreateRequestResponseStrategy();
-        IReqResChannelDispatchStrategy CreateScatterGatherStrategy();
+        IScatterGatherChannelDispatchStrategy CreateScatterGatherStrategy();
     }
 
     public class SimpleDispatchStrategyFactory : IDispatchStrategyFactory
@@ -20,12 +21,12 @@ namespace Acquaintance
 
         public IReqResChannelDispatchStrategy CreateRequestResponseStrategy()
         {
-            return new ReqResSimpleDispatchStrategy(true);
+            return new ReqResSimpleDispatchStrategy();
         }
 
-        public IReqResChannelDispatchStrategy CreateScatterGatherStrategy()
+        public IScatterGatherChannelDispatchStrategy CreateScatterGatherStrategy()
         {
-            return new ReqResSimpleDispatchStrategy(false);
+            return new ScatterGatherSimpleDispatchStrategy();
         }
     }
 
@@ -38,12 +39,12 @@ namespace Acquaintance
 
         public IReqResChannelDispatchStrategy CreateRequestResponseStrategy()
         {
-            return new ReqResTrieDispatchStrategy(true);
+            return new ReqResTrieDispatchStrategy();
         }
 
-        public IReqResChannelDispatchStrategy CreateScatterGatherStrategy()
+        public IScatterGatherChannelDispatchStrategy CreateScatterGatherStrategy()
         {
-            return new ReqResTrieDispatchStrategy(false);
+            return new ScatterGatherTrieDispatchStrategy();
         }
     }
 }

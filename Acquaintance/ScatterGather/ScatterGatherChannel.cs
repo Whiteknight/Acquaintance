@@ -2,15 +2,15 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Acquaintance.RequestResponse
+namespace Acquaintance.ScatterGather
 {
-    public class ScatterGatherChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
+    public class ScatterGatherChannel<TRequest, TResponse> : IScatterGatherChannel<TRequest, TResponse>
     {
-        private readonly ConcurrentDictionary<Guid, IListener<TRequest, TResponse>> _listeners;
+        private readonly ConcurrentDictionary<Guid, IParticipant<TRequest, TResponse>> _participants;
 
         public ScatterGatherChannel()
         {
-            _listeners = new ConcurrentDictionary<Guid, IListener<TRequest, TResponse>>();
+            _participants = new ConcurrentDictionary<Guid, IParticipant<TRequest, TResponse>>();
             Id = Guid.NewGuid();
         }
 
@@ -20,7 +20,7 @@ namespace Acquaintance.RequestResponse
         {
             List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
             List<Guid> toRemove = new List<Guid>();
-            foreach (var kvp in _listeners)
+            foreach (var kvp in _participants)
             {
                 try
                 {
@@ -31,7 +31,7 @@ namespace Acquaintance.RequestResponse
                     // TODO: We should order these so worker thread requests are dispatched first, followed by
                     // immediate requests.
                     var responseWaiter = listener.Request(request);
-                    if (listener.ShouldStopListening)
+                    if (listener.ShouldStopParticipating)
                         toRemove.Add(kvp.Key);
                     waiters.Add(responseWaiter);
                 }
@@ -42,25 +42,25 @@ namespace Acquaintance.RequestResponse
             return waiters;
         }
 
-        public SubscriptionToken Listen(IListener<TRequest, TResponse> listener)
+        public SubscriptionToken Listen(IParticipant<TRequest, TResponse> listener)
         {
             if (listener == null)
                 throw new ArgumentNullException(nameof(listener));
 
             Guid id = Guid.NewGuid();
-            _listeners.TryAdd(id, listener);
+            _participants.TryAdd(id, listener);
             return new SubscriptionToken(this, id);
         }
 
         public void Unsubscribe(Guid id)
         {
-            IListener<TRequest, TResponse> subscription;
-            _listeners.TryRemove(id, out subscription);
+            IParticipant<TRequest, TResponse> subscription;
+            _participants.TryRemove(id, out subscription);
         }
 
         public void Dispose()
         {
-            _listeners.Clear();
+            _participants.Clear();
         }
     }
 }
