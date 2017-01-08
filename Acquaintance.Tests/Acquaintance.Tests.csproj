@@ -71,11 +71,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PubSubTests.cs" />
     <Compile Include="ScatterRouterTests.cs" />
-    <Compile Include="SubscriptionBuilderTests.cs" />
     <Compile Include="Testing\ExpectPublishTests.cs" />
     <Compile Include="Testing\ExpectRequestTests.cs" />
     <Compile Include="Testing\ExpectScatterTests.cs" />
-    <Compile Include="TranslateTests.cs" />
+    <Compile Include="PubSubTransformTests.cs" />
     <Compile Include="Utility\StringTrieTests.cs" />
   </ItemGroup>
   <ItemGroup>

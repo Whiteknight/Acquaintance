@@ -1,11 +1,10 @@
-﻿using Acquaintance.RequestResponse;
+﻿using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading;
-using Acquaintance.ScatterGather;
 
 namespace Acquaintance.Tests
 {
@@ -132,6 +131,33 @@ namespace Acquaintance.Tests
             var response = target.Scatter<int, int>("Test.*", 0).Responses;
             response.Should().BeEquivalentTo(1, 2, 3);
         }
-    }
 
+        [Test]
+        public void Participate_ParticipantBuilder_TransformRequestTo()
+        {
+            var target = new MessageBus();
+            target.Participate<string, int>(l => l.InvokeFunction(s => s.Length));
+            target.Participate<string, int>(l => l.InvokeFunction(s => s.Length * 2));
+
+            target.Participate<int, int>(l => l.TransformRequestTo<string>(null, i => i.ToString()));
+
+            var results = target.Scatter<int, int>(100);
+            results.Should().Contain(3);
+            results.Should().Contain(6);
+        }
+
+        [Test]
+        public void Participate_ParticipantBuilder_TransformResponseFrom()
+        {
+            var target = new MessageBus();
+            target.Participate<int, string>(l => l.InvokeFunction(s => s.ToString()));
+            target.Participate<int, string>(l => l.InvokeFunction(s => s.ToString() + "A"));
+
+            target.Participate<int, int>(l => l.TransformResponseFrom<string>(null, i => i.Length));
+
+            var results = target.Scatter<int, int>(100);
+            results.Should().Contain(3);
+            results.Should().Contain(4);
+        }
+    }
 }

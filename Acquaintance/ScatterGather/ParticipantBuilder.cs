@@ -106,23 +106,23 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
-        //public ParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
-        //{
-        //    return InvokeFunction(request =>
-        //    {
-        //        var transformed = transform(request);
-        //        return _messageBus.Scatter<TTransformed, TResponse>(sourceChannelName, transformed);
-        //    });
-        //}
+        public ParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
+        {
+            return InvokeFunction(request =>
+            {
+                var transformed = transform(request);
+                return _messageBus.Scatter<TTransformed, TResponse>(sourceChannelName, transformed);
+            });
+        }
 
-        //public ParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
-        //{
-        //    return InvokeFunction(request =>
-        //    {
-        //        var response = _messageBus.Request<TRequest, TSource>(sourceChannelName, request);
-        //        return transform(response);
-        //    });
-        //}
+        public ParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
+        {
+            return InvokeFunction(request =>
+            {
+                var responses = _messageBus.Scatter<TRequest, TSource>(sourceChannelName, request);
+                return responses.Select(transform);
+            });
+        }
 
         public IList<IParticipant<TRequest, TResponse>> BuildParticipants()
         {
@@ -130,7 +130,7 @@ namespace Acquaintance.ScatterGather
                 throw new Exception("No function or routes supplied");
 
             var listeners = new List<IParticipant<TRequest, TResponse>>();
-            foreach (var route in _routes)
+            if (_routes.Any())
             {
                 IParticipant<TRequest, TResponse> listener = new ScatterRouter<TRequest, TResponse>(_messageBus, _routes);
                 listener = WrapListener(listener, _filter, _maxRequests);
@@ -138,7 +138,7 @@ namespace Acquaintance.ScatterGather
             }
             foreach (var func in _funcReferences)
             {
-                IParticipant<TRequest, TResponse> listener = CreateListener(func, _dispatchType, _threadId, _timeoutMs);
+                IParticipant<TRequest, TResponse> listener = CreateParticipant(func, _dispatchType, _threadId, _timeoutMs);
                 listener = WrapListener(listener, _filter, _maxRequests);
                 listeners.Add(listener);
             }
@@ -146,23 +146,17 @@ namespace Acquaintance.ScatterGather
             return listeners;
         }
 
-        private IParticipant<TRequest, TResponse> CreateListener(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
+        private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
         {
-            IParticipant<TRequest, TResponse> listener;
             switch (dispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    listener = new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool, timeoutMs);
-                    break;
+                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool, timeoutMs);
                 case DispatchThreadType.SpecificThread:
-                    listener = new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
-                    break;
+                    return new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
                 default:
-                    listener = new ImmediateParticipant<TRequest, TResponse>(reference);
-                    break;
+                    return new ImmediateParticipant<TRequest, TResponse>(reference);
             }
-
-            return listener;
         }
 
         private IParticipant<TRequest, TResponse> WrapListener(IParticipant<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)

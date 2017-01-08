@@ -16,7 +16,7 @@ namespace Acquaintance.RequestResponse
         private IListenerReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private List<RequestRoute<TRequest>> _routes;
+        private readonly List<RequestRoute<TRequest>> _routes;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
