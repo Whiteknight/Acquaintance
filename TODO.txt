@@ -14,7 +14,6 @@ Publish/Subscribe
 Scatter/Gather
     Participants should have an ID, and those should be used in IGatheredResponse
     Exception propagation
-    Request/Response Transforms (Requires IListener to be able to return more than one result
 
 Request/Response
     Service Activation

@@ -49,6 +49,10 @@
     <Compile Include="Logging\SilentLogger.cs" />
     <Compile Include="Modules\IModuleManager.cs" />
     <Compile Include="Modules\ModuleManager.cs" />
+    <Compile Include="Nets\INodeBuilder.cs" />
+    <Compile Include="Nets\Net.cs" />
+    <Compile Include="Nets\NetBuilder.cs" />
+    <Compile Include="Nets\NodeBuilder.cs" />
     <Compile Include="PubSub\EventRoute.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
