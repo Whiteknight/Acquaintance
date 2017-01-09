@@ -2,6 +2,20 @@
 
 You can stay in touch without having to be all up in each others' business.
 
+## Project
+### Status
+
+Acquaintance is currently in an pre-release state and is likely not ready for production uses.
+It is under active development and new features are being added and bugs are being resolved on a 
+regular basis.
+
+### Contributing
+
+Feedback, bug reports and feature requests are accepted and appreciated. If you'd like to make a
+fork and start putting together Pull Requests, please talk to me first. I maintain a lot of local
+branches to experiment with various features and changes, so I don't want you to waste time
+duplicating something that I already have.
+
 ## Introduction
 
 Acquaintance is a library for the internal messaging needs of a loosly-coupled application. Using a
@@ -14,12 +28,23 @@ Scatter/Gather. To start using these, first create an `IMessageBus`:
 
     var messageBus = new MessageBus();
 
+## Use Cases
+
+Acquaintance can act like the messaging "glue" for a loosely-coupled application or it can serve as
+an intermediate step when trying to migrate a monolithic application to a distributed,
+service-oriented application. Acquaintance can also be used to help alleviate concurrency problems
+with non-thread-safe resources.
+
 ## Publish/Subscribe
 
 Pub/Sub is a pattern where a publisher sends an event message payload to zero or more subscribers.
+It is used when you need to alert many parts of your application about an event or occurance, but
+a response to those events is not required.
 
     // Create a subscription
-    messageBus.Subscribe("test event", e => Console.WriteLine(e.Message))) 
+    messageBus.Subscribe(s => s
+        .WithChannelName("test event")
+        .InvokeAction(e => Console.WriteLine(e.Message)));
     
     // Publish a message
     messageBus.Publish("test event", new MyEvent {
@@ -27,38 +52,40 @@ Pub/Sub is a pattern where a publisher sends an event message payload to zero or
     });
     
 The type of payload object along with the name (`"test event"` in the above example) define a 
-channel. A channel may contain any number of subscribers, and may be published to by any number of
+channel. A channel may contain zero or more subscribers, and may be published to by any number of
 publishers. 
 
 The Pub/Sub pattern is very similar to the `event` / `EventHandler` functionality built-in to C#, 
-but unlike `event` you don't need an explicit reference to the publisher in order to subscribe to 
-it. Using Acquaintance, you can subscribe to a channel where there are no publishers at all, and 
-create those publishers later as needed (Or, conversely, publish to a channel with no subscribers).
-
-Pub/Sub is used in cases where you need to alert many disconnected parts of your application about
-an event, but don't need any responses in return.
+but unlike `event` Acquaintance pub/sub does not require explicit references nor does it enforce
+order of initialization.
 
 ## Request/Response
 
 Request/Response is a pattern where a client sends a request to zero or one listeners, and receives 
-back zero or one response in return. 
+back zero or one response in return. It is used in cases where you need to serialize access to a
+single resource which is not thread-safe (DB, File System, Socket, etc), or when you need to send a
+Remote Procedure Call (RPC) to a component which may not be known at initialization time. 
+
 
     // Setup a Listener
-    messageBus.Listen<MyRequest, MyResponse>("test", req => new MyResponse { 
-        Message = "Hello " + req.Message"
-    });
+    messageBus.Listen<MyRequest, MyResponse>(l => l
+        .WithChannelName("test")
+        .InvokeFunction(req => new MyResponse { 
+            Message = "Hello " + req.Message"
+        }));
     
     // Send a request
     var response = messageBus.Request<MyRequest, MyResponse>("test", new MyRequest {
         Message = "World"
     });
-    Console.WriteLine(response);
+    Console.WriteLine(response.Message);
 
 The types of Request, Response and the name (`"test"` in the example above) define the req/res
 channel. 
 
-Request/Response is used in cases where you need to serialize access to a single resource (DB, 
-Search Engine, Socket, File, etc).
+Acquaintance allows a Request/Response channel to only have zero or one Listener. Any attempt to 
+add an additional Listener to an existing channel will throw an Exception. Every Request will
+generate either one response or a default value.
 
 ### Eavesdropping
 
@@ -66,7 +93,9 @@ Sometimes some part of your system wants to be aware of a request/response conve
 having to `Listen` and generate a response. The `Eavesdrop` method allows exactly that. An
 `Eavesdrop` is a pub/sub subscription to the request/response conversation:
 
-    messageBus.Eavesdrop<MyRequest, MyResponse>("test", conversation => ...);
+    messageBus.Eavesdrop<MyRequest, MyResponse>(l => l
+        .WithChannelName("test")
+        .InvokeAction(conversation => ...));
 
 Neither the caller nor the listeners will be aware that the conversation is being eavesdropped on.
 Eavesdrop events contain the complete request and all generated responses, and are published after
@@ -78,12 +107,14 @@ a matter of best practices it is strongly recommended against.
 ## Scatter/Gather
 
 Scatter/Gather is a pattern very similar to Request/Response except it allows multiple listeners
-to participate in the conversation and the client will return many responses.
+to participate in the conversation and the client will return many responses. 
 
     // Setup a Listener
-    messageBus.Participate<MyRequest, MyResponse>("test", req => new MyResponse { 
-        Message = "Hello " + req.Message"
-    });
+    messageBus.Participate<MyRequest, MyResponse>(p => p
+        .WithChannelName("test")
+        .InvokeFunction(req => new[] { new MyResponse { 
+            Message = "Hello " + req.Message"
+        }}));
     
     // Send a request
     var response = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
@@ -97,28 +128,22 @@ Scatter/Gather can be used in places where you want to compare multiple results 
 1. You need to gather several bids so you can select the best one
 2. You need to read values from multiple sensors to calculate an average
 3. You need to read data from several storage locations to assemble a single aggregate object
-
-Scatter/Gather functions very similarly to Request/Response, and shares almost all of the same
-mechanisms and options.
+4. You want to publish an event to multiple recipients, and receive back confirmation that they are received
 
 ## Managing Subscriptions
 
-Every `Subscribe`, `Listen`, `Participate` and `Eavesdrop` method variant returns an \
+Every `Subscribe`, `Listen`, `Participate` and `Eavesdrop` method variant returns an 
 `IDisposable` **subscription token**. This token can be disposed to cancel the subscription:
 
     // Create a subscription
-    var subscription = messageBus.Subscribe("test event", e => Console.WriteLine(e.Message))) 
+    var subscription = messageBus.Subscribe(...) 
     
     // Remove the subscription
     subscription.Dispose();
-    
-    // Publish a message, but there are no subscribers! Nothing will happen.
-    messageBus.Publish("test event", new MyEvent {
-        Message = "Hello World"
-    });
 
-If you have multiple subscriptions to manage, you can use a `SubscriptionCollection` to keep track
-of them.
+If you have multiple subscriptions to manage, you can use a `SubscriptionCollection` to keep
+track of them. `SubscriptionCollection` acts like a wrapper around the message bus, and holds
+the generated tokens so they can all be disposed of at once. 
 
     var subscriptions = new SubscriptionCollection(messageBus)
     
@@ -128,37 +153,42 @@ of them.
     
     // Disposes all subscriptions!
     subscriptions.Dispose();
+
+This is useful when you have multiple modules in your application and a module maintains several of
+its own subscriptions, which all need to be disposed when the module is disposed.
     
 ## Thread Safety
 
-Thread safety is handled by the subscriber or listener. When setting up a subscription or listener,
-there will be several options for specifying how those callbacks are invoked.
+Thread safety is handled by the subscriber, listener or participant. When building a subscription,
+listener or participant, there are options available to control how the message is received:
 
-    var token = messageBus.Subscribe(..., new SubscribeOptions {
-        ...
-    });
-    var token = messageBus.Listen(..., new ListenerOptions {
-        ...
+    var token = messageBus.Subscribe(b => b
+        .WithChannelName("...")
+        .InvokeAction(...)
+        .Immediate()
     });
     
-There are several options for scheduling delivery of an event or a request. If you don't care, you
-can either ignore the `options` parameter entirely, pass `null`, or use:
+There are several options for scheduling delivery of an event or a request. 
 
-    // The message will be handled wherever makes the most sense
-    new SubscribeOptions {
-        DispatchType = DispatchThreadType.NoPreference
-    };
+1. `.Immediate()` executes the handler immediately in the current thread, which means the operation will block
+2. `.OnWorkerThread()` executes the handler on one of the managed worker threads
+3. `.OnThreadpoolThread()` executes the handler in the .Net threadpool
+4. '.OnThread(int)` dispatches the handler to the thread with the given thread Id
 
-When given `NoPreference`, Acquaintance will dispatch the event in a way that seems best.
+If no option is specified, Acquaintance will dispatch the handler in a way that makes the mose sense.
 
 ### Immediate Delivery
 
 Using immediate delivery, the message will be handled on the thread of the client. This is a
-blocking operation for the publisher or client.
-    
-    new SubscribeOptions {
-        DispatchType = DispatchThreadType.Immediate
-    };
+blocking operation for the publisher or client. This can be bad for several reasons:
+
+1. The operation will block until the handler has completed. 
+2. It causes recursion on the call stack, which can grow large if there are many events to call in a row
+
+At the same time, this is the only option which is time-deterministic, so it is an excellent option
+for unit testing where you don't want all your tests to use a `ManualResetEvent` or similar tool
+to wait for results (and then get angry at the false-positives when your system is under load and
+your tests take longer than your timeout).
     
 ### Random Worker Thread
 
@@ -175,8 +205,8 @@ blocked, dispatching the message to a worker thread is a good choice.
         DispatchType = DispatchThreadType.AnyWorkerThread
     };
 
-Notice that if you don't have any worker threads started, a `AnyWorkerThread` subscription will 
-be treated like an `Immediate` subscription instead.
+Notice that if you specify `.OnWorkerThread()` but your message bus doesn't have any worker
+threads available, it will use the .Net thread pool instead.
     
 ### Specific Thread
 
@@ -187,13 +217,12 @@ requests or events from multiple sender threads. Instead of setting up an expens
 we can use a single dedicated worker thread to handle these requests. 
 
     // First, ask the IMessageBus to start a dedicated worker thread:
-    int threadId = messageBus.StartDedicatedWorkerThread();
+    int threadId = messageBus.ThreadPool.StartDedicatedWorkerThread();
     
     // The message will be handled only on the specific thread
-    var options = new SubscribeOptions {
-        DispatchType = DispatchThreadType.SpecificThread,
-        ThreadId = threadId
-    });
+    messageBus.Subscribe<MyEvent>(b => b
+        ...
+        .OnThread(threadId));
     
 Notice that the `threadId` here is the same as `System.Threading.Thread.ManagedThreadId`. 
 Technically speaking, you can send a message to any thread whose ID you know. Acquaintance will 
@@ -215,8 +244,8 @@ as they arrive.
 
     messageBus.RunEventLoop();
     
-`RunEventLoop` has some optional arguments which can be used to exit the runloop when it's time to
-do something else. Otherwise it will run forever until the program is terminated.
+`RunEventLoop` has some optional arguments which can be used to exit the runloop when it's time 
+to do something else. Otherwise it will run forever until the program is terminated.
     
 ### Thread-Safe Pub/Sub
 
@@ -242,10 +271,10 @@ Request/Response messages can be handled on separate threads as well. The reques
 all responses are received, though subscribers may define a timeout if you are worried about a
 hang.
 
-    // SubscribeOptions to timeout after 5 seconds
-    var options = new SubscribeOptions {
-        TimeoutMs = 5000
-    });
+    // Timeout after 5 seconds
+    messageBus.Listen<MyRequest, MyResponse>(l => l
+        ...
+        .WithTimeout(5000));
     
 Keep in mind that Request/Response is difficult to parallelize and requires synchronization to make
 sure that the responses make it back to the requesting thread correctly. Acquaintance does this
@@ -257,28 +286,58 @@ help keep yourself out of trouble, remember these rules:
 2. When a listener returns a response, that response becomes the property of the request thread.
    The listener thread should never attempt to modify the response object after returning it.
    Using immutable objects is considered best practice for response objects.
-3. Large numbers of listeners on a Request/Response channel, even if they are threaded, are going
-   to have a negative impact on performance. The 
-  
-If large numbers of components need to be participating in request/response interactions or if
-your development team isn't disciplined enough to follow rules about thread safety, you should 
-consider some other solution to meet your needs. 
+3. Chains of request/response (one listener makes a request on another listener, etc) are going to
+    have a negative impact on performance.
 
 Also, because the requesting thread blocks until all responses are received, there are plenty of
 opportunities for deadlocking. Acquaintance gives you enough rope to hang yourself with, but by
 following some best-practices you should be alright:
 
-1. Use `TimeoutMs` on your subscribers if you think they will not respond in time. 
-2. `SubscribeOptions` provides a default timeout, don't change or remove this without thinking
-    about the consequences.
+1. Use `.WithTimeout()` on your subscribers if you think they will not respond in time or if
+    there is any potential for deadlocks. The system has a default timeout value, do not modify
+    or remove this protection without serious consideration for side-effects.
 3. If you need lots of request/response and are sensitive to timing, use something else like a
     Mediator pattern instead. Or, use a pub/sub channel to send an event to start a long-running
     process, and use another pub/sub channel to receive responses when they are ready. This way
-    your sender doesn't block.
+    your sender doesn't block for long periods of time.
     
-## Status
+## Routing
 
-Acquaintance is currently in an experimental state. The core functionality seems to be working as
-expected but it has not been through sufficient testing for real-world use. There are also several
-important features which have not yet been implemented, though are on the roadmap.
+Routing works by sending an event or request to a particular channel name, and the router will
+redirect to a new channel name. In this way, you have have different recipients on different 
+channel names, and route to them based on routing rules.
+
+    messageBus.Subscribe<MyEvent>(b => b
+        ...
+        .Distribute(new [] { "a", "b", "c" }));
+
+`.Distribute()` uses a round-robin algorithm to pass messages to the channel names provided. The
+first message will go to channel "a", the second to channel "b", the third to "c", and then the
+fourth message will go to "a" again. This feature acts like a simple load-balancer, and is mostly
+used to balance access to external services.
+
+    messageBus.Subscribe<int>(b => b
+        ...
+        .Route(r => r
+            .When(i => i < 10, "a")
+            .When(i => i > 10 && i < 100, "b")
+            .When(i => i > 100, "c")));
+
+The `.Route()` method allows to you provide a list of predicates, and the channels to route to
+if a predicate is satisfied. In this example, any `int` event published to the default channel
+name (`null` or `string.Empty`) will be routed to channel "a" if the integer is less than 10,
+to channel "b" if the integer is between 10 and 100, and to channel "c" if the integer is greater
+than 100. All other integer values will result in the message not being routed.
+
+## Nets
+
+Nets are networks for computation which use an IMessageBus internally. You can create a Net and
+define the processing steps for incoming data. Then when the data arrives, the Net will invoke the
+necessary steps, in order, and making full use of parallelism.
+
+Nets are useful when you have a number of loosely-coupled processing steps, but don't want to
+hard-code an execution order, or hard-code priority values for each step (and then have to change
+all priority values when a new one needs to be inserted, etc). 
+
+Think about Nets as being a small, in-process version of something like *Apache Storm*.
 

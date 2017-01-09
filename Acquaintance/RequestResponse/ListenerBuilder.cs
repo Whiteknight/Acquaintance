@@ -25,10 +25,10 @@ namespace Acquaintance.RequestResponse
             if (threadPool == null)
                 throw new ArgumentNullException(nameof(threadPool));
 
-
             _routes = new List<RequestRoute<TRequest>>();
             _messageBus = messageBus;
             _threadPool = threadPool;
+            _timeoutMs = 5000;
         }
 
         public string ChannelName { get; private set; }

@@ -18,7 +18,8 @@ namespace Acquaintance.PubSub
             var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)
             {
-                _action.Invoke(payload);
+                var realSubscription = new ThreadPoolThreadSubscription<TPayload>(_action);
+                realSubscription.Publish(payload);
                 return;
             }
             thread.DispatchAction(new PublishEventThreadAction<TPayload>(_action, payload));
