@@ -13,16 +13,16 @@ namespace Acquaintance.Tests
         public void MessageTimer_Start()
         {
             var bus = new MessageBus();
+            var ids = new List<long>();
             try
             {
-                var ids = new List<long>();
-                bus.TimerSubscribe(1, builder => builder.InvokeAction(mte => ids.Add(mte.Id)));
-                var target = new MessageTimer(100, 100);
-                var token = bus.Modules.Add(target);
+                var moduleToken = bus.EnableMessageTimer("test", 100, 100);
+                var subscriptionToken = bus.TimerSubscribe(1, builder => builder.InvokeAction(mte => ids.Add(mte.Id)));
 
                 Thread.Sleep(1000);
 
-                token.Dispose();
+                moduleToken.Dispose();
+                subscriptionToken.Dispose();
                 ids.Should().OnlyHaveUniqueItems();
                 ids.Count.Should().BeGreaterOrEqualTo(5);
             }

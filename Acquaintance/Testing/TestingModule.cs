@@ -17,7 +17,10 @@ namespace Acquaintance.Testing
 
         public void VerifyAllExpectations()
         {
-            List<string> _messages = _expectations.Where(expectation => !expectation.IsMet).Select(expectation => expectation.ToString()).ToList();
+            List<string> _messages = _expectations
+                .Where(expectation => !expectation.IsMet)
+                .Select(expectation => expectation.ToString())
+                .ToList();
             if (_messages.Any())
                 throw new ExpectationFailedException(_messages);
         }

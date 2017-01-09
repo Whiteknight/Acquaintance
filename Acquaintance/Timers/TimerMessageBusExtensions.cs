@@ -22,5 +22,13 @@ namespace Acquaintance.Timers
                 b3.WithFilter(t => t.Id % multiple == 0);
             });
         }
+
+        public static IDisposable EnableMessageTimer(this IMessageBus messageBus, string name = null, int delayMs = 5000, int intervalMs = 10000)
+        {
+            if (messageBus == null)
+                throw new ArgumentNullException(nameof(messageBus));
+
+            return messageBus.Modules.Add(new MessageTimer(name, delayMs, intervalMs));
+        }
     }
 }

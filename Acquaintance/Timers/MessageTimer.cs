@@ -10,13 +10,9 @@ namespace Acquaintance.Timers
         private readonly int _intervalMs;
         private Timer _timer;
         private int _messageId;
+        private readonly string _name;
 
-        public MessageTimer()
-            : this(5000, 10000)
-        {
-        }
-
-        public MessageTimer(int delayMs, int intervalMs)
+        public MessageTimer(string name = null, int delayMs = 5000, int intervalMs = 10000)
         {
             if (delayMs < 0)
                 delayMs = 0;
@@ -25,6 +21,7 @@ namespace Acquaintance.Timers
             _delayMs = delayMs;
             _intervalMs = intervalMs;
             _messageId = 0;
+            _name = name;
         }
 
         public void Attach(IMessageBus messageBus)
@@ -62,7 +59,7 @@ namespace Acquaintance.Timers
             if (bus == null)
                 return;
             var id = Interlocked.Increment(ref _messageId);
-            bus.Publish(MessageTimerEvent.EventName, new MessageTimerEvent(id));
+            bus.Publish(MessageTimerEvent.EventName, new MessageTimerEvent(_name, id));
         }
 
         public void Dispose()

@@ -61,6 +61,7 @@
     <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
     <Compile Include="PubSub\RouteBuilder.cs" />
     <Compile Include="PubSub\RoutingSubscriber.cs" />
+    <Compile Include="PubSub\Sources\SourceManagementModule.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
     <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />
     <Compile Include="PubSub\WeakSubscriberReference.cs" />
