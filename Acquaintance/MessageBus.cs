@@ -72,7 +72,6 @@ namespace Acquaintance
         private IGatheredResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
         {
             var waiters = new List<IDispatchableRequest<TResponse>>();
-            // TODO: Be able to specify a timeout for this operation to complete.
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
             foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))
@@ -113,7 +112,6 @@ namespace Acquaintance
         private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string name, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
         {
             var waiters = new List<IDispatchableRequest<TResponse>>();
-            // TODO: Be able to specify a timeout for this operation to complete.
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
             foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))

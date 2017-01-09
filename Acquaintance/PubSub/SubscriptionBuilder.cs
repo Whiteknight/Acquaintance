@@ -43,9 +43,6 @@ namespace Acquaintance.PubSub
         private int _maxEvents;
         private int _threadId;
 
-        // TODO: .OnDedicatedThread() which spools up the dedicated thread (and includes the thread
-        // id in the subscription token so it is freed on .Dispose())
-
         public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
         {
             _dispatchType = DispatchThreadType.AnyWorkerThread;

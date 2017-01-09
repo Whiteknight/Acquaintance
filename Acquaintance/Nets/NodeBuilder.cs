@@ -14,10 +14,6 @@ namespace Acquaintance.Nets
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents
         // and thread affinity
-        // TODO: Allow multiple instances to be started, on separate dedicated threads
-        // TODO: Allow a handler to be an object, with a Handle<TInput>() method, so we can hold
-        // state between invocations. We will need some kind of way to attach the object to the
-        // bus to avoid being GC'd
 
         public NodeBuilder(string key, IMessageBus messageBus)
         {
