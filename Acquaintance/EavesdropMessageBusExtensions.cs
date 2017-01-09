@@ -1,5 +1,4 @@
 using Acquaintance.PubSub;
-using Acquaintance.Utility;
 using System;
 
 namespace Acquaintance
@@ -15,17 +14,9 @@ namespace Acquaintance
 
             var builder = new SubscriptionBuilder<Conversation<TRequest, TResponse>>(messageBus, messageBus.ThreadPool);
             build(builder);
-            var subscriptions = builder.BuildSubscriptions();
-            if (subscriptions.Count == 1)
-                return messageBus.Eavesdrop<TRequest, TResponse>(builder.ChannelName, subscriptions[0]);
+            var subscription = builder.BuildSubscription();
 
-            var disposables = new DisposableCollection();
-            foreach (var subscription in subscriptions)
-            {
-                var token = messageBus.Eavesdrop<TRequest, TResponse>(builder.ChannelName, subscription);
-                disposables.Add(token);
-            }
-            return disposables;
+            return messageBus.Eavesdrop<TRequest, TResponse>(builder.ChannelName, subscription);
         }
     }
 }

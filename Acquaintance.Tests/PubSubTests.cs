@@ -172,8 +172,8 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .InvokeAction(e => text = e.Text)
                 .WithChannelName("Test")
+                .InvokeAction(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
@@ -185,8 +185,8 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .InvokeAction(e => text = e.Text)
                 .WithChannelName("Test")
+                .InvokeAction(e => text = e.Text)
                 .Immediate()
                 .WithFilter(e => e.Text == "Test2"));
 
@@ -204,8 +204,8 @@ namespace Acquaintance.Tests
             {
                 var resetEvent = new AutoResetEvent(false);
                 target.Subscribe<TestPubSubEvent>(builder => builder
-                .InvokeAction(e => resetEvent.Set())
                     .WithChannelName("Test")
+                    .InvokeAction(e => resetEvent.Set())
                     .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(2000).Should().BeTrue();
@@ -214,6 +214,39 @@ namespace Acquaintance.Tests
             {
                 target.Dispose();
             }
+        }
+
+        [Test]
+        public void Subscribe_SubscriptionBuilder_Distribute()
+        {
+            int a = 0;
+            int b = 0;
+            int c = 0;
+
+            var target = new MessageBus();
+            target.Subscribe<int>(builder => builder
+                .WithChannelName("a")
+                .InvokeAction(x => a += x)
+                .Immediate());
+            target.Subscribe<int>(builder => builder
+                .WithChannelName("b")
+                .InvokeAction(x => b += x)
+                .Immediate());
+            target.Subscribe<int>(builder => builder
+                .WithChannelName("c")
+                .InvokeAction(x => c += x)
+                .Immediate());
+            target.Subscribe<int>(builder => builder
+                .OnDefaultChannel()
+                .Distribute(new[] { "a", "b", "c" }));
+
+            target.Publish(1);
+            target.Publish(2);
+            target.Publish(4);
+            target.Publish(8);
+            target.Publish(16);
+
+            (a + b + c).Should().Be(31);
         }
     }
 }

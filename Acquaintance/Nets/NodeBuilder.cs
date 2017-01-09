@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using System;
 using System.Collections.Generic;
 
 namespace Acquaintance.Nets
@@ -36,13 +37,18 @@ namespace Acquaintance.Nets
             if (_action == null)
                 throw new Exception("No action provided");
 
-            _messageBus.Subscribe<TInput>(s =>
+            _messageBus.Subscribe<TInput>(b1 =>
             {
-                if (!string.IsNullOrEmpty(_channelName))
-                    s.WithChannelName(_channelName);
+                IActionSubscriptionBuilder<TInput> b2;
+                if (string.IsNullOrEmpty(_channelName))
+                    b2 = b1.OnDefaultChannel();
+                else
+                    b2 = b1.WithChannelName(_channelName);
+
+                var b3 = b2.InvokeAction(_action);
+
                 if (_predicate != null)
-                    s.WithFilter(_predicate);
-                s.InvokeAction(_action);
+                    b3 = b3.WithFilter(_predicate);
             });
         }
 

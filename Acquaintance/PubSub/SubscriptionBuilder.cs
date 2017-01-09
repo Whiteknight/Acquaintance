@@ -5,17 +5,63 @@ using System.Linq;
 
 namespace Acquaintance.PubSub
 {
-    public class SubscriptionBuilder<TPayload>
+    public interface IChannelSubscriptionBuilder<TPayload>
+    {
+        IActionSubscriptionBuilder<TPayload> WithChannelName(string name);
+        IActionSubscriptionBuilder<TPayload> OnDefaultChannel();
+    }
+
+    public interface IActionSubscriptionBuilder<TPayload>
+    {
+        IDetailsSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true);
+        IDetailsSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null);
+        IDetailsSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build);
+        IDetailsSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels);
+    }
+
+    public interface IDetailsSubscriptionBuilder<TPayload>
+    {
+        IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter);
+        IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents);
+
+        IDetailsSubscriptionBuilder<TPayload> OnWorkerThread();
+        IDetailsSubscriptionBuilder<TPayload> Immediate();
+        IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId);
+        IDetailsSubscriptionBuilder<TPayload> OnThreadPool();
+    }
+
+    public class RouteBuilder<TPayload>
+    {
+        // TODO: A default option, in case all predicates fail
+        private readonly List<EventRoute<TPayload>> _routes;
+
+        public RouteBuilder(List<EventRoute<TPayload>> routes)
+        {
+            _routes = routes;
+        }
+
+        public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string channelName)
+        {
+            _routes.Add(new EventRoute<TPayload>(channelName, predicate));
+            return this;
+        }
+    }
+
+    public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
     {
         private readonly IPubSubBus _messageBus;
         private readonly IThreadPool _threadPool;
 
-        private List<ISubscriberReference<TPayload>> _actionReferences;
+        private ISubscriberReference<TPayload> _actionReference;
         private readonly List<EventRoute<TPayload>> _routes;
+        private List<string> _distributionList;
         private DispatchThreadType _dispatchType;
         private Func<TPayload, bool> _filter;
         private int _maxEvents;
         private int _threadId;
+
+        // TODO: .OnDedicatedThread() which spools up the dedicated thread (and includes the thread
+        // id in the subscription token so it is freed on .Dispose())
 
         public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
         {
@@ -23,33 +69,112 @@ namespace Acquaintance.PubSub
             _threadPool = threadPool;
             _messageBus = messageBus;
             _routes = new List<EventRoute<TPayload>>();
-            _actionReferences = new List<ISubscriberReference<TPayload>>();
         }
 
         public string ChannelName { get; private set; }
 
-        public IReadOnlyList<ISubscription<TPayload>> BuildSubscriptions()
+        public ISubscription<TPayload> BuildSubscription()
         {
-            if (!_actionReferences.Any() && !_routes.Any())
-                throw new Exception("No actions and no routes set");
+            ISubscription<TPayload> subscription = null;
+            if (_actionReference != null)
+                subscription = CreateSubscription(_actionReference, _dispatchType, _threadId);
+            else if (_routes.Any())
+                subscription = new RoutingSubscription<TPayload>(_messageBus, _routes);
+            else if (_distributionList != null && _distributionList.Any())
+                subscription = new RoundRobinDispatchSubscription<TPayload>(_messageBus, _distributionList);
 
-            var subscriptions = new List<ISubscription<TPayload>>();
-            foreach (var action in _actionReferences)
+            if (subscription == null)
+                throw new Exception("No action specified");
+
+            subscription = WrapSubscription(subscription);
+            return subscription;
+        }
+
+        public IActionSubscriptionBuilder<TPayload> WithChannelName(string name)
+        {
+            ChannelName = name;
+            return this;
+        }
+
+        public IActionSubscriptionBuilder<TPayload> OnDefaultChannel()
+        {
+            ChannelName = string.Empty;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            if (_actionReference != null)
+                throw new Exception("Can only have a single action");
+            var reference = CreateActionReference(action, useWeakReferences);
+            _actionReference = reference;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
+        {
+            if (transform == null)
+                throw new ArgumentNullException(nameof(transform));
+
+            return InvokeAction(payload =>
             {
-                var subscription = CreateSubscription(action, _dispatchType, _threadId);
-                subscription = WrapSubscription(subscription);
-                subscriptions.Add(subscription);
-            }
+                var transformed = transform(payload);
+                _messageBus.Publish(newChannelName, transformed);
+            });
+        }
 
-            // TODO: Try to detect circular references?
-            foreach (var route in _routes)
-            {
-                var subscription = CreateRouterSubscription(route);
-                subscription = WrapSubscription(subscription);
-                subscriptions.Add(subscription);
-            }
+        public IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
+        {
+            _filter = filter;
+            return this;
+        }
 
-            return subscriptions;
+        public IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents)
+        {
+            _maxEvents = maxEvents;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> OnWorkerThread()
+        {
+            _dispatchType = Threading.DispatchThreadType.AnyWorkerThread;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> Immediate()
+        {
+            _dispatchType = Threading.DispatchThreadType.Immediate;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId)
+        {
+            _dispatchType = Threading.DispatchThreadType.SpecificThread;
+            _threadId = threadId;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> OnThreadPool()
+        {
+            _dispatchType = Threading.DispatchThreadType.ThreadpoolThread;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build)
+        {
+            var builder = new RouteBuilder<TPayload>(_routes);
+            build(builder);
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels)
+        {
+            if (_distributionList != null)
+                throw new Exception("Distribution list is already setup");
+            _distributionList = channels.ToList();
+            return this;
         }
 
         private ISubscription<TPayload> CreateRouterSubscription(EventRoute<TPayload> route)
@@ -71,27 +196,6 @@ namespace Acquaintance.PubSub
             if (_maxEvents > 0)
                 subscription = new MaxEventsSubscription<TPayload>(subscription, _maxEvents);
             return subscription;
-        }
-
-        public SubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            var reference = CreateActionReference(action, useWeakReferences);
-            _actionReferences.Add(reference);
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
-        {
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
-
-            return InvokeAction(payload =>
-            {
-                var transformed = transform(payload);
-                _messageBus.Publish(newChannelName, transformed);
-            });
         }
 
         private static ISubscriberReference<TPayload> CreateActionReference(Action<TPayload> act, bool useWeakReferences)
@@ -131,55 +235,5 @@ namespace Acquaintance.PubSub
                 return new AnyThreadPubSubSubscription<TPayload>(actionReference, threadPool);
             return new ThreadPoolThreadSubscription<TPayload>(actionReference);
         }
-
-        public SubscriptionBuilder<TPayload> WithChannelName(string name)
-        {
-            ChannelName = name;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
-        {
-            _filter = filter;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> MaximumEvents(int maxEvents)
-        {
-            _maxEvents = maxEvents;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> OnWorkerThread()
-        {
-            _dispatchType = Threading.DispatchThreadType.AnyWorkerThread;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> Immediate()
-        {
-            _dispatchType = Threading.DispatchThreadType.Immediate;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> OnThread(int threadId)
-        {
-            _dispatchType = Threading.DispatchThreadType.SpecificThread;
-            _threadId = threadId;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> OnThreadPool()
-        {
-            _dispatchType = Threading.DispatchThreadType.ThreadpoolThread;
-            return this;
-        }
-
-        public SubscriptionBuilder<TPayload> RouteForward(Func<TPayload, bool> predicate, string newChannelName)
-        {
-            _routes.Add(new EventRoute<TPayload>(newChannelName, predicate));
-            return this;
-        }
-
     }
 }

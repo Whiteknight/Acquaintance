@@ -24,6 +24,7 @@ namespace Acquaintance.Tests
             int all = 0;
 
             target.Subscribe<TestPubSubEvent>(builder => builder
+                .OnDefaultChannel()
                 .InvokeAction(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
@@ -36,8 +37,10 @@ namespace Acquaintance.Tests
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .RouteForward(e => e.Number % 2 == 0, "Evens")
-                .RouteForward(e => e.Number % 2 == 1, "Odds"));
+                .OnDefaultChannel()
+                .Route(r => r
+                    .When(e => e.Number % 2 == 0, "Evens")
+                    .When(e => e.Number % 2 == 1, "Odds")));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));

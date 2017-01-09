@@ -5,7 +5,7 @@ namespace Acquaintance.Timers
 {
     public static class TimerMessageBusExtensions
     {
-        public static IDisposable TimerSubscribe(this IPubSubBus messageBus, int multiple, Action<SubscriptionBuilder<MessageTimerEvent>> build)
+        public static IDisposable TimerSubscribe(this IPubSubBus messageBus, int multiple, Action<IActionSubscriptionBuilder<MessageTimerEvent>> build)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
@@ -16,10 +16,10 @@ namespace Acquaintance.Timers
 
             return messageBus.Subscribe<MessageTimerEvent>(builder =>
             {
-                builder
-                    .WithChannelName(MessageTimerEvent.EventName)
-                    .WithFilter(t => t.Id % multiple == 0);
-                build(builder);
+                var b2 = builder.WithChannelName(MessageTimerEvent.EventName);
+                build(b2);
+                var b3 = b2 as IDetailsSubscriptionBuilder<MessageTimerEvent>;
+                b3.WithFilter(t => t.Id % multiple == 0);
             });
         }
     }

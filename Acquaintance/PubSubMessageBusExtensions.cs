@@ -1,5 +1,4 @@
 ﻿using Acquaintance.PubSub;
-using Acquaintance.Utility;
 using System;
 
 namespace Acquaintance
@@ -21,7 +20,7 @@ namespace Acquaintance
             method.Invoke(messageBus, new[] { name, payload });
         }
 
-        public static IDisposable Subscribe<TPayload>(this IPubSubBus messageBus, Action<SubscriptionBuilder<TPayload>> build)
+        public static IDisposable Subscribe<TPayload>(this IPubSubBus messageBus, Action<IChannelSubscriptionBuilder<TPayload>> build)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
@@ -30,18 +29,9 @@ namespace Acquaintance
 
             var builder = new SubscriptionBuilder<TPayload>(messageBus, messageBus.ThreadPool);
             build(builder);
-            var subscriptions = builder.BuildSubscriptions();
+            var subscription = builder.BuildSubscription();
 
-            if (subscriptions.Count == 1)
-                return messageBus.Subscribe<TPayload>(builder.ChannelName, subscriptions[0]);
-
-            var disposables = new DisposableCollection();
-            foreach (var subscription in subscriptions)
-            {
-                var token = messageBus.Subscribe<TPayload>(builder.ChannelName, subscription);
-                disposables.Add(token);
-            }
-            return disposables;
+            return messageBus.Subscribe<TPayload>(builder.ChannelName, subscription);
         }
     }
 }

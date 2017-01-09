@@ -58,6 +58,8 @@
     <Compile Include="PubSub\ISubscriberReference.cs" />
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
+    <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
+    <Compile Include="PubSub\RoutingSubscriber.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
     <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />
     <Compile Include="PubSub\WeakSubscriberReference.cs" />
