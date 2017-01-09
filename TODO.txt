@@ -2,7 +2,6 @@ General
     Error handling
 
 Threading
-    Free worker threads should all pull from the same queue, instead of using a dispatch algorithm
     Move thread-related methods from IMessageBus onto a threading property to cleanup the interface
     High-water mark so if queues get over-full, new messages are not added to them
 

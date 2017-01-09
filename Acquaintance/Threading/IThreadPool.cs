@@ -9,6 +9,8 @@ namespace Acquaintance.Threading
         void StopDedicatedWorker(int threadId);
         IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate);
         IActionDispatcher GetFreeWorkerThreadDispatcher();
+        IActionDispatcher GetThreadPoolActionDispatcher();
+        IActionDispatcher GetAnyThreadDispatcher();
         IActionDispatcher GetCurrentThreadDispatcher();
         IMessageHandlerThreadContext GetCurrentThreadContext();
     }

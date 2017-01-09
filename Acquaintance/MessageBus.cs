@@ -175,7 +175,7 @@ namespace Acquaintance
             while (!shouldStop() && !threadContext.ShouldStop)
             {
                 var action = threadContext.GetAction(timeoutMs);
-                action?.Execute(threadContext);
+                action?.Execute();
             }
         }
 
@@ -187,7 +187,7 @@ namespace Acquaintance
                 var action = threadContext.GetAction();
                 if (action == null)
                     break;
-                action.Execute(threadContext);
+                action.Execute();
             }
         }
 

@@ -23,7 +23,7 @@ namespace Acquaintance.RequestResponse
             Responses = new TResponse[0];
         }
 
-        public void Execute(IMessageHandlerThreadContext threadContext)
+        public void Execute()
         {
             Responses = _func.Invoke(_request);
             _resetEvent.Set();

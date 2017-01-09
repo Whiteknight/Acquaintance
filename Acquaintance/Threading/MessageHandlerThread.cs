@@ -52,7 +52,7 @@ namespace Acquaintance.Threading
                 {
                     try
                     {
-                        action.Execute(context);
+                        action.Execute();
                     }
                     catch (Exception e)
                     {
@@ -66,7 +66,6 @@ namespace Acquaintance.Threading
         public void Dispose()
         {
             Stop();
-            _context.Dispose();
         }
     }
 }

@@ -59,6 +59,7 @@
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
+    <Compile Include="PubSub\RouteBuilder.cs" />
     <Compile Include="PubSub\RoutingSubscriber.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
     <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />
@@ -134,6 +135,7 @@
     <Compile Include="Threading\MessageHandlerThread.cs" />
     <Compile Include="Threading\MessageHandlerThreadContext.cs" />
     <Compile Include="Threading\MessagingWorkerThreadPool.cs" />
+    <Compile Include="Threading\ThreadPoolActionDispatcher.cs" />
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />
     <Compile Include="Timers\TimerMessageBusExtensions.cs" />

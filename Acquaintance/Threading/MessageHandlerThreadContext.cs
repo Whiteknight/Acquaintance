@@ -1,14 +1,17 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Acquaintance.Threading
 {
     public class MessageHandlerThreadContext : IMessageHandlerThreadContext
     {
         private readonly BlockingCollection<IThreadAction> _queue;
+        private int _disposing;
 
         public MessageHandlerThreadContext()
         {
             _queue = new BlockingCollection<IThreadAction>();
+            _disposing = 0;
         }
 
         public bool ShouldStop { get; private set; }
@@ -45,6 +48,10 @@ namespace Acquaintance.Threading
 
         public void Dispose()
         {
+            int disposing = Interlocked.CompareExchange(ref _disposing, 1, 0);
+            if (disposing != 0)
+                return;
+
             ShouldStop = true;
             _queue.Dispose();
         }

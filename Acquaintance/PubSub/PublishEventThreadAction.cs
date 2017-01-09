@@ -13,7 +13,7 @@ namespace Acquaintance.PubSub
             _payload = payload;
         }
 
-        public void Execute(IMessageHandlerThreadContext threadContext)
+        public void Execute()
         {
             _action.Invoke(_payload);
         }

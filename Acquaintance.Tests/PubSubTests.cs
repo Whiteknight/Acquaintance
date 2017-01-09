@@ -130,6 +130,36 @@ namespace Acquaintance.Tests
         }
 
         [Test]
+        public void SubscribeAndPublish_ThreadPool()
+        {
+            var target = new MessageBus();
+            var resetEvent = new ManualResetEvent(false);
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => resetEvent.Set())
+                .OnThreadPool());
+            target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
+
+            bool ok = resetEvent.WaitOne(5000);
+            ok.Should().BeTrue();
+        }
+
+        [Test]
+        public void SubscribeAndPublish_CurrentThread()
+        {
+            var target = new MessageBus();
+            bool ok = false;
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeAction(e => ok = true)
+                .OnThread(Thread.CurrentThread.ManagedThreadId));
+            target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
+
+            target.EmptyActionQueue(1);
+            ok.Should().BeTrue();
+        }
+
+        [Test]
         public void SubscribeAndPublish_Wildcards()
         {
             var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());

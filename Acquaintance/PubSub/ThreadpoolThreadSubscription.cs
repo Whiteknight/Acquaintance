@@ -1,14 +1,15 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using Acquaintance.Threading;
 
 namespace Acquaintance.PubSub
 {
     public class ThreadPoolThreadSubscription<TPayload> : ISubscription<TPayload>
     {
+        private readonly IThreadPool _threadPool;
         private readonly ISubscriberReference<TPayload> _action;
 
-        public ThreadPoolThreadSubscription(ISubscriberReference<TPayload> action)
+        public ThreadPoolThreadSubscription(IThreadPool threadPool, ISubscriberReference<TPayload> action)
         {
+            _threadPool = threadPool;
             _action = action;
         }
 
@@ -17,17 +18,8 @@ namespace Acquaintance.PubSub
         public void Publish(TPayload payload)
         {
             var action = new PublishEventThreadAction<TPayload>(_action, payload);
-            Task.Factory.StartNew(() =>
-            {
-                try
-                {
-                    action.Execute(null);
-                }
-                catch (Exception e)
-                {
-                    // TODO: Log it or inform the user somehow?
-                }
-            });
+            var context = _threadPool.GetThreadPoolActionDispatcher();
+            context.DispatchAction(action);
         }
     }
 }

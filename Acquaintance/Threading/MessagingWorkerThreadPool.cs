@@ -9,26 +9,29 @@ namespace Acquaintance.Threading
     public class MessagingWorkerThreadPool : IThreadPool
     {
         private readonly List<MessageHandlerThread> _freeWorkers;
+        private readonly IMessageHandlerThreadContext _freeWorkerContext;
         private readonly ConcurrentDictionary<int, IMessageHandlerThreadContext> _detachedContexts;
+        private readonly IActionDispatcher _threadPoolDispatcher;
         private readonly ConcurrentDictionary<int, MessageHandlerThread> _dedicatedWorkers;
-        private int _currentThread;
 
         public MessagingWorkerThreadPool(int numFreeWorkers = 0)
         {
+            _threadPoolDispatcher = new ThreadPoolActionDispatcher();
             _freeWorkers = new List<MessageHandlerThread>();
-
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
             _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
-            _currentThread = 0;
 
             if (numFreeWorkers < 0)
                 throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
-            for (int i = 0; i < numFreeWorkers; i++)
+            if (numFreeWorkers > 0)
             {
-                var context = new MessageHandlerThreadContext();
-                var thread = new MessageHandlerThread(context);
-                _freeWorkers.Add(thread);
-                thread.Start();
+                _freeWorkerContext = new MessageHandlerThreadContext();
+                for (int i = 0; i < numFreeWorkers; i++)
+                {
+                    var thread = new MessageHandlerThread(_freeWorkerContext);
+                    _freeWorkers.Add(thread);
+                    thread.Start();
+                }
             }
         }
 
@@ -63,15 +66,15 @@ namespace Acquaintance.Threading
 
         private IMessageHandlerThreadContext GetThreadContext(int threadId, bool allowAutoCreate)
         {
-            IMessageHandlerThreadContext context = _freeWorkers.Where(t => t.ThreadId == threadId).Select(t => t.Context).FirstOrDefault();
-            if (context != null)
-                return context;
+            if (_freeWorkers.Any(t => t.ThreadId == threadId))
+                return _freeWorkerContext;
 
             MessageHandlerThread worker;
             bool ok = _dedicatedWorkers.TryGetValue(threadId, out worker);
             if (ok)
                 return worker.Context;
 
+            IMessageHandlerThreadContext context;
             if (allowAutoCreate)
             {
                 context = _detachedContexts.GetOrAdd(threadId, id => CreateDetachedContext());
@@ -87,10 +90,17 @@ namespace Acquaintance.Threading
 
         public IActionDispatcher GetFreeWorkerThreadDispatcher()
         {
-            if (_freeWorkers.Count == 0)
-                return null;
-            _currentThread = (_currentThread + 1) % _freeWorkers.Count;
-            return _freeWorkers[_currentThread].Context;
+            return _freeWorkerContext;
+        }
+
+        public IActionDispatcher GetThreadPoolActionDispatcher()
+        {
+            return _threadPoolDispatcher;
+        }
+
+        public IActionDispatcher GetAnyThreadDispatcher()
+        {
+            return GetFreeWorkerThreadDispatcher() ?? GetThreadPoolActionDispatcher();
         }
 
         public IActionDispatcher GetCurrentThreadDispatcher()
@@ -112,21 +122,20 @@ namespace Acquaintance.Threading
 
         public void Dispose()
         {
-            foreach (var thread in _freeWorkers)
-                thread.Stop();
-            _freeWorkers.Clear();
-
-            foreach (var thread in _dedicatedWorkers.Values)
-                thread.Stop();
-
+            // Cleanup the free workers and their contexts
             foreach (var thread in _freeWorkers)
                 thread.Dispose();
             _freeWorkers.Clear();
+            _freeWorkerContext.Dispose();
 
+            // Cleanup dedicated workers and their contexts
             foreach (var thread in _dedicatedWorkers.Values)
-                thread.Dispose();
-            _dedicatedWorkers.Clear();
+            {
+                thread.Stop();
+                thread.Context.Dispose();
+            }
 
+            // Cleanup detached contexts for unmanaged threads.
             foreach (var context in _detachedContexts.Values)
                 context.Dispose();
             _detachedContexts.Clear();
