@@ -84,7 +84,7 @@
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\SubscriptionBuilder.cs" />
     <Compile Include="RequestResponse\GatheredResponse.cs" />
-    <Compile Include="GatheredResponse.cs" />
+    <Compile Include="IGatheredResponse.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="IMessageBus.cs" />
     <Compile Include="MessageBus.cs" />

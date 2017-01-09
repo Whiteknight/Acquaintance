@@ -7,6 +7,10 @@ using System.Collections.Generic;
 
 namespace Acquaintance
 {
+    /// <summary>
+    /// SubscriptionCollection holds a collection of subscription tokens so that they can all be
+    /// disposed at once.
+    /// </summary>
     public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IDisposable
     {
         private readonly IMessageBus _messageBus;

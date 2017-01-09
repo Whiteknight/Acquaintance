@@ -30,7 +30,7 @@ namespace Acquaintance.PubSub
         public void Publish(TPayload payload)
         {
             int idx = Interlocked.Increment(ref _idx);
-            idx = (idx + 1) % _channels.Length;
+            idx = idx % _channels.Length;
 
             string channel = _channels[idx];
             _messageBus.Publish(channel, payload);
