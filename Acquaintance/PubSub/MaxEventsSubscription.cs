@@ -20,9 +20,6 @@ namespace Acquaintance.PubSub
                 _inner.Publish(payload);
         }
 
-        public bool ShouldUnsubscribe
-        {
-            get { return _inner.ShouldUnsubscribe || _maxEvents <= 0; }
-        }
+        public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe || _maxEvents <= 0;
     }
 }

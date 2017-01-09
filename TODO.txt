@@ -11,14 +11,20 @@ Eavesdrop
 Publish/Subscribe
     Sagas/Aggregation
     Service Activation
+    Commit Log to optionally keep track of old events and be able to replay them.
 
 Scatter/Gather
     Participants should have an ID, and those should be used in IGatheredResponse
     Exception propagation
+    Interface segregation and cleanup on ParticipantBuilder
 
 Request/Response
     Service Activation
     Exception propagation
+    Interface segregation and cleanup on ListenerBuilder
+
+Nets
+    "sources" which read data from async sources and feed into the net
 
 Testing
     

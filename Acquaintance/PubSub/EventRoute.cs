@@ -1,5 +1,4 @@
-﻿using Acquaintance.Threading;
-using System;
+﻿using System;
 
 namespace Acquaintance.PubSub
 {

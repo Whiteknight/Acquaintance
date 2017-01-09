@@ -30,24 +30,6 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload> OnThreadPool();
     }
 
-    public class RouteBuilder<TPayload>
-    {
-        // TODO: A default option, in case all predicates fail. .Else()
-        // TOOD: A mode toggle, whether to publish to all matching routes, or only to the first one.
-        private readonly List<EventRoute<TPayload>> _routes;
-
-        public RouteBuilder(List<EventRoute<TPayload>> routes)
-        {
-            _routes = routes;
-        }
-
-        public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string channelName)
-        {
-            _routes.Add(new EventRoute<TPayload>(channelName, predicate));
-            return this;
-        }
-    }
-
     public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
     {
         private readonly IPubSubBus _messageBus;
@@ -140,26 +122,26 @@ namespace Acquaintance.PubSub
 
         public IDetailsSubscriptionBuilder<TPayload> OnWorkerThread()
         {
-            _dispatchType = Threading.DispatchThreadType.AnyWorkerThread;
+            _dispatchType = DispatchThreadType.AnyWorkerThread;
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> Immediate()
         {
-            _dispatchType = Threading.DispatchThreadType.Immediate;
+            _dispatchType = DispatchThreadType.Immediate;
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId)
         {
-            _dispatchType = Threading.DispatchThreadType.SpecificThread;
+            _dispatchType = DispatchThreadType.SpecificThread;
             _threadId = threadId;
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> OnThreadPool()
         {
-            _dispatchType = Threading.DispatchThreadType.ThreadpoolThread;
+            _dispatchType = DispatchThreadType.ThreadpoolThread;
             return this;
         }
 
@@ -176,18 +158,6 @@ namespace Acquaintance.PubSub
                 throw new Exception("Distribution list is already setup");
             _distributionList = channels.ToList();
             return this;
-        }
-
-        private ISubscription<TPayload> CreateRouterSubscription(EventRoute<TPayload> route)
-        {
-            var reference = CreateActionReference(payload =>
-            {
-                _messageBus.Publish(route.ChannelName, payload);
-            }, false);
-            ISubscription<TPayload> subscription = new ImmediatePubSubSubscription<TPayload>(reference);
-            if (route.Predicate != null)
-                subscription = new FilteredSubscription<TPayload>(subscription, route.Predicate);
-            return subscription;
         }
 
         private ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> subscription)
