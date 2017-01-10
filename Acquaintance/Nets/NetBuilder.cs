@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Acquaintance.Nets
 {
-
     public class NetBuilder
     {
-        private Dictionary<string, INodeBuilder> _nodes;
+        private readonly Dictionary<string, INodeBuilder> _nodes;
         private readonly IMessageBus _messageBus;
 
         public NetBuilder()
@@ -19,7 +17,7 @@ namespace Acquaintance.Nets
         {
             foreach (var kvp in _nodes)
                 kvp.Value.BuildToMessageBus();
-            return new Nets.Net(_messageBus);
+            return new Net(_messageBus);
         }
 
         public NodeBuilder<T> AddNode<T>(string name)

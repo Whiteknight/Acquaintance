@@ -3,7 +3,7 @@
     public class Net
     {
         public const string NetworkInputChannelName = "NetworkInput";
-        private IMessageBus _messageBus;
+        private readonly IMessageBus _messageBus;
 
         public Net(IMessageBus messageBus)
         {

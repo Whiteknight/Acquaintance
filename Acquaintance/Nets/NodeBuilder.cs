@@ -1,6 +1,6 @@
-﻿using Acquaintance.PubSub;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Acquaintance.Nets
 {
@@ -11,6 +11,7 @@ namespace Acquaintance.Nets
         private string _channelName;
         private readonly IMessageBus _messageBus;
         private readonly string _key;
+        private int _onDedicatedThreads;
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents
         // and thread affinity
@@ -33,18 +34,38 @@ namespace Acquaintance.Nets
             if (_action == null)
                 throw new Exception("No action provided");
 
+            if (_onDedicatedThreads == 0)
+                SubscribeSingleWorker(_channelName, false);
+            else if (_onDedicatedThreads == 1)
+                SubscribeSingleWorker(_channelName, true);
+            else
+                SubscribeRoutedGroup();
+        }
+
+        private void SubscribeRoutedGroup()
+        {
+            var routerOutputChannel = "Router_" + _key + "_";
+            var workerChannels = Enumerable.Range(1, _onDedicatedThreads).Select(i => routerOutputChannel + i).ToArray();
+            _messageBus.Subscribe<TInput>(b => b
+                .WithChannelName(_channelName)
+                .Distribute(workerChannels)
+                .Immediate());
+            for (int i = 0; i < _onDedicatedThreads; i++)
+                SubscribeSingleWorker(workerChannels[i], true);
+        }
+
+        private void SubscribeSingleWorker(string channelName, bool useDedicatedThread)
+        {
             _messageBus.Subscribe<TInput>(b1 =>
             {
-                IActionSubscriptionBuilder<TInput> b2;
-                if (string.IsNullOrEmpty(_channelName))
-                    b2 = b1.OnDefaultChannel();
-                else
-                    b2 = b1.WithChannelName(_channelName);
+                var b2 = string.IsNullOrEmpty(channelName) ? b1.OnDefaultChannel() : b1.WithChannelName(channelName);
 
-                var b3 = b2.InvokeAction(_action).OnWorkerThread();
+                var b3 = b2.InvokeAction(_action);
+
+                var b4 = useDedicatedThread ? b3.OnDedicatedThread() : b3.OnWorkerThread();
 
                 if (_predicate != null)
-                    b3 = b3.WithFilter(_predicate);
+                    b4.WithFilter(_predicate);
             });
         }
 
@@ -122,6 +143,20 @@ namespace Acquaintance.Nets
             if (_predicate != null)
                 throw new Exception("Node can only have a single predicate");
             _predicate = predicate;
+            return this;
+        }
+
+        public NodeBuilder<TInput> OnDedicatedThread()
+        {
+            return OnDedicatedThreads(1);
+        }
+
+        public NodeBuilder<TInput> OnDedicatedThreads(int numThreads)
+        {
+            if (numThreads <= 0)
+                throw new ArgumentOutOfRangeException(nameof(numThreads));
+
+            _onDedicatedThreads = numThreads;
             return this;
         }
     }
