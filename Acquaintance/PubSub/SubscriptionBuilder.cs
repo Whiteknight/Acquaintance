@@ -13,17 +13,14 @@ namespace Acquaintance.PubSub
 
     public interface IActionSubscriptionBuilder<TPayload>
     {
-        IDetailsSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true);
-        IDetailsSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null);
-        IDetailsSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build);
-        IDetailsSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels);
+        IThreadSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true);
+        IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null);
+        IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build);
+        IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels);
     }
 
-    public interface IDetailsSubscriptionBuilder<TPayload>
+    public interface IThreadSubscriptionBuilder<TPayload>
     {
-        IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter);
-        IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents);
-
         IDetailsSubscriptionBuilder<TPayload> OnWorkerThread();
         IDetailsSubscriptionBuilder<TPayload> Immediate();
         IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId);
@@ -31,7 +28,13 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread();
     }
 
-    public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
+    public interface IDetailsSubscriptionBuilder<TPayload>
+    {
+        IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter);
+        IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents);
+    }
+
+    public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IThreadSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
     {
         private readonly IPubSubBus _messageBus;
         private readonly IThreadPool _threadPool;
@@ -94,7 +97,7 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true)
+        public IThreadSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
@@ -105,7 +108,7 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
+        public IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
@@ -117,15 +120,18 @@ namespace Acquaintance.PubSub
             });
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
+        public IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build)
         {
-            _filter = filter;
+            var builder = new RouteBuilder<TPayload>(_routes);
+            build(builder);
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents)
+        public IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels)
         {
-            _maxEvents = maxEvents;
+            if (_distributionList != null)
+                throw new Exception("Distribution list is already setup");
+            _distributionList = channels.ToList();
             return this;
         }
 
@@ -161,18 +167,15 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build)
+        public IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
         {
-            var builder = new RouteBuilder<TPayload>(_routes);
-            build(builder);
+            _filter = filter;
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels)
+        public IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents)
         {
-            if (_distributionList != null)
-                throw new Exception("Distribution list is already setup");
-            _distributionList = channels.ToList();
+            _maxEvents = maxEvents;
             return this;
         }
 

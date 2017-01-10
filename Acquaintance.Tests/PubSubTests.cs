@@ -39,8 +39,8 @@ namespace Acquaintance.Tests
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
                 .InvokeAction(e => text = e.Text)
-                .WithFilter(e => e.Text == "Test2")
-                .Immediate());
+                .Immediate()
+                .WithFilter(e => e.Text == "Test2"));
             target.Publish("Test", new TestPubSubEvent("Test1"));
             text.Should().BeNull();
             target.Publish("Test", new TestPubSubEvent("Test2"));

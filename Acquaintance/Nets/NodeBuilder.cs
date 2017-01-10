@@ -41,7 +41,7 @@ namespace Acquaintance.Nets
                 else
                     b2 = b1.WithChannelName(_channelName);
 
-                var b3 = b2.InvokeAction(_action);
+                var b3 = b2.InvokeAction(_action).OnWorkerThread();
 
                 if (_predicate != null)
                     b3 = b3.WithFilter(_predicate);
