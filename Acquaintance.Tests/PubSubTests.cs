@@ -69,6 +69,29 @@ namespace Acquaintance.Tests
         }
 
         [Test]
+        public void Subscribe_SubscriptionBuilder_OnDedicatedThread()
+        {
+            var target = new MessageBus();
+            var resetEvent = new ManualResetEvent(false);
+            try
+            {
+                var token = target.Subscribe<TestPubSubEvent>(builder => builder
+                    .WithChannelName("Test")
+                    .InvokeAction(e => resetEvent.Set())
+                    .OnDedicatedThread());
+                target.Publish("Test", new TestPubSubEvent("Test"));
+                resetEvent.WaitOne(5000).Should().BeTrue();
+
+                token.Dispose();
+            }
+            finally
+            {
+                resetEvent.Dispose();
+                target.Dispose();
+            }
+        }
+
+        [Test]
         public void Subscribe_SubscriptionBuilder_OnThread()
         {
             var target = new MessageBus();

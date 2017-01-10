@@ -136,6 +136,7 @@
     <Compile Include="Threading\MessageHandlerThread.cs" />
     <Compile Include="Threading\MessageHandlerThreadContext.cs" />
     <Compile Include="Threading\MessagingWorkerThreadPool.cs" />
+    <Compile Include="Threading\SubscriptionWithDedicatedThreadToken.cs" />
     <Compile Include="Threading\ThreadPoolActionDispatcher.cs" />
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />

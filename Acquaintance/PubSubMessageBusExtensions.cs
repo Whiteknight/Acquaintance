@@ -31,7 +31,8 @@ namespace Acquaintance
             build(builder);
             var subscription = builder.BuildSubscription();
 
-            return messageBus.Subscribe<TPayload>(builder.ChannelName, subscription);
+            var token = messageBus.Subscribe<TPayload>(builder.ChannelName, subscription);
+            return builder.WrapToken(token);
         }
     }
 }

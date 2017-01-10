@@ -28,6 +28,7 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload> Immediate();
         IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId);
         IDetailsSubscriptionBuilder<TPayload> OnThreadPool();
+        IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread();
     }
 
     public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
@@ -42,6 +43,7 @@ namespace Acquaintance.PubSub
         private Func<TPayload, bool> _filter;
         private int _maxEvents;
         private int _threadId;
+        private bool _useDedicatedThread;
 
         public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
         {
@@ -55,6 +57,9 @@ namespace Acquaintance.PubSub
 
         public ISubscription<TPayload> BuildSubscription()
         {
+            if (_useDedicatedThread)
+                _threadId = _threadPool.StartDedicatedWorker();
+
             ISubscription<TPayload> subscription = null;
             if (_actionReference != null)
                 subscription = CreateSubscription(_actionReference, _dispatchType, _threadId);
@@ -68,6 +73,13 @@ namespace Acquaintance.PubSub
 
             subscription = WrapSubscription(subscription);
             return subscription;
+        }
+
+        public IDisposable WrapToken(IDisposable token)
+        {
+            if (_useDedicatedThread)
+                return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
+            return token;
         }
 
         public IActionSubscriptionBuilder<TPayload> WithChannelName(string name)
@@ -139,6 +151,13 @@ namespace Acquaintance.PubSub
         public IDetailsSubscriptionBuilder<TPayload> OnThreadPool()
         {
             _dispatchType = DispatchThreadType.ThreadpoolThread;
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread()
+        {
+            _dispatchType = DispatchThreadType.SpecificThread;
+            _useDedicatedThread = true;
             return this;
         }
 
