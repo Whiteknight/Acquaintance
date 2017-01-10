@@ -7,18 +7,21 @@ namespace Acquaintance.Threading
     {
         private readonly BlockingCollection<IThreadAction> _queue;
         private int _disposing;
+        private readonly int _maxQueuedMessages;
 
-        public MessageHandlerThreadContext()
+        public MessageHandlerThreadContext(int maxQueuedMessages)
         {
             _queue = new BlockingCollection<IThreadAction>();
             _disposing = 0;
+            _maxQueuedMessages = maxQueuedMessages;
         }
 
         public bool ShouldStop { get; private set; }
 
         public void DispatchAction(IThreadAction action)
         {
-            _queue.Add(action);
+            if (_queue.Count < _maxQueuedMessages)
+                _queue.Add(action);
         }
 
         public void Stop()

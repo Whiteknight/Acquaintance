@@ -13,9 +13,13 @@ namespace Acquaintance.Threading
         private readonly ConcurrentDictionary<int, IMessageHandlerThreadContext> _detachedContexts;
         private readonly IActionDispatcher _threadPoolDispatcher;
         private readonly ConcurrentDictionary<int, MessageHandlerThread> _dedicatedWorkers;
+        private readonly int _maxQueuedMessages;
 
-        public MessagingWorkerThreadPool(int numFreeWorkers = 0)
+        public MessagingWorkerThreadPool(int numFreeWorkers = 0, int maxQueuedMessages = 1000)
         {
+            if (maxQueuedMessages <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxQueuedMessages));
+            _maxQueuedMessages = maxQueuedMessages;
             _threadPoolDispatcher = new ThreadPoolActionDispatcher();
             _freeWorkers = new List<MessageHandlerThread>();
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
@@ -25,7 +29,7 @@ namespace Acquaintance.Threading
                 throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
             if (numFreeWorkers > 0)
             {
-                _freeWorkerContext = new MessageHandlerThreadContext();
+                _freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages);
                 for (int i = 0; i < numFreeWorkers; i++)
                 {
                     var thread = new MessageHandlerThread(_freeWorkerContext);
@@ -39,7 +43,7 @@ namespace Acquaintance.Threading
 
         public int StartDedicatedWorker()
         {
-            var context = new MessageHandlerThreadContext();
+            var context = new MessageHandlerThreadContext(_maxQueuedMessages);
             var worker = new MessageHandlerThread(context);
             worker.Start();
             bool ok = _dedicatedWorkers.TryAdd(worker.ThreadId, worker);
@@ -117,7 +121,7 @@ namespace Acquaintance.Threading
 
         private IMessageHandlerThreadContext CreateDetachedContext()
         {
-            return new MessageHandlerThreadContext();
+            return new MessageHandlerThreadContext(_maxQueuedMessages);
         }
 
         public void Dispose()
