@@ -1,4 +1,4 @@
-﻿using Acquaintance.RequestResponse;
+﻿using Acquaintance.PubSub;
 using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Acquaintance.ScatterGather
         private readonly List<IParticipantReference<TRequest, TResponse>> _funcReferences;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private readonly List<RequestRoute<TRequest>> _routes;
+        private readonly List<EventRoute<TRequest>> _routes;
 
         public ParticipantBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -27,7 +27,7 @@ namespace Acquaintance.ScatterGather
                 throw new ArgumentNullException(nameof(threadPool));
 
 
-            _routes = new List<RequestRoute<TRequest>>();
+            _routes = new List<EventRoute<TRequest>>();
             _funcReferences = new List<IParticipantReference<TRequest, TResponse>>();
             _messageBus = messageBus;
             _threadPool = threadPool;
@@ -102,7 +102,7 @@ namespace Acquaintance.ScatterGather
 
         public ParticipantBuilder<TRequest, TResponse> RouteForward(Func<TRequest, bool> predicate, string newChannelName = null)
         {
-            _routes.Add(new RequestRoute<TRequest>(newChannelName, predicate));
+            _routes.Add(new EventRoute<TRequest>(newChannelName, predicate));
             return this;
         }
 

@@ -136,6 +136,7 @@ namespace Acquaintance.Tests
             target.Listen<int, int>(l => l
                 .WithChannelName("Test")
                 .InvokeFunction(e => e + 5)
+                .Immediate()
                 .MaximumRequests(3));
             var responses = new List<int>();
             for (int i = 0; i < 5; i++)

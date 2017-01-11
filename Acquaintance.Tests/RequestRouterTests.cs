@@ -18,8 +18,10 @@ namespace Acquaintance.Tests
                 .InvokeFunction(e => e * 100));
 
             target.Listen<int, int>(l => l
-                .RouteForward(e => e % 2 == 0, "Evens")
-                .RouteForward(e => e % 2 == 1, "Odds"));
+                .OnDefaultChannel()
+                .Route(r => r
+                    .When(e => e % 2 == 0, "Evens")
+                    .When(e => e % 2 == 1, "Odds")));
 
             target.Request<int, int>(1).Should().Be(100);
             target.Request<int, int>(2).Should().Be(20);

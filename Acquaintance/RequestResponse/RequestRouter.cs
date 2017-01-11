@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using Acquaintance.PubSub;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
     public class RequestRouter<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
-        private readonly IReadOnlyList<RequestRoute<TRequest>> _routes;
+        private readonly IReadOnlyList<EventRoute<TRequest>> _routes;
         private readonly IReqResBus _messageBus;
         private readonly IListenerReference<TRequest, TResponse> _defaultFunc;
 
-        public RequestRouter(IReqResBus messageBus, IReadOnlyList<RequestRoute<TRequest>> routes, IListenerReference<TRequest, TResponse> defaultFunc)
+        public RequestRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, IListenerReference<TRequest, TResponse> defaultFunc)
         {
             _routes = routes;
             _messageBus = messageBus;

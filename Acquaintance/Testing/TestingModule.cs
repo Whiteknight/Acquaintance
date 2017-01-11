@@ -44,8 +44,8 @@ namespace Acquaintance.Testing
             _subscriptions.Listen<TRequest, TResponse>(l => l
                 .WithChannelName(name)
                 .InvokeFunction(r => expectation.TryHandle(r))
-                .WithFilter(filter)
-                .Immediate());
+                .Immediate()
+                .WithFilter(filter));
             return expectation;
         }
 

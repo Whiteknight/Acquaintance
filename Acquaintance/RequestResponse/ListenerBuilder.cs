@@ -1,11 +1,46 @@
-﻿using Acquaintance.Threading;
+﻿using Acquaintance.PubSub;
+using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
-    public class ListenerBuilder<TRequest, TResponse>
+    public interface IChannelListenerBuilder<TRequest, TResponse>
+    {
+        IActionListenerBuilder<TRequest, TResponse> WithChannelName(string name);
+        IActionListenerBuilder<TRequest, TResponse> OnDefaultChannel();
+    }
+
+    public interface IActionListenerBuilder<TRequest, TResponse>
+    {
+        IThreadListenerBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false);
+        IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest>> build);
+        IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform);
+        IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
+    }
+
+    public interface IThreadListenerBuilder<TRequest, TResponse>
+    {
+        IDetailsListenerBuilder<TRequest, TResponse> Immediate();
+        IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread();
+        IDetailsListenerBuilder<TRequest, TResponse> OnThread(int threadId);
+        IDetailsListenerBuilder<TRequest, TResponse> OnThreadPool();
+        IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread();
+    }
+
+    public interface IDetailsListenerBuilder<TRequest, TResponse>
+    {
+        IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests);
+        IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
+        IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
+    }
+
+    public class ListenerBuilder<TRequest, TResponse> :
+        IChannelListenerBuilder<TRequest, TResponse>,
+        IActionListenerBuilder<TRequest, TResponse>,
+        IThreadListenerBuilder<TRequest, TResponse>,
+        IDetailsListenerBuilder<TRequest, TResponse>
     {
         private readonly IThreadPool _threadPool;
         private readonly IReqResBus _messageBus;
@@ -16,7 +51,8 @@ namespace Acquaintance.RequestResponse
         private IListenerReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private readonly List<RequestRoute<TRequest>> _routes;
+        private readonly List<EventRoute<TRequest>> _routes;
+        private bool _useDedicatedThread;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -25,7 +61,7 @@ namespace Acquaintance.RequestResponse
             if (threadPool == null)
                 throw new ArgumentNullException(nameof(threadPool));
 
-            _routes = new List<RequestRoute<TRequest>>();
+            _routes = new List<EventRoute<TRequest>>();
             _messageBus = messageBus;
             _threadPool = threadPool;
             _timeoutMs = 5000;
@@ -33,70 +69,56 @@ namespace Acquaintance.RequestResponse
 
         public string ChannelName { get; private set; }
 
-        public ListenerBuilder<TRequest, TResponse> WithChannelName(string name)
+        public IListener<TRequest, TResponse> BuildListener()
+        {
+            IListener<TRequest, TResponse> listener = null;
+            if (_routes.Any())
+                listener = new RequestRouter<TRequest, TResponse>(_messageBus, _routes, _funcReference);
+            else if (_funcReference != null)
+                listener = CreateListener(_funcReference, _dispatchType, _threadId, _timeoutMs);
+
+            if (listener == null)
+                throw new Exception("No function or routes supplied");
+
+            listener = WrapListener(listener, _filter, _maxRequests);
+            return listener;
+        }
+
+        public IDisposable WrapToken(IDisposable token)
+        {
+            if (token == null)
+                throw new ArgumentNullException(nameof(token));
+            if (_useDedicatedThread)
+                return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
+            return token;
+        }
+
+        public IActionListenerBuilder<TRequest, TResponse> WithChannelName(string name)
         {
             ChannelName = name;
             return this;
         }
 
-        public ListenerBuilder<TRequest, TResponse> Immediate()
+        public IActionListenerBuilder<TRequest, TResponse> OnDefaultChannel()
         {
-            _dispatchType = DispatchThreadType.Immediate;
+            ChannelName = string.Empty;
             return this;
         }
 
-        public ListenerBuilder<TRequest, TResponse> OnThread(int threadId)
-        {
-            _dispatchType = DispatchThreadType.SpecificThread;
-            _threadId = threadId;
-            return this;
-        }
-
-        public ListenerBuilder<TRequest, TResponse> OnWorkerThread()
-        {
-            _dispatchType = DispatchThreadType.AnyWorkerThread;
-            return this;
-        }
-
-        public ListenerBuilder<TRequest, TResponse> OnThreadPool()
-        {
-            _dispatchType = DispatchThreadType.ThreadpoolThread;
-            return this;
-        }
-
-        public ListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
-        {
-            if (timeoutMs <= 0)
-                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
-            _timeoutMs = timeoutMs;
-            return this;
-        }
-
-        public ListenerBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false)
+        public IThreadListenerBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false)
         {
             _funcReference = CreateReference(listener, useWeakReference);
             return this;
         }
 
-        public ListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests)
+        public IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest>> build)
         {
-            _maxRequests = maxRequests;
+            var builder = new RouteBuilder<TRequest>(_routes);
+            build(builder);
             return this;
         }
 
-        public ListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
-        {
-            _filter = filter;
-            return this;
-        }
-
-        public ListenerBuilder<TRequest, TResponse> RouteForward(Func<TRequest, bool> predicate, string newChannelName = null)
-        {
-            _routes.Add(new RequestRoute<TRequest>(newChannelName, predicate));
-            return this;
-        }
-
-        public ListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
+        public IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
         {
             return InvokeFunction(request =>
             {
@@ -105,7 +127,7 @@ namespace Acquaintance.RequestResponse
             });
         }
 
-        public ListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
+        public IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
         {
             return InvokeFunction(request =>
             {
@@ -114,19 +136,56 @@ namespace Acquaintance.RequestResponse
             });
         }
 
-        public IListener<TRequest, TResponse> BuildListener()
+        public IDetailsListenerBuilder<TRequest, TResponse> Immediate()
         {
-            if (_funcReference == null && !_routes.Any())
-                throw new Exception("No function or routes supplied");
+            _dispatchType = DispatchThreadType.Immediate;
+            return this;
+        }
 
-            IListener<TRequest, TResponse> listener = null;
-            if (_routes.Any())
-                listener = new RequestRouter<TRequest, TResponse>(_messageBus, _routes, _funcReference);
-            else if (_funcReference != null)
-                listener = CreateListener(_funcReference, _dispatchType, _threadId, _timeoutMs);
+        public IDetailsListenerBuilder<TRequest, TResponse> OnThread(int threadId)
+        {
+            _dispatchType = DispatchThreadType.SpecificThread;
+            _threadId = threadId;
+            return this;
+        }
 
-            listener = WrapListener(listener, _filter, _maxRequests);
-            return listener;
+        public IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread()
+        {
+            _dispatchType = DispatchThreadType.AnyWorkerThread;
+            return this;
+        }
+
+        public IDetailsListenerBuilder<TRequest, TResponse> OnThreadPool()
+        {
+            _dispatchType = DispatchThreadType.ThreadpoolThread;
+            return this;
+        }
+
+        public IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread()
+        {
+            _dispatchType = DispatchThreadType.ThreadpoolThread;
+            _useDedicatedThread = true;
+            return this;
+        }
+
+        public IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
+        {
+            if (timeoutMs <= 0)
+                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
+            _timeoutMs = timeoutMs;
+            return this;
+        }
+
+        public IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests)
+        {
+            _maxRequests = maxRequests;
+            return this;
+        }
+
+        public IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
+        {
+            _filter = filter;
+            return this;
         }
 
         private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)

@@ -1,4 +1,5 @@
-﻿using Acquaintance.RequestResponse;
+﻿using Acquaintance.PubSub;
+using Acquaintance.RequestResponse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +8,10 @@ namespace Acquaintance.ScatterGather
 {
     public class ScatterRouter<TRequest, TResponse> : IParticipant<TRequest, TResponse>
     {
-        private readonly IReadOnlyList<RequestRoute<TRequest>> _routes;
+        private readonly IReadOnlyList<EventRoute<TRequest>> _routes;
         private readonly IReqResBus _messageBus;
 
-        public ScatterRouter(IReqResBus messageBus, IReadOnlyList<RequestRoute<TRequest>> routes)
+        public ScatterRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes)
         {
             _routes = routes;
             _messageBus = messageBus;

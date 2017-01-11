@@ -22,12 +22,13 @@ namespace Acquaintance
             return method.Invoke(messageBus, new[] { name, request });
         }
 
-        public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<ListenerBuilder<TRequest, TResponse>> build)
+        public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<IChannelListenerBuilder<TRequest, TResponse>> build)
         {
             var builder = new ListenerBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
             build(builder);
             var listener = builder.BuildListener();
-            return messageBus.Listen(builder.ChannelName, listener);
+            var token = messageBus.Listen(builder.ChannelName, listener);
+            return builder.WrapToken(token);
         }
     }
 }

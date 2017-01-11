@@ -53,13 +53,13 @@
     <Compile Include="Nets\Net.cs" />
     <Compile Include="Nets\NetBuilder.cs" />
     <Compile Include="Nets\NodeBuilder.cs" />
-    <Compile Include="PubSub\EventRoute.cs" />
+    <Compile Include="Common\EventRoute.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
-    <Compile Include="PubSub\RouteBuilder.cs" />
+    <Compile Include="Common\RouteBuilder.cs" />
     <Compile Include="PubSub\RoutingSubscriber.cs" />
     <Compile Include="PubSub\Sources\SourceManagementModule.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
@@ -96,7 +96,6 @@
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
-    <Compile Include="RequestResponse\RequestRoute.cs" />
     <Compile Include="ScatterGather\ScatterGatherSimpleDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherTrieDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherChannel.cs" />
