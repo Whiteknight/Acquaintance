@@ -10,6 +10,12 @@ namespace Acquaintance.PubSub
 
         public RoutingSubscription(IPublishable messageBus, IEnumerable<EventRoute<TPayload>> routes)
         {
+            if (messageBus == null)
+                throw new System.ArgumentNullException(nameof(messageBus));
+
+            if (routes == null)
+                throw new System.ArgumentNullException(nameof(routes));
+
             // TODO: Try to detect circular references?
             _routes = routes.ToList();
             _messageBus = messageBus;

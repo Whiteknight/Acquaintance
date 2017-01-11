@@ -10,6 +10,12 @@ namespace Acquaintance.PubSub
 
         public SpecificThreadPubSubSubscription(ISubscriberReference<TPayload> action, int threadId, IThreadPool threadPool)
         {
+            if (action == null)
+                throw new System.ArgumentNullException(nameof(action));
+
+            if (threadPool == null)
+                throw new System.ArgumentNullException(nameof(threadPool));
+
             _action = action;
             _threadId = threadId;
             _threadPool = threadPool;

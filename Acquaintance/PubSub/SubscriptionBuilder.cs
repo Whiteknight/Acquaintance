@@ -50,6 +50,12 @@ namespace Acquaintance.PubSub
 
         public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
         {
+            if (messageBus == null)
+                throw new ArgumentNullException(nameof(messageBus));
+
+            if (threadPool == null)
+                throw new ArgumentNullException(nameof(threadPool));
+
             _dispatchType = DispatchThreadType.AnyWorkerThread;
             _threadPool = threadPool;
             _messageBus = messageBus;
@@ -80,6 +86,8 @@ namespace Acquaintance.PubSub
 
         public IDisposable WrapToken(IDisposable token)
         {
+            if (token == null)
+                throw new ArgumentNullException(nameof(token));
             if (_useDedicatedThread)
                 return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
             return token;

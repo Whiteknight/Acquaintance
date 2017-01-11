@@ -9,11 +9,17 @@ namespace Acquaintance.PubSub
 
         public RouteBuilder(List<EventRoute<TPayload>> routes)
         {
+            if (routes == null)
+                throw new ArgumentNullException(nameof(routes));
+
             _routes = routes;
         }
 
         public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string channelName)
         {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+
             _routes.Add(new EventRoute<TPayload>(channelName, predicate));
             return this;
         }

@@ -6,6 +6,9 @@ namespace Acquaintance.PubSub
 
         public ImmediatePubSubSubscription(ISubscriberReference<TPayload> action)
         {
+            if (action == null)
+                throw new System.ArgumentNullException(nameof(action));
+
             _action = action;
         }
 
