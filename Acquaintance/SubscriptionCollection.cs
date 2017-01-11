@@ -30,47 +30,47 @@ namespace Acquaintance
                 subscription.Dispose();
         }
 
-        public IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
         {
-            var token = _messageBus.Subscribe(name, subscription);
+            var token = _messageBus.Subscribe(channelName, subscription);
             _subscriptions.Add(token);
             return token;
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        public IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener)
         {
-            var token = _messageBus.Listen(name, listener);
+            var token = _messageBus.Listen(channelName, listener);
             _subscriptions.Add(token);
             return token;
         }
 
-        public IDisposable Participate<TRequest, TResponse>(string name, IParticipant<TRequest, TResponse> listener)
+        public IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant)
         {
-            var token = _messageBus.Participate(name, listener);
+            var token = _messageBus.Participate(channelName, participant);
             _subscriptions.Add(token);
             return token;
         }
 
-        public IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscriber)
+        public IDisposable Eavesdrop<TRequest, TResponse>(string channelName, ISubscription<Conversation<TRequest, TResponse>> subscriber)
         {
-            var token = _messageBus.Eavesdrop(name, subscriber);
+            var token = _messageBus.Eavesdrop(channelName, subscriber);
             _subscriptions.Add(token);
             return token;
         }
 
-        public void Publish<TPayload>(string name, TPayload payload)
+        public void Publish<TPayload>(string channelName, TPayload payload)
         {
-            _messageBus.Publish<TPayload>(name, payload);
+            _messageBus.Publish<TPayload>(channelName, payload);
         }
 
-        public TResponse Request<TRequest, TResponse>(string name, TRequest request)
+        public TResponse Request<TRequest, TResponse>(string channelName, TRequest request)
         {
-            return _messageBus.Request<TRequest, TResponse>(name, request);
+            return _messageBus.Request<TRequest, TResponse>(channelName, request);
         }
 
-        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request)
+        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request)
         {
-            return _messageBus.Scatter<TRequest, TResponse>(name, request);
+            return _messageBus.Scatter<TRequest, TResponse>(channelName, request);
         }
     }
 }

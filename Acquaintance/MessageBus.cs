@@ -11,6 +11,9 @@ using System.Linq;
 
 namespace Acquaintance
 {
+    /// <summary>
+    /// The message bus object, which coordinates communication features.
+    /// </summary>
     public sealed class MessageBus : IMessageBus
     {
         private readonly ILogger _logger;
@@ -48,25 +51,25 @@ namespace Acquaintance
             ThreadPool.StopDedicatedWorker(id);
         }
 
-        public void Publish<TPayload>(string name, TPayload payload)
+        public void Publish<TPayload>(string channelName, TPayload payload)
         {
-            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(name))
+            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(channelName))
             {
-                _logger.Debug("Publishing message Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, name, channel.Id);
+                _logger.Debug("Publishing message Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, channelName, channel.Id);
                 channel.Publish(payload);
             }
         }
 
-        public IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
         {
-            var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(name);
-            _logger.Debug("Adding subscription of type Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, name, channel.Id);
+            var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(channelName);
+            _logger.Debug("Adding subscription of type Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, channelName, channel.Id);
             return channel.Subscribe(subscription);
         }
 
-        public TResponse Request<TRequest, TResponse>(string name, TRequest request)
+        public TResponse Request<TRequest, TResponse>(string channelName, TRequest request)
         {
-            return RequestInternal<TRequest, TResponse>(name, request, _requestResponseStrategy).Responses.SingleOrDefault();
+            return RequestInternal<TRequest, TResponse>(channelName, request, _requestResponseStrategy).Responses.SingleOrDefault();
         }
 
         private IGatheredResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
@@ -104,9 +107,9 @@ namespace Acquaintance
             return new GatheredResponse<TResponse>(responses);
         }
 
-        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request)
+        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request)
         {
-            return ScatterInternal<TRequest, TResponse>(name, request, _scatterGatherStrategy);
+            return ScatterInternal<TRequest, TResponse>(channelName, request, _scatterGatherStrategy);
         }
 
         private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string name, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
@@ -144,25 +147,25 @@ namespace Acquaintance
             return new GatheredResponse<TResponse>(responses);
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener)
+        public IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener)
         {
-            var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
-            _logger.Debug("Listening RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+            var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName);
+            _logger.Debug("Listening RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
             return channel.Listen(listener);
         }
 
-        public IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscription)
+        public IDisposable Eavesdrop<TRequest, TResponse>(string channelName, ISubscription<Conversation<TRequest, TResponse>> subscription)
         {
-            var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(name);
-            _logger.Debug("Eavesdrop on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+            var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(channelName);
+            _logger.Debug("Eavesdrop on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
             return channel.Subscribe(subscription);
         }
 
-        public IDisposable Participate<TRequest, TResponse>(string name, IParticipant<TRequest, TResponse> listener)
+        public IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant)
         {
-            var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(name);
-            _logger.Debug("Participating on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
-            return channel.Listen(listener);
+            var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName);
+            _logger.Debug("Participating on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
+            return channel.Listen(participant);
         }
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)

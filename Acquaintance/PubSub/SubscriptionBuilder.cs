@@ -5,35 +5,6 @@ using System.Linq;
 
 namespace Acquaintance.PubSub
 {
-    public interface IChannelSubscriptionBuilder<TPayload>
-    {
-        IActionSubscriptionBuilder<TPayload> WithChannelName(string name);
-        IActionSubscriptionBuilder<TPayload> OnDefaultChannel();
-    }
-
-    public interface IActionSubscriptionBuilder<TPayload>
-    {
-        IThreadSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true);
-        IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null);
-        IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build);
-        IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels);
-    }
-
-    public interface IThreadSubscriptionBuilder<TPayload>
-    {
-        IDetailsSubscriptionBuilder<TPayload> OnWorkerThread();
-        IDetailsSubscriptionBuilder<TPayload> Immediate();
-        IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId);
-        IDetailsSubscriptionBuilder<TPayload> OnThreadPool();
-        IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread();
-    }
-
-    public interface IDetailsSubscriptionBuilder<TPayload>
-    {
-        IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter);
-        IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents);
-    }
-
     public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IThreadSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
     {
         private readonly IPubSubBus _messageBus;
@@ -93,9 +64,9 @@ namespace Acquaintance.PubSub
             return token;
         }
 
-        public IActionSubscriptionBuilder<TPayload> WithChannelName(string name)
+        public IActionSubscriptionBuilder<TPayload> WithChannelName(string channelName)
         {
-            ChannelName = name;
+            ChannelName = channelName;
             return this;
         }
 

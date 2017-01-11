@@ -56,6 +56,7 @@
     <Compile Include="Common\EventRoute.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
+    <Compile Include="PubSub\ISubscriptionBuilder.cs" />
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />

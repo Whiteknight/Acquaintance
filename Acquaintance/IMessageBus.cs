@@ -9,17 +9,33 @@ namespace Acquaintance
 {
     public interface IBusBase
     {
+        /// <summary>
+        /// The threadpool which holds worker threads for dispatching requests and events
+        /// </summary>
         IThreadPool ThreadPool { get; }
     }
 
     public interface ISubscribable : IBusBase
     {
-        IDisposable Subscribe<TPayload>(string name, ISubscription<TPayload> subscription);
+        /// <summary>
+        /// Subscribe to pub/sub events for the given type, on the given channel name.
+        /// </summary>
+        /// <typeparam name="TPayload">The type of event payload to subscribe to</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="subscription">The subscription object to receive the events</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription);
     }
 
     public interface IPublishable
     {
-        void Publish<TPayload>(string name, TPayload payload);
+        /// <summary>
+        /// Publish an event of the given type on the given channel
+        /// </summary>
+        /// <typeparam name="TPayload">The type of event payload to publish</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="payload">The event payload object to send to subscribers. This object should not be modified after publishing to avoid concurrency conflicts.</param>
+        void Publish<TPayload>(string channelName, TPayload payload);
     }
 
     public interface IPubSubBus : IPublishable, ISubscribable
@@ -29,16 +45,59 @@ namespace Acquaintance
 
     public interface IListenable : IBusBase
     {
-        IDisposable Listen<TRequest, TResponse>(string name, IListener<TRequest, TResponse> listener);
-        IDisposable Participate<TRequest, TResponse>(string name, IParticipant<TRequest, TResponse> listener);
-        IDisposable Eavesdrop<TRequest, TResponse>(string name, ISubscription<Conversation<TRequest, TResponse>> subscriber);
+        /// <summary>
+        /// Listen for an incoming request and provide a response.
+        /// </summary>
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="listener">The listener to receive the request and provide a response</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener);
+
+        /// <summary>
+        /// Listen for incoming scatters and provide responses
+        /// </summary>
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="participant">The participant which receives the request and provides responses.</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant);
+
+        /// <summary>
+        /// Eavesdrop on request/response and scatter/gather conversations, and receive events when
+        /// a conversation is completed.
+        /// </summary>
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="subscriber">The subscriber object to receive eavesdrop events</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        IDisposable Eavesdrop<TRequest, TResponse>(string channelName, ISubscription<Conversation<TRequest, TResponse>> subscriber);
     }
 
     public interface IRequestable
     {
-        // Request-Response
-        TResponse Request<TRequest, TResponse>(string name, TRequest request);
-        IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string name, TRequest request);
+        /// <summary>
+        /// Make a request and expect a single response
+        /// </summary>
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="request">The request object which represents the input arguments to the RPC call</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        TResponse Request<TRequest, TResponse>(string channelName, TRequest request);
+
+        /// <summary>
+        /// Make a request and receive many responses
+        /// </summary>
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="request">The request object</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request);
     }
 
     public interface IReqResBus : IListenable, IRequestable
@@ -48,10 +107,27 @@ namespace Acquaintance
 
     public interface IMessageBus : IPubSubBus, IReqResBus, IDisposable
     {
+        /// <summary>
+        /// Extension modules for the message bus which may add additional features.
+        /// </summary>
         IModuleManager Modules { get; }
 
-        // Runloops and Event Processing
+        /// <summary>
+        /// Run an event loop in the current thread to process messages queued against the current
+        /// thread ID
+        /// </summary>
+        /// <param name="shouldStop">A callback which, if provided, will allow the runloop to 
+        /// terminate when a condition is satisfied.</param>
+        /// <param name="timeoutMs">A maximum amount of time to wait before the shouldStop
+        /// condition is tested.</param>
         void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500);
+
+        /// <summary>
+        /// Runs an event loop in the current thread to process messages queued agains the current
+        /// thread ID. Continue looping until the queue is empty or until a maximum number of
+        /// events are processed, and then return.
+        /// </summary>
+        /// <param name="max">The maximum number of events to process before returning.</param>
         void EmptyActionQueue(int max);
     }
 }
