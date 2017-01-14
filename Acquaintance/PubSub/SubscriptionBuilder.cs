@@ -96,6 +96,19 @@ namespace Acquaintance.PubSub
             return this;
         }
 
+        public IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+            if (createService == null)
+                throw new ArgumentNullException(nameof(createService));
+            if (_actionReference != null)
+                throw new Exception("Can only have a single action");
+
+            _actionReference = new ActivatedSubscriberReference<TPayload, TService>(createService, handler);
+            return this;
+        }
+
         public IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
         {
             if (transform == null)

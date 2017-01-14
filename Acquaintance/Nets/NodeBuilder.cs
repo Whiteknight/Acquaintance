@@ -126,6 +126,8 @@ namespace Acquaintance.Nets
             return this;
         }
 
+
+
         public NodeBuilder<TInput> ReadInput()
         {
             if (!string.IsNullOrEmpty(_channelName))

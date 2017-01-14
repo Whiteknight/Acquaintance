@@ -37,6 +37,15 @@ namespace Acquaintance.PubSub
         IThreadSubscriptionBuilder<TPayload> Invoke(ISubscriptionHandler<TPayload> handler);
 
         /// <summary>
+        /// Instantiate a service and use that service to handle the event
+        /// </summary>
+        /// <typeparam name="TService">The type of service to instantiate</typeparam>
+        /// <param name="createService">A factory method to create the service</param>
+        /// <param name="handler">The callback to invoke with the service and the payload</param>
+        /// <returns>The builder</returns>
+        IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler);
+
+        /// <summary>
         /// Transform the event payload to a new type, and re-publish on the new channel
         /// </summary>
         /// <typeparam name="TOutput">The type to transform the payload to</typeparam>
