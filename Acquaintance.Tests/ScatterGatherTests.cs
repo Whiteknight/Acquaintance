@@ -27,7 +27,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Participate<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" }));
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Responses.Should().HaveCount(1);
@@ -43,7 +43,7 @@ namespace Acquaintance.Tests
             {
                 target.Participate<TestRequest, TestResponse>(l => l
                     .WithChannelName("Test")
-                    .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
+                    .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
                     .WithTimeout(2000)
                     .OnWorkerThread());
                 var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
@@ -61,11 +61,11 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
 
-            target.Participate<TestRequest, TestResponse>(l => l.InvokeFunction(r => new TestResponse { Text = r.Text + "A" }));
-            target.Participate<TestRequest, TestResponse>(l => l.InvokeFunction(r => new TestResponse { Text = r.Text + "B" }));
-            target.Participate<TestRequest, TestResponse>(l => l.InvokeFunction(r => new TestResponse { Text = r.Text + "C" }));
-            target.Participate<TestRequest, TestResponse>(l => l.InvokeFunction(r => new TestResponse { Text = r.Text + "D" }));
-            target.Participate<TestRequest, TestResponse>(l => l.InvokeFunction(r => new TestResponse { Text = r.Text + "E" }));
+            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "A" }));
+            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "B" }));
+            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "C" }));
+            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "D" }));
+            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "E" }));
 
             var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" });
 
@@ -81,7 +81,7 @@ namespace Acquaintance.Tests
 
             target.Participate<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" }));
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             target.Eavesdrop<TestRequest, TestResponse>(s => s
                 .WithChannelName("Test")
                 .Invoke(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
@@ -102,10 +102,10 @@ namespace Acquaintance.Tests
             {
                 target.Participate<GenericRequest<string>, GenericResponse<string>>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new GenericResponse<string>()));
+                .Invoke(req => new GenericResponse<string>()));
                 target.Participate<GenericRequest<int>, GenericResponse<int>>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new GenericResponse<int>()));
+                .Invoke(req => new GenericResponse<int>()));
             };
             act.ShouldNotThrow();
         }
@@ -125,9 +125,9 @@ namespace Acquaintance.Tests
         public void ParticipateScatterGather_Wildcards()
         {
             var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
-            target.Participate<int, int>(l => l.WithChannelName("Test.A").InvokeFunction(req => 1));
-            target.Participate<int, int>(l => l.WithChannelName("Test.B").InvokeFunction(req => 2));
-            target.Participate<int, int>(l => l.WithChannelName("Test.C").InvokeFunction(req => 3));
+            target.Participate<int, int>(l => l.WithChannelName("Test.A").Invoke(req => 1));
+            target.Participate<int, int>(l => l.WithChannelName("Test.B").Invoke(req => 2));
+            target.Participate<int, int>(l => l.WithChannelName("Test.C").Invoke(req => 3));
             var response = target.Scatter<int, int>("Test.*", 0).Responses;
             response.Should().BeEquivalentTo(1, 2, 3);
         }
@@ -136,8 +136,8 @@ namespace Acquaintance.Tests
         public void Participate_ParticipantBuilder_TransformRequestTo()
         {
             var target = new MessageBus();
-            target.Participate<string, int>(l => l.InvokeFunction(s => s.Length));
-            target.Participate<string, int>(l => l.InvokeFunction(s => s.Length * 2));
+            target.Participate<string, int>(l => l.Invoke(s => s.Length));
+            target.Participate<string, int>(l => l.Invoke(s => s.Length * 2));
 
             target.Participate<int, int>(l => l.TransformRequestTo<string>(null, i => i.ToString()));
 
@@ -150,8 +150,8 @@ namespace Acquaintance.Tests
         public void Participate_ParticipantBuilder_TransformResponseFrom()
         {
             var target = new MessageBus();
-            target.Participate<int, string>(l => l.InvokeFunction(s => s.ToString()));
-            target.Participate<int, string>(l => l.InvokeFunction(s => s.ToString() + "A"));
+            target.Participate<int, string>(l => l.Invoke(s => s.ToString()));
+            target.Participate<int, string>(l => l.Invoke(s => s.ToString() + "A"));
 
             target.Participate<int, int>(l => l.TransformResponseFrom<string>(null, i => i.Length));
 

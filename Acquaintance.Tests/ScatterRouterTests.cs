@@ -10,12 +10,13 @@ namespace Acquaintance.Tests
         public void ScatterRouter_Publish()
         {
             var target = new MessageBus();
-            target.Participate<int, int>(l => l.WithChannelName("Evens").InvokeFunction(e => e * 10));
-            target.Participate<int, int>(l => l.WithChannelName("Odds").InvokeFunction(e => e * 100));
+            target.Participate<int, int>(l => l.WithChannelName("Evens").Invoke(e => e * 10));
+            target.Participate<int, int>(l => l.WithChannelName("Odds").Invoke(e => e * 100));
 
             target.Participate<int, int>(l => l
-                .RouteForward(e => e % 2 == 0, "Evens")
-                .RouteForward(e => e % 2 == 1, "Odds"));
+                .Route(r => r
+                    .When(e => e % 2 == 0, "Evens")
+                    .When(e => e % 2 == 1, "Odds")));
 
             target.Scatter<int, int>(1).Should().Contain(100);
             target.Scatter<int, int>(2).Should().Contain(20);

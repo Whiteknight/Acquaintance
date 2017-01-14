@@ -1,5 +1,4 @@
-﻿using Acquaintance.PubSub;
-using Acquaintance.Threading;
+﻿using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,10 +13,10 @@ namespace Acquaintance.ScatterGather
         private DispatchThreadType _dispatchType;
         private int _threadId;
         private int _timeoutMs;
-        private readonly List<IParticipantReference<TRequest, TResponse>> _funcReferences;
+        private IParticipantReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private readonly List<EventRoute<TRequest>> _routes;
+        private RouteBuilder<TRequest, TResponse> _routerBuilder;
 
         public ParticipantBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -26,9 +25,6 @@ namespace Acquaintance.ScatterGather
             if (threadPool == null)
                 throw new ArgumentNullException(nameof(threadPool));
 
-
-            _routes = new List<EventRoute<TRequest>>();
-            _funcReferences = new List<IParticipantReference<TRequest, TResponse>>();
             _messageBus = messageBus;
             _threadPool = threadPool;
         }
@@ -74,17 +70,17 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
-        public ParticipantBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> participant, bool useWeakReference = false)
+        public ParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> participant, bool useWeakReference = false)
         {
             var reference = CreateReference(r => new[] { participant(r) }, useWeakReference);
-            _funcReferences.Add(reference);
+            _funcReference = reference;
             return this;
         }
 
-        public ParticipantBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false)
+        public ParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false)
         {
             var reference = CreateReference(participant, useWeakReference);
-            _funcReferences.Add(reference);
+            _funcReference = reference;
             return this;
         }
 
@@ -100,15 +96,18 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
-        public ParticipantBuilder<TRequest, TResponse> RouteForward(Func<TRequest, bool> predicate, string newChannelName = null)
+        public ParticipantBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
         {
-            _routes.Add(new EventRoute<TRequest>(newChannelName, predicate));
+            if (_routerBuilder != null)
+                throw new Exception("Routes already defined");
+            _routerBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
+            build(_routerBuilder);
             return this;
         }
 
         public ParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
         {
-            return InvokeFunction(request =>
+            return Invoke(request =>
             {
                 var transformed = transform(request);
                 return _messageBus.Scatter<TTransformed, TResponse>(sourceChannelName, transformed);
@@ -117,33 +116,28 @@ namespace Acquaintance.ScatterGather
 
         public ParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
         {
-            return InvokeFunction(request =>
+            return Invoke(request =>
             {
                 var responses = _messageBus.Scatter<TRequest, TSource>(sourceChannelName, request);
                 return responses.Select(transform);
             });
         }
 
-        public IList<IParticipant<TRequest, TResponse>> BuildParticipants()
+        public IParticipant<TRequest, TResponse> BuildParticipant()
         {
-            if (!_funcReferences.Any() && !_routes.Any())
-                throw new Exception("No function or routes supplied");
+            IParticipant<TRequest, TResponse> participant = null;
+            // TODO: OnDedicatedThread
 
-            var listeners = new List<IParticipant<TRequest, TResponse>>();
-            if (_routes.Any())
-            {
-                IParticipant<TRequest, TResponse> listener = new ScatterRouter<TRequest, TResponse>(_messageBus, _routes);
-                listener = WrapListener(listener, _filter, _maxRequests);
-                listeners.Add(listener);
-            }
-            foreach (var func in _funcReferences)
-            {
-                IParticipant<TRequest, TResponse> listener = CreateParticipant(func, _dispatchType, _threadId, _timeoutMs);
-                listener = WrapListener(listener, _filter, _maxRequests);
-                listeners.Add(listener);
-            }
+            if (_routerBuilder != null)
+                participant = _routerBuilder.BuildParticipant();
+            else if (_funcReference != null)
+                participant = CreateParticipant(_funcReference, _dispatchType, _threadId, _timeoutMs);
 
-            return listeners;
+            if (participant == null)
+                throw new Exception("No actions defined");
+
+            participant = WrapParticipant(participant, _filter, _maxRequests);
+            return participant;
         }
 
         private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
@@ -159,7 +153,7 @@ namespace Acquaintance.ScatterGather
             }
         }
 
-        private IParticipant<TRequest, TResponse> WrapListener(IParticipant<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
+        private IParticipant<TRequest, TResponse> WrapParticipant(IParticipant<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
         {
             if (filter != null)
                 listener = new FilteredParticipant<TRequest, TResponse>(listener, filter);

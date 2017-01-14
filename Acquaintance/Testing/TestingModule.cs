@@ -55,7 +55,7 @@ namespace Acquaintance.Testing
             _expectations.Add(expectation);
             _subscriptions.Participate<TRequest, TResponse>(p => p
                 .WithChannelName(name)
-                .InvokeFunction(r => expectation.TryHandle(r))
+                .Invoke(r => expectation.TryHandle(r))
                 .WithFilter(filter)
                 .Immediate());
             return expectation;

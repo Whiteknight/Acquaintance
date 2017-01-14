@@ -100,6 +100,7 @@
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
+    <Compile Include="ScatterGather\RouteBuilder.cs" />
     <Compile Include="ScatterGather\ScatterGatherSimpleDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherTrieDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherChannel.cs" />

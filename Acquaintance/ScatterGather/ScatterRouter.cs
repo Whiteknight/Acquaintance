@@ -1,4 +1,5 @@
-﻿using Acquaintance.PubSub;
+﻿using Acquaintance.Common;
+using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
 using System;
 using System.Collections.Generic;
@@ -10,8 +11,10 @@ namespace Acquaintance.ScatterGather
     {
         private readonly IReadOnlyList<EventRoute<TRequest>> _routes;
         private readonly IReqResBus _messageBus;
+        private readonly string _defaultRouteOrNull;
+        private readonly RouterModeType _modeType;
 
-        public ScatterRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes)
+        public ScatterRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, string defaultRouteOrNull, RouterModeType modeType)
         {
             _routes = routes;
             _messageBus = messageBus;
@@ -27,14 +30,41 @@ namespace Acquaintance.ScatterGather
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            var routes = _routes.Where(r => r.Predicate(request));
-            List<TResponse> responses = new List<TResponse>();
-            foreach (var route in routes)
+            switch (_modeType)
             {
-                var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
-                responses.AddRange(response.ToArray());
+                case RouterModeType.FirstMatchingRoute:
+                    return RequestFirstOrDefault(request);
+                case RouterModeType.AllMatchingRoutes:
+                    return RequestAllMatching(request);
             }
-            return new ImmediateResponse<TResponse>(responses.ToArray());
+            return new ImmediateResponse<TResponse>(null);
+        }
+
+        private IDispatchableRequest<TResponse> RequestFirstOrDefault(TRequest request)
+        {
+            var route = _routes.FirstOrDefault(r => r.Predicate(request));
+            if (route == null)
+            {
+                if (_defaultRouteOrNull != null)
+                {
+                    var response1 = _messageBus.Scatter<TRequest, TResponse>(_defaultRouteOrNull, request);
+                    return new ImmediateResponse<TResponse>(response1.Responses.ToArray());
+                }
+                return new ImmediateResponse<TResponse>(null);
+            }
+            var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
+            return new ImmediateResponse<TResponse>(response.Responses.ToArray());
+        }
+
+        private IDispatchableRequest<TResponse> RequestAllMatching(TRequest request)
+        {
+            var allResponses = Enumerable.Empty<TResponse>();
+            foreach (var route in _routes.Where(r => r.Predicate(request)))
+            {
+                var responses = _messageBus.Scatter<TRequest, TResponse>(request);
+                allResponses = allResponses.Concat(responses.Responses);
+            }
+            return new ImmediateResponse<TResponse>(allResponses.ToArray());
         }
 
         public bool ShouldStopParticipating => false;
