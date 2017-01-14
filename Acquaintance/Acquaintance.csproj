@@ -44,7 +44,7 @@
     <Compile Include="Conversation.cs" />
     <Compile Include="DispatchStrategyFactory.cs" />
     <Compile Include="EavesdropMessageBusExtensions.cs" />
-    <Compile Include="ScatterGather\IDispatchableScatter`1.cs" />
+    <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />
     <Compile Include="Logging\ILogger.cs" />
@@ -78,7 +78,7 @@
     <Compile Include="ScatterGather\AnyThreadParticipant.cs" />
     <Compile Include="ScatterGather\DispatchableScatter.cs" />
     <Compile Include="ScatterGather\FilteredParticipant.cs" />
-    <Compile Include="ScatterGather\ImmediateGather`1.cs" />
+    <Compile Include="ScatterGather\ImmediateGather.cs" />
     <Compile Include="ScatterGather\ImmediateParticipant.cs" />
     <Compile Include="ScatterGather\IParticipant.cs" />
     <Compile Include="ScatterGather\IParticipantReference.cs" />
