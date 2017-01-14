@@ -16,7 +16,7 @@ namespace Acquaintance.Tests
         }
 
         [Test]
-        public void Subscribe_SubscriptionBuilder_RouteForward()
+        public void Subscribe_SubscriptionBuilder_Route()
         {
             var target = new MessageBus();
             int evens = 0;
@@ -105,6 +105,79 @@ namespace Acquaintance.Tests
                 .Route(r => r
                     .When(e => e.Number % 2 == 0, "Evens")
                     .Else("Default")));
+
+            target.Publish(new TestPubSubEvent(1));
+            target.Publish(new TestPubSubEvent(2));
+            target.Publish(new TestPubSubEvent(3));
+            target.Publish(new TestPubSubEvent(4));
+            target.Publish(new TestPubSubEvent(5));
+
+            all.Should().Be(9);
+            evens.Should().Be(6);
+        }
+
+        [Test]
+        public void Subscribe_SubscriptionBuilder_AllMatchingMode()
+        {
+            var target = new MessageBus();
+            int evens = 0;
+            int odds = 0;
+            int all = 0;
+
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("All")
+                .Invoke(e => all += e.Number)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Evens")
+                .Invoke(e => evens += e.Number)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Odds")
+                .Invoke(e => odds += e.Number)
+                .Immediate());
+
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .OnDefaultChannel()
+                .Route(r => r
+                    .Mode(Common.RouterModeType.AllMatchingRoutes)
+                    .When(e => e.Number % 2 == 0, "Evens")
+                    .When(e => e.Number % 2 == 1, "Odds")
+                    .When(e => true, "All")));
+
+            target.Publish(new TestPubSubEvent(1));
+            target.Publish(new TestPubSubEvent(2));
+            target.Publish(new TestPubSubEvent(3));
+            target.Publish(new TestPubSubEvent(4));
+            target.Publish(new TestPubSubEvent(5));
+
+            all.Should().Be(15);
+            evens.Should().Be(6);
+            odds.Should().Be(9);
+        }
+
+        [Test]
+        public void Subscribe_SubscriptionBuilder_FirstMatchingMode()
+        {
+            var target = new MessageBus();
+            int evens = 0;
+            int all = 0;
+
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("All")
+                .Invoke(e => all += e.Number)
+                .Immediate());
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Evens")
+                .Invoke(e => evens += e.Number)
+                .Immediate());
+
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .OnDefaultChannel()
+                .Route(r => r
+                    .Mode(Common.RouterModeType.FirstMatchingRoute)
+                    .When(e => e.Number % 2 == 0, "Evens")
+                    .When(e => true, "All")));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));

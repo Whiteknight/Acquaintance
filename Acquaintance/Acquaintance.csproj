@@ -40,6 +40,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\RouterModeType.cs" />
     <Compile Include="Conversation.cs" />
     <Compile Include="DispatchStrategyFactory.cs" />
     <Compile Include="EavesdropMessageBusExtensions.cs" />

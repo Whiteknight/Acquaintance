@@ -14,6 +14,7 @@ namespace Acquaintance.RequestResponse
         {
             _messageBus = messageBus;
             _routes = new List<EventRoute<TRequest>>();
+
         }
 
         public RouteBuilder<TRequest, TResponse> When(Func<TRequest, bool> predicate, string channelName)

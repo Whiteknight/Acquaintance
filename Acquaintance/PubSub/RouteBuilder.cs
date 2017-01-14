@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance.Common;
+using System;
 using System.Collections.Generic;
 
 namespace Acquaintance.PubSub
@@ -8,11 +9,19 @@ namespace Acquaintance.PubSub
         private readonly IPublishable _messageBus;
         private readonly List<EventRoute<TPayload>> _routes;
         private string _defaultRoute;
+        private RouterModeType _mode;
 
         public RouteBuilder(IPublishable messageBus)
         {
             _messageBus = messageBus;
             _routes = new List<EventRoute<TPayload>>();
+            _mode = RouterModeType.FirstMatchingRoute;
+        }
+
+        public RouteBuilder<TPayload> Mode(RouterModeType mode)
+        {
+            _mode = mode;
+            return this;
         }
 
         public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string channelName)
@@ -35,7 +44,7 @@ namespace Acquaintance.PubSub
 
         public ISubscription<TPayload> BuildSubscription()
         {
-            var subscription = new RoutingSubscription<TPayload>(_messageBus, _routes, _defaultRoute);
+            var subscription = new RoutingSubscription<TPayload>(_messageBus, _routes, _defaultRoute, _mode);
             return subscription;
         }
     }
