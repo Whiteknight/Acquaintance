@@ -17,7 +17,7 @@ namespace Acquaintance.Tests
             try
             {
                 var moduleToken = bus.EnableMessageTimer("test", 100, 100);
-                var subscriptionToken = bus.TimerSubscribe(1, builder => builder.InvokeAction(mte => ids.Add(mte.Id)));
+                var subscriptionToken = bus.TimerSubscribe(1, builder => builder.Invoke(mte => ids.Add(mte.Id)));
 
                 Thread.Sleep(1000);
 

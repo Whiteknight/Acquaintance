@@ -25,15 +25,15 @@ namespace Acquaintance.Tests
 
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .OnDefaultChannel()
-                .InvokeAction(e => all += e.Number)
+                .Invoke(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Evens")
-                .InvokeAction(e => evens += e.Number)
+                .Invoke(e => evens += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Odds")
-                .InvokeAction(e => odds += e.Number)
+                .Invoke(e => odds += e.Number)
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder

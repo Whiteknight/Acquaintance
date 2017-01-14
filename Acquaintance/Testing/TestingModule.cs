@@ -31,7 +31,7 @@ namespace Acquaintance.Testing
             _expectations.Add(expectation);
             _subscriptions.Subscribe<TPayload>(builder => builder
                 .WithChannelName(name)
-                .InvokeAction(p => expectation.TryReceive(p))
+                .Invoke(p => expectation.TryReceive(p))
                 .Immediate()
                 .WithFilter(filter));
             return expectation;

@@ -1,3 +1,4 @@
+using Acquaintance.PubSub;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
@@ -25,7 +26,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => text = e.Text)
+                .Invoke(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
@@ -38,7 +39,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => text = e.Text)
+                .Invoke(e => text = e.Text)
                 .Immediate()
                 .WithFilter(e => e.Text == "Test2"));
             target.Publish("Test", new TestPubSubEvent("Test1"));
@@ -56,7 +57,7 @@ namespace Acquaintance.Tests
             {
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithChannelName("Test")
-                    .InvokeAction(e => resetEvent.Set())
+                    .Invoke(e => resetEvent.Set())
                     .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(5000).Should().BeTrue();
@@ -77,7 +78,7 @@ namespace Acquaintance.Tests
             {
                 var token = target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithChannelName("Test")
-                    .InvokeAction(e => resetEvent.Set())
+                    .Invoke(e => resetEvent.Set())
                     .OnDedicatedThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(5000).Should().BeTrue();
@@ -102,7 +103,7 @@ namespace Acquaintance.Tests
 
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithChannelName("Test")
-                    .InvokeAction(e => resetEvent.Set())
+                    .Invoke(e => resetEvent.Set())
                     .OnThread(id));
                 target.Publish("Test", new TestPubSubEvent("Test"));
 
@@ -126,7 +127,7 @@ namespace Acquaintance.Tests
                 target.StopDedicatedWorkerThread(id);
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithChannelName("Test")
-                    .InvokeAction(e => resetEvent.Set())
+                    .Invoke(e => resetEvent.Set())
                     .OnThread(id));
                 target.Publish("Test", new TestPubSubEvent("Test"));
 
@@ -146,7 +147,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => text = e.Text)
+                .Invoke(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
@@ -159,7 +160,7 @@ namespace Acquaintance.Tests
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => resetEvent.Set())
+                .Invoke(e => resetEvent.Set())
                 .OnThreadPool());
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
 
@@ -174,7 +175,7 @@ namespace Acquaintance.Tests
             bool ok = false;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => ok = true)
+                .Invoke(e => ok = true)
                 .OnThread(Thread.CurrentThread.ManagedThreadId));
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
 
@@ -189,16 +190,16 @@ namespace Acquaintance.Tests
             int count = 0;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("1.X.c")
-                .InvokeAction(e => count += 1)
+                .Invoke(e => count += 1)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(
                 builder => builder
                 .WithChannelName("1.Y.c")
-                .InvokeAction(e => count += 10)
+                .Invoke(e => count += 10)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("1.Y.d")
-                .InvokeAction(e => count += 100)
+                .Invoke(e => count += 100)
                 .Immediate());
             target.Publish("1.*.c", new TestPubSubEvent("Test2"));
             count.Should().Be(11);
@@ -211,7 +212,7 @@ namespace Acquaintance.Tests
             int x = 0;
             target.Subscribe<int>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => x += e)
+                .Invoke(e => x += e)
                 .Immediate()
                 .MaximumEvents(3));
             for (int i = 1; i < 100000; i *= 10)
@@ -226,7 +227,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => text = e.Text)
+                .Invoke(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
@@ -239,7 +240,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => text = e.Text)
+                .Invoke(e => text = e.Text)
                 .Immediate()
                 .WithFilter(e => e.Text == "Test2"));
 
@@ -258,7 +259,7 @@ namespace Acquaintance.Tests
                 var resetEvent = new AutoResetEvent(false);
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithChannelName("Test")
-                    .InvokeAction(e => resetEvent.Set())
+                    .Invoke(e => resetEvent.Set())
                     .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(2000).Should().BeTrue();
@@ -279,15 +280,15 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Subscribe<int>(builder => builder
                 .WithChannelName("a")
-                .InvokeAction(x => a += x)
+                .Invoke(x => a += x)
                 .Immediate());
             target.Subscribe<int>(builder => builder
                 .WithChannelName("b")
-                .InvokeAction(x => b += x)
+                .Invoke(x => b += x)
                 .Immediate());
             target.Subscribe<int>(builder => builder
                 .WithChannelName("c")
-                .InvokeAction(x => c += x)
+                .Invoke(x => c += x)
                 .Immediate());
             target.Subscribe<int>(builder => builder
                 .OnDefaultChannel()
@@ -300,6 +301,36 @@ namespace Acquaintance.Tests
             target.Publish(16);
 
             (a + b + c).Should().Be(31);
+        }
+
+        private class TestHandler : ISubscriptionHandler<int>
+        {
+            public int Sum { get; private set; }
+
+
+            public void Handle(int payload)
+            {
+                Sum += payload;
+            }
+        }
+
+        [Test]
+        public void Subscript_SubscriptionBuilder_Handler()
+        {
+            var handler = new TestHandler();
+            var target = new MessageBus();
+            target.Subscribe<int>(b => b
+                .OnDefaultChannel()
+                .Invoke(handler)
+                .Immediate());
+
+            target.Publish(1);
+            target.Publish(2);
+            target.Publish(3);
+            target.Publish(4);
+            target.Publish(5);
+
+            handler.Sum.Should().Be(15);
         }
     }
 }

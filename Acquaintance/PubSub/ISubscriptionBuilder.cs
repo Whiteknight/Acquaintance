@@ -27,7 +27,14 @@ namespace Acquaintance.PubSub
         /// <param name="action">The callback action to invoke</param>
         /// <param name="useWeakReferences">Whether to use a weak reference when storing the callback reference</param>
         /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true);
+        IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = true);
+
+        /// <summary>
+        /// Invoke a method on a handler object in response to the event
+        /// </summary>
+        /// <param name="handler">The handler object which responds to the event</param>
+        /// <returns>The builder</returns>
+        IThreadSubscriptionBuilder<TPayload> Invoke(ISubscriptionHandler<TPayload> handler);
 
         /// <summary>
         /// Transform the event payload to a new type, and re-publish on the new channel

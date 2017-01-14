@@ -21,7 +21,7 @@ namespace Acquaintance.Tests
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubEvent>(s => s
                 .WithChannelName("Test")
-                .InvokeAction(e =>
+                .Invoke(e =>
                 {
                     int c = Interlocked.Increment(ref count);
                     if (c >= numEvents)
@@ -43,7 +43,7 @@ namespace Acquaintance.Tests
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubEvent>(s => s
                 .WithChannelName("Test.XYZ")
-                .InvokeAction(e =>
+                .Invoke(e =>
                 {
                     int c = Interlocked.Increment(ref count);
                     if (c >= numEvents)

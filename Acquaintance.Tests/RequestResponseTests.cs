@@ -78,7 +78,7 @@ namespace Acquaintance.Tests
                 .Immediate());
             target.Eavesdrop<TestRequest, TestResponse>(s => s
                 .WithChannelName("Test")
-                .InvokeAction(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
+                .Invoke(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
                 .Immediate());
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             eavesdropped.Should().Be("RequestResponded");

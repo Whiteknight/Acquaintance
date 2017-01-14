@@ -33,7 +33,7 @@ namespace Acquaintance.Tests
             string text = null;
             target.Subscribe<OutputEvent>(builder => builder
                 .WithChannelName("Test")
-                .InvokeAction(e => text = e.Text + "Output")
+                .Invoke(e => text = e.Text + "Output")
                 .Immediate());
             target.Subscribe<InputEvent>(builder => builder
                 .WithChannelName("Test")

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance.PubSub;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,6 +8,7 @@ namespace Acquaintance.Nets
     public class NodeBuilder<TInput> : INodeBuilder
     {
         private Action<TInput> _action;
+        private ISubscriptionHandler<TInput> _handler;
         private Func<TInput, bool> _predicate;
         private string _channelName;
         private readonly IMessageBus _messageBus;
@@ -60,7 +62,7 @@ namespace Acquaintance.Nets
             {
                 var b2 = string.IsNullOrEmpty(channelName) ? b1.OnDefaultChannel() : b1.WithChannelName(channelName);
 
-                var b3 = b2.InvokeAction(_action);
+                var b3 = _handler == null ? b2.Invoke(_action) : b2.Invoke(_handler);
 
                 var b4 = useDedicatedThread ? b3.OnDedicatedThread() : b3.OnWorkerThread();
 
@@ -104,14 +106,23 @@ namespace Acquaintance.Nets
             return this;
         }
 
-        public NodeBuilder<TInput> Handle(Action<TInput> handler)
+        public NodeBuilder<TInput> Handle(Action<TInput> action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            if (_action != null || _handler != null)
+                throw new Exception("Node already has a handler defined");
+            _action = action;
+            return this;
+        }
+
+        public NodeBuilder<TInput> Handle(ISubscriptionHandler<TInput> handler)
         {
             if (handler == null)
                 throw new ArgumentNullException(nameof(handler));
-
-            if (_action != null)
+            if (_action != null || _handler != null)
                 throw new Exception("Node already has a handler defined");
-            _action = handler;
+            _handler = handler;
             return this;
         }
 

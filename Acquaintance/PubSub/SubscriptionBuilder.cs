@@ -76,7 +76,7 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IThreadSubscriptionBuilder<TPayload> InvokeAction(Action<TPayload> action, bool useWeakReferences = true)
+        public IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = true)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
@@ -87,12 +87,22 @@ namespace Acquaintance.PubSub
             return this;
         }
 
+        public IThreadSubscriptionBuilder<TPayload> Invoke(ISubscriptionHandler<TPayload> handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+            if (_actionReference != null)
+                throw new Exception("Can only have a single action");
+            _actionReference = new SubscriptionHandlerActionReference<TPayload>(handler);
+            return this;
+        }
+
         public IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
         {
             if (transform == null)
                 throw new ArgumentNullException(nameof(transform));
 
-            return InvokeAction(payload =>
+            return Invoke(payload =>
             {
                 var transformed = transform(payload);
                 _messageBus.Publish(newChannelName, transformed);
