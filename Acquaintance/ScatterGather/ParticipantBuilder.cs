@@ -5,7 +5,11 @@ using System.Linq;
 
 namespace Acquaintance.ScatterGather
 {
-    public class ParticipantBuilder<TRequest, TResponse>
+    public class ParticipantBuilder<TRequest, TResponse> :
+        IChannelParticipantBuilder<TRequest, TResponse>,
+        IActionParticipantBuilder<TRequest, TResponse>,
+        IThreadParticipantBuilder<TRequest, TResponse>,
+        IDetailsParticipantBuilder<TRequest, TResponse>
     {
         private readonly IThreadPool _threadPool;
         private readonly IReqResBus _messageBus;
@@ -31,98 +35,6 @@ namespace Acquaintance.ScatterGather
 
         public string ChannelName { get; private set; }
 
-        public ParticipantBuilder<TRequest, TResponse> WithChannelName(string name)
-        {
-            ChannelName = name;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> Immediate()
-        {
-            _dispatchType = DispatchThreadType.Immediate;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> OnThread(int threadId)
-        {
-            _dispatchType = DispatchThreadType.SpecificThread;
-            _threadId = threadId;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> OnWorkerThread()
-        {
-            _dispatchType = DispatchThreadType.AnyWorkerThread;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> OnThreadPool()
-        {
-            _dispatchType = DispatchThreadType.ThreadpoolThread;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
-        {
-            if (timeoutMs <= 0)
-                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
-            _timeoutMs = timeoutMs;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> participant, bool useWeakReference = false)
-        {
-            var reference = CreateReference(r => new[] { participant(r) }, useWeakReference);
-            _funcReference = reference;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false)
-        {
-            var reference = CreateReference(participant, useWeakReference);
-            _funcReference = reference;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> MaximumRequests(int maxRequests)
-        {
-            _maxRequests = maxRequests;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
-        {
-            _filter = filter;
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
-        {
-            if (_routerBuilder != null)
-                throw new Exception("Routes already defined");
-            _routerBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
-            build(_routerBuilder);
-            return this;
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
-        {
-            return Invoke(request =>
-            {
-                var transformed = transform(request);
-                return _messageBus.Scatter<TTransformed, TResponse>(sourceChannelName, transformed);
-            });
-        }
-
-        public ParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
-        {
-            return Invoke(request =>
-            {
-                var responses = _messageBus.Scatter<TRequest, TSource>(sourceChannelName, request);
-                return responses.Select(transform);
-            });
-        }
-
         public IParticipant<TRequest, TResponse> BuildParticipant()
         {
             IParticipant<TRequest, TResponse> participant = null;
@@ -138,6 +50,109 @@ namespace Acquaintance.ScatterGather
 
             participant = WrapParticipant(participant, _filter, _maxRequests);
             return participant;
+        }
+
+        public IActionParticipantBuilder<TRequest, TResponse> WithChannelName(string name)
+        {
+            ChannelName = name;
+            return this;
+        }
+
+        public IActionParticipantBuilder<TRequest, TResponse> OnDefaultChannel()
+        {
+            ChannelName = string.Empty;
+            return this;
+        }
+
+        public IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> participant, bool useWeakReference = false)
+        {
+            var reference = CreateReference(r => new[] { participant(r) }, useWeakReference);
+            _funcReference = reference;
+            return this;
+        }
+
+        public IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false)
+        {
+            var reference = CreateReference(participant, useWeakReference);
+            _funcReference = reference;
+            return this;
+        }
+
+        public IThreadParticipantBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
+        {
+            if (_routerBuilder != null)
+                throw new Exception("Routes already defined");
+            _routerBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
+            build(_routerBuilder);
+            return this;
+        }
+
+        public IThreadParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
+        {
+            return Invoke(request =>
+            {
+                var transformed = transform(request);
+                return _messageBus.Scatter<TTransformed, TResponse>(sourceChannelName, transformed);
+            });
+        }
+
+        public IThreadParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
+        {
+            return Invoke(request =>
+            {
+                var responses = _messageBus.Scatter<TRequest, TSource>(sourceChannelName, request);
+                return responses.Select(transform);
+            });
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> Immediate()
+        {
+            _dispatchType = DispatchThreadType.Immediate;
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> OnThread(int threadId)
+        {
+            _dispatchType = DispatchThreadType.SpecificThread;
+            _threadId = threadId;
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> OnWorkerThread()
+        {
+            _dispatchType = DispatchThreadType.AnyWorkerThread;
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> OnThreadPool()
+        {
+            _dispatchType = DispatchThreadType.ThreadpoolThread;
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> OnDedicatedThread()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
+        {
+            if (timeoutMs <= 0)
+                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
+            _timeoutMs = timeoutMs;
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> MaximumRequests(int maxRequests)
+        {
+            _maxRequests = maxRequests;
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
+        {
+            _filter = filter;
+            return this;
         }
 
         private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)

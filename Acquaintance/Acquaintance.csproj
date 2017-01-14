@@ -81,6 +81,7 @@
     <Compile Include="ScatterGather\ImmediateGather.cs" />
     <Compile Include="ScatterGather\ImmediateParticipant.cs" />
     <Compile Include="ScatterGather\IParticipant.cs" />
+    <Compile Include="ScatterGather\IParticipantBuilder.cs" />
     <Compile Include="ScatterGather\IParticipantReference.cs" />
     <Compile Include="ScatterGather\IScatterGatherChannel.cs" />
     <Compile Include="ScatterGather\IScatterGatherChannelDispatchStrategy.cs" />

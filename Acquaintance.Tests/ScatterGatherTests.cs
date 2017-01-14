@@ -45,8 +45,8 @@ namespace Acquaintance.Tests
                 target.Participate<TestRequest, TestResponse>(l => l
                     .WithChannelName("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
-                    .WithTimeout(2000)
-                    .OnWorkerThread());
+                    .OnWorkerThread()
+                    .WithTimeout(2000));
                 var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
 
                 response.Should().NotBeNull();
