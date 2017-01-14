@@ -65,8 +65,8 @@
     <Compile Include="NetTests.cs" />
     <Compile Include="RequestResponseStressTests.cs" />
     <Compile Include="RequestRouterTests.cs" />
-    <Compile Include="EventRouterTests.cs" />
-    <Compile Include="PubSubStressTests.cs" />
+    <Compile Include="PubSubTests.Router.cs" />
+    <Compile Include="PubSubTests.Stress.cs" />
     <Compile Include="ScatterGatherTests.cs" />
     <Compile Include="RequestResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,7 +75,7 @@
     <Compile Include="Testing\ExpectPublishTests.cs" />
     <Compile Include="Testing\ExpectRequestTests.cs" />
     <Compile Include="Testing\ExpectScatterTests.cs" />
-    <Compile Include="PubSubTransformTests.cs" />
+    <Compile Include="PubSubTests.Transform.cs" />
     <Compile Include="Utility\StringTrieTests.cs" />
   </ItemGroup>
   <ItemGroup>

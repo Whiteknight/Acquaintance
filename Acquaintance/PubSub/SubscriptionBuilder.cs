@@ -11,7 +11,7 @@ namespace Acquaintance.PubSub
         private readonly IThreadPool _threadPool;
 
         private ISubscriberReference<TPayload> _actionReference;
-        private readonly List<EventRoute<TPayload>> _routes;
+        private RouteBuilder<TPayload> _routeBuilder;
         private List<string> _distributionList;
         private DispatchThreadType _dispatchType;
         private Func<TPayload, bool> _filter;
@@ -30,7 +30,6 @@ namespace Acquaintance.PubSub
             _dispatchType = DispatchThreadType.AnyWorkerThread;
             _threadPool = threadPool;
             _messageBus = messageBus;
-            _routes = new List<EventRoute<TPayload>>();
         }
 
         public string ChannelName { get; private set; }
@@ -43,8 +42,8 @@ namespace Acquaintance.PubSub
             ISubscription<TPayload> subscription = null;
             if (_actionReference != null)
                 subscription = CreateSubscription(_actionReference, _dispatchType, _threadId);
-            else if (_routes.Any())
-                subscription = new RoutingSubscription<TPayload>(_messageBus, _routes);
+            else if (_routeBuilder != null)
+                subscription = _routeBuilder.BuildSubscription();
             else if (_distributionList != null && _distributionList.Any())
                 subscription = new RoundRobinDispatchSubscription<TPayload>(_messageBus, _distributionList);
 
@@ -111,8 +110,10 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build)
         {
-            var builder = new RouteBuilder<TPayload>(_routes);
-            build(builder);
+            if (_routeBuilder != null)
+                throw new Exception("Routing is already setup");
+            _routeBuilder = new RouteBuilder<TPayload>(_messageBus);
+            build(_routeBuilder);
             return this;
         }
 

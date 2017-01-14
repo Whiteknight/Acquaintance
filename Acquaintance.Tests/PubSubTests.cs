@@ -7,7 +7,7 @@ using System.Threading;
 namespace Acquaintance.Tests
 {
     [TestFixture]
-    public class PubSubTests
+    public partial class PubSubTests
     {
         private class TestPubSubEvent
         {
@@ -302,6 +302,8 @@ namespace Acquaintance.Tests
 
             (a + b + c).Should().Be(31);
         }
+
+
 
         private class TestHandler : ISubscriptionHandler<int>
         {

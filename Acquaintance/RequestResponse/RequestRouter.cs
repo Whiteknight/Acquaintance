@@ -7,14 +7,14 @@ namespace Acquaintance.RequestResponse
     public class RequestRouter<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly IReadOnlyList<EventRoute<TRequest>> _routes;
+        private readonly string _defaultRouteOrNull;
         private readonly IReqResBus _messageBus;
-        private readonly IListenerReference<TRequest, TResponse> _defaultFunc;
 
-        public RequestRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, IListenerReference<TRequest, TResponse> defaultFunc)
+        public RequestRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, string defaultRouteOrNull)
         {
             _routes = routes;
+            _defaultRouteOrNull = defaultRouteOrNull;
             _messageBus = messageBus;
-            _defaultFunc = defaultFunc;
         }
 
         public bool CanHandle(TRequest request)
@@ -28,10 +28,10 @@ namespace Acquaintance.RequestResponse
             var route = _routes.FirstOrDefault(r => r.Predicate(request));
             if (route == null)
             {
-                if (_defaultFunc != null)
+                if (_defaultRouteOrNull != null)
                 {
-                    var responses = _defaultFunc.Invoke(request);
-                    return new ImmediateResponse<TResponse>(responses);
+                    var response1 = _messageBus.Request<TRequest, TResponse>(_defaultRouteOrNull, request);
+                    return new ImmediateResponse<TResponse>(new[] { response1 });
                 }
                 return new ImmediateResponse<TResponse>(null);
             }

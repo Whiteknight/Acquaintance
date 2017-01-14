@@ -61,7 +61,8 @@
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
-    <Compile Include="Common\RouteBuilder.cs" />
+    <Compile Include="RequestResponse\RouteBuilder.cs" />
+    <Compile Include="PubSub\RouteBuilder.cs" />
     <Compile Include="PubSub\RoutingSubscriber.cs" />
     <Compile Include="PubSub\Sources\SourceManagementModule.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />

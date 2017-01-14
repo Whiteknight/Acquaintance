@@ -6,9 +6,9 @@ using System.Threading;
 namespace Acquaintance.Tests
 {
     [TestFixture]
-    public class PubSubStressTests
+    public partial class PubSubTests
     {
-        private class TestPubSubEvent
+        private class TestPubSubStressEvent
         {
         }
 
@@ -19,7 +19,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4));
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
-            target.Subscribe<TestPubSubEvent>(s => s
+            target.Subscribe<TestPubSubStressEvent>(s => s
                 .WithChannelName("Test")
                 .Invoke(e =>
                 {
@@ -29,7 +29,7 @@ namespace Acquaintance.Tests
                 })
                 .OnWorkerThread());
             for (int i = 0; i < numEvents; i++)
-                target.Publish("Test", new TestPubSubEvent());
+                target.Publish("Test", new TestPubSubStressEvent());
 
             resetEvent.WaitOne(10000).Should().Be(true);
         }
@@ -41,7 +41,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4), dispatcherFactory: new TrieDispatchStrategyFactory());
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
-            target.Subscribe<TestPubSubEvent>(s => s
+            target.Subscribe<TestPubSubStressEvent>(s => s
                 .WithChannelName("Test.XYZ")
                 .Invoke(e =>
                 {
@@ -51,7 +51,7 @@ namespace Acquaintance.Tests
                 })
                 .OnWorkerThread());
             for (int i = 0; i < numEvents; i++)
-                target.Publish("Test.*", new TestPubSubEvent());
+                target.Publish("Test.*", new TestPubSubStressEvent());
 
             resetEvent.WaitOne(10000).Should().Be(true);
         }

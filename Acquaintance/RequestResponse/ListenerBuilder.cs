@@ -1,8 +1,5 @@
-﻿using Acquaintance.PubSub;
-using Acquaintance.Threading;
+﻿using Acquaintance.Threading;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
@@ -15,12 +12,12 @@ namespace Acquaintance.RequestResponse
     public interface IActionListenerBuilder<TRequest, TResponse>
     {
         IThreadListenerBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false);
-        IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest>> build);
+        IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build);
         IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform);
         IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
     }
 
-    public interface IThreadListenerBuilder<TRequest, TResponse>
+    public interface IThreadListenerBuilder<out TRequest, TResponse>
     {
         IDetailsListenerBuilder<TRequest, TResponse> Immediate();
         IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread();
@@ -29,7 +26,7 @@ namespace Acquaintance.RequestResponse
         IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread();
     }
 
-    public interface IDetailsListenerBuilder<TRequest, TResponse>
+    public interface IDetailsListenerBuilder<out TRequest, TResponse>
     {
         IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests);
         IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
@@ -51,7 +48,7 @@ namespace Acquaintance.RequestResponse
         private IListenerReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private readonly List<EventRoute<TRequest>> _routes;
+        private RouteBuilder<TRequest, TResponse> _routeBuilder;
         private bool _useDedicatedThread;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
@@ -61,7 +58,6 @@ namespace Acquaintance.RequestResponse
             if (threadPool == null)
                 throw new ArgumentNullException(nameof(threadPool));
 
-            _routes = new List<EventRoute<TRequest>>();
             _messageBus = messageBus;
             _threadPool = threadPool;
             _timeoutMs = 5000;
@@ -72,8 +68,8 @@ namespace Acquaintance.RequestResponse
         public IListener<TRequest, TResponse> BuildListener()
         {
             IListener<TRequest, TResponse> listener = null;
-            if (_routes.Any())
-                listener = new RequestRouter<TRequest, TResponse>(_messageBus, _routes, _funcReference);
+            if (_routeBuilder != null)
+                listener = _routeBuilder.BuildListener();
             else if (_funcReference != null)
                 listener = CreateListener(_funcReference, _dispatchType, _threadId, _timeoutMs);
 
@@ -111,10 +107,10 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest>> build)
+        public IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
         {
-            var builder = new RouteBuilder<TRequest>(_routes);
-            build(builder);
+            _routeBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
+            build(_routeBuilder);
             return this;
         }
 
