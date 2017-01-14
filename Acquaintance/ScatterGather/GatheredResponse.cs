@@ -10,7 +10,7 @@ namespace Acquaintance.ScatterGather
             Responses = responses;
         }
 
-        public IReadOnlyList<TResponse> Responses { get; private set; }
+        public IReadOnlyList<TResponse> Responses { get; }
 
         public IEnumerator<TResponse> GetEnumerator()
         {

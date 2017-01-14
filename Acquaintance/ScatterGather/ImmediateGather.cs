@@ -1,7 +1,4 @@
-﻿using Acquaintance.RequestResponse;
-using Acquaintance.Threading;
-
-namespace Acquaintance.ScatterGather
+﻿namespace Acquaintance.ScatterGather
 {
     public class ImmediateGather<TResponse> : IDispatchableScatter<TResponse>
     {

@@ -1,5 +1,4 @@
 ﻿using Acquaintance.Common;
-using Acquaintance.PubSub;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +15,8 @@ namespace Acquaintance.ScatterGather
         public ScatterRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, string defaultRouteOrNull, RouterModeType modeType)
         {
             _routes = routes;
+            _defaultRouteOrNull = defaultRouteOrNull;
+            _modeType = modeType;
             _messageBus = messageBus;
         }
 
@@ -60,7 +61,7 @@ namespace Acquaintance.ScatterGather
             var allResponses = Enumerable.Empty<TResponse>();
             foreach (var route in _routes.Where(r => r.Predicate(request)))
             {
-                var responses = _messageBus.Scatter<TRequest, TResponse>(request);
+                var responses = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
                 allResponses = allResponses.Concat(responses.Responses);
             }
             return new ImmediateGather<TResponse>(allResponses.ToArray());

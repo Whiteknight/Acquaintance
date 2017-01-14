@@ -1,7 +1,6 @@
-﻿using Acquaintance.PubSub;
+﻿using Acquaintance.Common;
 using System;
 using System.Collections.Generic;
-using Acquaintance.Common;
 
 namespace Acquaintance.RequestResponse
 {
