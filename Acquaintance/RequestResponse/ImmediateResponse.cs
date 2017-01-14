@@ -2,16 +2,16 @@ namespace Acquaintance.RequestResponse
 {
     public class ImmediateResponse<TResponse> : IDispatchableRequest<TResponse>
     {
-        public ImmediateResponse(TResponse[] responses)
+        public ImmediateResponse(TResponse response)
         {
-            Responses = responses ?? new TResponse[0];
+            Response = response;
         }
 
         public void Dispose()
         {
         }
 
-        public TResponse[] Responses { get; }
+        public TResponse Response { get; }
 
         public bool WaitForResponse()
         {

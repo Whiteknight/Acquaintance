@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 namespace Acquaintance.ScatterGather
 {
-    public interface IScatterGatherChannel<TRequest, TResponse> : IScatterGatherChanne
+    public interface IScatterGatherChannel<TRequest, TResponse> : IScatterGatherChannel
     {
-        IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request);
-        SubscriptionToken Listen(IParticipant<TRequest, TResponse> listener);
+        IEnumerable<IDispatchableScatter<TResponse>> Scatter(TRequest request);
+        SubscriptionToken Participate(IParticipant<TRequest, TResponse> participant);
     }
 
-    public interface IScatterGatherChanne : IChannel
+    public interface IScatterGatherChannel : IChannel
     {
         Guid Id { get; }
     }

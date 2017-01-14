@@ -1,6 +1,5 @@
 using Acquaintance.Utility;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Acquaintance.RequestResponse
@@ -23,10 +22,12 @@ namespace Acquaintance.RequestResponse
             return channel;
         }
 
-        public IEnumerable<IReqResChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string name)
         {
             name = name ?? string.Empty;
-            return _channels.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.')).OfType<IReqResChannel<TRequest, TResponse>>();
+            return _channels.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'))
+                .OfType<IReqResChannel<TRequest, TResponse>>()
+                .FirstOrDefault();
         }
 
         public void Dispose()

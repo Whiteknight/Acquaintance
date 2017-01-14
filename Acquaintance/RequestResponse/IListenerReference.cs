@@ -4,7 +4,7 @@ namespace Acquaintance.RequestResponse
 {
     public interface IListenerReference<in TRequest, out TResponse>
     {
-        TResponse[] Invoke(TRequest request);
+        TResponse Invoke(TRequest request);
         bool IsAlive { get; }
     }
 
@@ -17,10 +17,9 @@ namespace Acquaintance.RequestResponse
             _func = func;
         }
 
-        public TResponse[] Invoke(TRequest request)
+        public TResponse Invoke(TRequest request)
         {
-            var response = _func(request);
-            return new[] { response };
+            return _func(request);
         }
 
         public bool IsAlive => true;
@@ -35,17 +34,14 @@ namespace Acquaintance.RequestResponse
             _func = new WeakReference<Func<TRequest, TResponse>>(func);
         }
 
-        public TResponse[] Invoke(TRequest request)
+        public TResponse Invoke(TRequest request)
         {
             Func<TRequest, TResponse> func;
             if (_func.TryGetTarget(out func))
-            {
-                var response = func(request);
-                return new[] { response };
-            }
+                return func(request);
 
             IsAlive = false;
-            return new TResponse[0];
+            return default(TResponse);
         }
 
         public bool IsAlive { get; private set; }

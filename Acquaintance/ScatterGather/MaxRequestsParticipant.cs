@@ -1,5 +1,4 @@
-﻿using Acquaintance.RequestResponse;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Acquaintance.ScatterGather
 {
@@ -19,16 +18,16 @@ namespace Acquaintance.ScatterGather
             return _maxRequests > 0 || _inner.CanHandle(request);
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableScatter<TResponse> Scatter(TRequest request)
         {
             if (ShouldStopParticipating)
-                return new ImmediateResponse<TResponse>(null);
+                return new ImmediateGather<TResponse>(null);
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
             if (maxRequests >= 0)
-                return _inner.Request(request);
+                return _inner.Scatter(request);
 
             ShouldStopParticipating = true;
-            return new ImmediateResponse<TResponse>(null);
+            return new ImmediateGather<TResponse>(null);
         }
 
         public bool ShouldStopParticipating { get; private set; }

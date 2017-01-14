@@ -16,22 +16,22 @@ namespace Acquaintance.ScatterGather
 
         public Guid Id { get; }
 
-        public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
+        public IEnumerable<IDispatchableScatter<TResponse>> Scatter(TRequest request)
         {
-            List<IDispatchableRequest<TResponse>> waiters = new List<IDispatchableRequest<TResponse>>();
-            List<Guid> toRemove = new List<Guid>();
+            var waiters = new List<IDispatchableScatter<TResponse>>();
+            var toRemove = new List<Guid>();
             foreach (var kvp in _participants)
             {
                 try
                 {
-                    var listener = kvp.Value;
-                    if (!listener.CanHandle(request))
+                    var participant = kvp.Value;
+                    if (!participant.CanHandle(request))
                         continue;
 
                     // TODO: We should order these so worker thread requests are dispatched first, followed by
                     // immediate requests.
-                    var responseWaiter = listener.Request(request);
-                    if (listener.ShouldStopParticipating)
+                    var responseWaiter = participant.Scatter(request);
+                    if (participant.ShouldStopParticipating)
                         toRemove.Add(kvp.Key);
                     waiters.Add(responseWaiter);
                 }
@@ -42,7 +42,7 @@ namespace Acquaintance.ScatterGather
             return waiters;
         }
 
-        public SubscriptionToken Listen(IParticipant<TRequest, TResponse> listener)
+        public SubscriptionToken Participate(IParticipant<TRequest, TResponse> listener)
         {
             if (listener == null)
                 throw new ArgumentNullException(nameof(listener));

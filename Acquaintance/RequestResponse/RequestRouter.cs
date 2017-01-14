@@ -31,12 +31,12 @@ namespace Acquaintance.RequestResponse
                 if (_defaultRouteOrNull != null)
                 {
                     var response1 = _messageBus.Request<TRequest, TResponse>(_defaultRouteOrNull, request);
-                    return new ImmediateResponse<TResponse>(new[] { response1 });
+                    return new ImmediateResponse<TResponse>(response1);
                 }
-                return new ImmediateResponse<TResponse>(null);
+                return new ImmediateResponse<TResponse>(default(TResponse));
             }
             var response = _messageBus.Request<TRequest, TResponse>(route.ChannelName, request);
-            return new ImmediateResponse<TResponse>(new[] { response });
+            return new ImmediateResponse<TResponse>(response);
         }
 
         public bool ShouldStopListening => false;

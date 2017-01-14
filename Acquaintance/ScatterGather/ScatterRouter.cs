@@ -1,6 +1,5 @@
 ﻿using Acquaintance.Common;
 using Acquaintance.PubSub;
-using Acquaintance.RequestResponse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,19 +27,19 @@ namespace Acquaintance.ScatterGather
             return true;
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableScatter<TResponse> Scatter(TRequest request)
         {
             switch (_modeType)
             {
                 case RouterModeType.FirstMatchingRoute:
-                    return RequestFirstOrDefault(request);
+                    return ScatterFirstOrDefault(request);
                 case RouterModeType.AllMatchingRoutes:
-                    return RequestAllMatching(request);
+                    return ScatterAllMatching(request);
             }
-            return new ImmediateResponse<TResponse>(null);
+            return new ImmediateGather<TResponse>(null);
         }
 
-        private IDispatchableRequest<TResponse> RequestFirstOrDefault(TRequest request)
+        private IDispatchableScatter<TResponse> ScatterFirstOrDefault(TRequest request)
         {
             var route = _routes.FirstOrDefault(r => r.Predicate(request));
             if (route == null)
@@ -48,15 +47,15 @@ namespace Acquaintance.ScatterGather
                 if (_defaultRouteOrNull != null)
                 {
                     var response1 = _messageBus.Scatter<TRequest, TResponse>(_defaultRouteOrNull, request);
-                    return new ImmediateResponse<TResponse>(response1.Responses.ToArray());
+                    return new ImmediateGather<TResponse>(response1.Responses.ToArray());
                 }
-                return new ImmediateResponse<TResponse>(null);
+                return new ImmediateGather<TResponse>(null);
             }
             var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
-            return new ImmediateResponse<TResponse>(response.Responses.ToArray());
+            return new ImmediateGather<TResponse>(response.Responses.ToArray());
         }
 
-        private IDispatchableRequest<TResponse> RequestAllMatching(TRequest request)
+        private IDispatchableScatter<TResponse> ScatterAllMatching(TRequest request)
         {
             var allResponses = Enumerable.Empty<TResponse>();
             foreach (var route in _routes.Where(r => r.Predicate(request)))
@@ -64,7 +63,7 @@ namespace Acquaintance.ScatterGather
                 var responses = _messageBus.Scatter<TRequest, TResponse>(request);
                 allResponses = allResponses.Concat(responses.Responses);
             }
-            return new ImmediateResponse<TResponse>(allResponses.ToArray());
+            return new ImmediateGather<TResponse>(allResponses.ToArray());
         }
 
         public bool ShouldStopParticipating => false;

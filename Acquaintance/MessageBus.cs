@@ -69,42 +69,37 @@ namespace Acquaintance
 
         public TResponse Request<TRequest, TResponse>(string channelName, TRequest request)
         {
-            return RequestInternal<TRequest, TResponse>(channelName, request, _requestResponseStrategy).Responses.SingleOrDefault();
+            return RequestInternal<TRequest, TResponse>(channelName, request, _requestResponseStrategy);
         }
 
-        private IGatheredResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
+        private TResponse RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
         {
-            var waiters = new List<IDispatchableRequest<TResponse>>();
-            // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
-            // the next channel
-            foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))
-            {
-                _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
-                waiters.AddRange(channel.Request(request));
-            }
+            TResponse response = default(TResponse);
+            var channel = strategy.GetExistingChannel<TRequest, TResponse>(name);
+            if (channel == null)
+                return response;
 
-            List<TResponse> responses = new List<TResponse>();
-            foreach (var waiter in waiters)
-            {
-                bool complete = waiter.WaitForResponse();
-                if (complete)
-                    responses.AddRange(waiter.Responses);
-                waiter.Dispose();
-            }
+            _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+            var waiter = channel.Request(request);
+
+            bool complete = waiter.WaitForResponse();
+            if (complete)
+                response = waiter.Response;
+            waiter.Dispose();
 
             var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
             if (eavesdropChannels.Any())
             {
-                var conversation = new Conversation<TRequest, TResponse>(request, responses);
+                var conversation = new Conversation<TRequest, TResponse>(request, new List<TResponse> { response });
                 _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, name, conversation.Responses.Count);
-                foreach (var channel in eavesdropChannels)
+                foreach (var eavesdropChannel in eavesdropChannels)
                 {
                     _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
-                    channel.Publish(conversation);
+                    eavesdropChannel.Publish(conversation);
                 }
             }
 
-            return new GatheredResponse<TResponse>(responses);
+            return response;
         }
 
         public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request)
@@ -114,16 +109,16 @@ namespace Acquaintance
 
         private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string name, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
         {
-            var waiters = new List<IDispatchableRequest<TResponse>>();
+            var waiters = new List<IDispatchableScatter<TResponse>>();
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
             foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))
             {
                 _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
-                waiters.AddRange(channel.Request(request));
+                waiters.AddRange(channel.Scatter(request));
             }
 
-            List<TResponse> responses = new List<TResponse>();
+            var responses = new List<TResponse>();
             foreach (var waiter in waiters)
             {
                 bool complete = waiter.WaitForResponse();
@@ -165,7 +160,7 @@ namespace Acquaintance
         {
             var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName);
             _logger.Debug("Participating on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
-            return channel.Listen(participant);
+            return channel.Participate(participant);
         }
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)

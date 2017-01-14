@@ -10,7 +10,7 @@ namespace Acquaintance.RequestResponse
         private readonly TRequest _request;
         private readonly int _timeoutMs;
         private readonly ManualResetEvent _resetEvent;
-        public TResponse[] Responses { get; private set; }
+        public TResponse Response { get; private set; }
 
         public DispatchableRequest(IListenerReference<TRequest, TResponse> func, TRequest request, int timeoutMs = 1000)
         {
@@ -20,12 +20,11 @@ namespace Acquaintance.RequestResponse
             _request = request;
             _timeoutMs = timeoutMs;
             _resetEvent = new ManualResetEvent(false);
-            Responses = new TResponse[0];
         }
 
         public void Execute()
         {
-            Responses = _func.Invoke(_request);
+            Response = _func.Invoke(_request);
             _resetEvent.Set();
         }
 

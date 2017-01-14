@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
@@ -16,11 +14,11 @@ namespace Acquaintance.RequestResponse
 
         public Guid Id { get; }
 
-        public IEnumerable<IDispatchableRequest<TResponse>> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(TRequest request)
         {
             var listener = _listener;
             if (listener == null)
-                return Enumerable.Empty<IDispatchableRequest<TResponse>>();
+                return new ImmediateResponse<TResponse>(default(TResponse));
 
             try
             {
@@ -28,11 +26,11 @@ namespace Acquaintance.RequestResponse
                 if (listener.ShouldStopListening)
                     _listener = null;
 
-                return new List<IDispatchableRequest<TResponse>> { waiter };
+                return waiter;
             }
             catch
             {
-                return Enumerable.Empty<IDispatchableRequest<TResponse>>();
+                return new ImmediateResponse<TResponse>(default(TResponse));
             }
         }
 

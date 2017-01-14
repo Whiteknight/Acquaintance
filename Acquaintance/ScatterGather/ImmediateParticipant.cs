@@ -1,4 +1,3 @@
-using Acquaintance.RequestResponse;
 using System;
 using System.Collections.Generic;
 
@@ -18,10 +17,10 @@ namespace Acquaintance.ScatterGather
             return _func.IsAlive;
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableScatter<TResponse> Scatter(TRequest request)
         {
             var value = _func.Invoke(request);
-            return new ImmediateResponse<TResponse>(value);
+            return new ImmediateGather<TResponse>(value);
         }
 
         public static IParticipant<TRequest, TResponse> Create(Func<TRequest, IEnumerable<TResponse>> func)

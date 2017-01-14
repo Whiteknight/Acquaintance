@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Acquaintance.ScatterGather
 {
-    public class DispatchableScatter<TRequest, TResponse> : IThreadAction, IDispatchableRequest<TResponse>
+    public class DispatchableScatter<TRequest, TResponse> : IThreadAction, IDispatchableScatter<TResponse>
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;
         private readonly TRequest _request;

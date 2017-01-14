@@ -55,6 +55,7 @@
     <Compile Include="Nets\NetBuilder.cs" />
     <Compile Include="Nets\NodeBuilder.cs" />
     <Compile Include="Common\EventRoute.cs" />
+    <Compile Include="PubSub\ActivatedSubscriberReference.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
     <Compile Include="PubSub\ISubscriptionBuilder.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="ScatterGather\AnyThreadParticipant.cs" />
     <Compile Include="ScatterGather\DispatchableScatter.cs" />
     <Compile Include="ScatterGather\FilteredParticipant.cs" />
+    <Compile Include="ScatterGather\ImmediateGather`1.cs" />
     <Compile Include="ScatterGather\ImmediateParticipant.cs" />
     <Compile Include="ScatterGather\IParticipant.cs" />
     <Compile Include="ScatterGather\IParticipantReference.cs" />

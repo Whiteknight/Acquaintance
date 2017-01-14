@@ -18,9 +18,9 @@ namespace Acquaintance.ScatterGather
             return _inner.CanHandle(request) || _filter(request);
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableScatter<TResponse> Scatter(TRequest request)
         {
-            return _inner.Request(request);
+            return _inner.Scatter(request);
         }
 
         public bool ShouldStopParticipating => _inner.ShouldStopParticipating;

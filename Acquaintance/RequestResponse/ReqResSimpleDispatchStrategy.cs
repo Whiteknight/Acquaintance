@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Acquaintance.RequestResponse
 {
@@ -28,15 +26,12 @@ namespace Acquaintance.RequestResponse
             return channel;
         }
 
-        public IEnumerable<IReqResChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string name)
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
-                return Enumerable.Empty<IReqResChannel<TRequest, TResponse>>();
-            var channel = _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
-            if (channel == null)
-                return Enumerable.Empty<IReqResChannel<TRequest, TResponse>>();
-            return new[] { channel };
+                return null;
+            return _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
         }
 
         public void Dispose()

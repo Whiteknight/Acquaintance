@@ -1,4 +1,3 @@
-using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 
 namespace Acquaintance.ScatterGather
@@ -23,11 +22,11 @@ namespace Acquaintance.ScatterGather
             return _func.IsAlive;
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableScatter<TResponse> Scatter(TRequest request)
         {
             var thread = _threadPool.GetThreadDispatcher(_threadId, false);
             if (thread == null)
-                return new ImmediateResponse<TResponse>(null);
+                return new ImmediateGather<TResponse>(null);
 
             var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, _timeoutMs);
             thread.DispatchAction(responseWaiter);

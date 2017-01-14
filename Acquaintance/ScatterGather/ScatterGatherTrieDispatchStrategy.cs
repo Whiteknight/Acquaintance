@@ -7,11 +7,11 @@ namespace Acquaintance.ScatterGather
 {
     public class ScatterGatherTrieDispatchStrategy : IScatterGatherChannelDispatchStrategy
     {
-        private readonly StringTrie<IScatterGatherChanne> _channels;
+        private readonly StringTrie<IScatterGatherChannel> _channels;
 
         public ScatterGatherTrieDispatchStrategy()
         {
-            _channels = new StringTrie<IScatterGatherChanne>();
+            _channels = new StringTrie<IScatterGatherChannel>();
         }
 
         public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)

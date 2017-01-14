@@ -7,11 +7,11 @@ namespace Acquaintance.ScatterGather
 {
     public class ScatterGatherSimpleDispatchStrategy : IScatterGatherChannelDispatchStrategy
     {
-        private readonly ConcurrentDictionary<string, IScatterGatherChanne> _reqResChannels;
+        private readonly ConcurrentDictionary<string, IScatterGatherChannel> _reqResChannels;
 
         public ScatterGatherSimpleDispatchStrategy()
         {
-            _reqResChannels = new ConcurrentDictionary<string, IScatterGatherChanne>();
+            _reqResChannels = new ConcurrentDictionary<string, IScatterGatherChannel>();
         }
 
         public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)

@@ -14,7 +14,6 @@ namespace Acquaintance.RequestResponse
         {
             _messageBus = messageBus;
             _routes = new List<EventRoute<TRequest>>();
-
         }
 
         public RouteBuilder<TRequest, TResponse> When(Func<TRequest, bool> predicate, string channelName)
@@ -37,8 +36,7 @@ namespace Acquaintance.RequestResponse
 
         public IListener<TRequest, TResponse> BuildListener()
         {
-            var listener = new RequestRouter<TRequest, TResponse>(_messageBus, _routes, _defaultRoute);
-            return listener;
+            return new RequestRouter<TRequest, TResponse>(_messageBus, _routes, _defaultRoute);
         }
     }
 }

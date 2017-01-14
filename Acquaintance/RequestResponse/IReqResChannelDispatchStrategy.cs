@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Acquaintance.RequestResponse
 {
@@ -7,6 +6,6 @@ namespace Acquaintance.RequestResponse
     {
         IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name);
 
-        IEnumerable<IReqResChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name);
+        IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string name);
     }
 }
