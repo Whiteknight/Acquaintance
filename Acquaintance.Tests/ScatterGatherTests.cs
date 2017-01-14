@@ -5,6 +5,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading;
+using Acquaintance.RequestResponse;
 
 namespace Acquaintance.Tests
 {

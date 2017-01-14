@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Acquaintance.PubSub
+namespace Acquaintance.Common
 {
     public class EventRoute<TPayload>
     {

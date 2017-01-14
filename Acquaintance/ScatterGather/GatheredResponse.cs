@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace Acquaintance.RequestResponse
+namespace Acquaintance.ScatterGather
 {
     public class GatheredResponse<TResponse> : IGatheredResponse<TResponse>
     {

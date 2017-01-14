@@ -1,4 +1,4 @@
-namespace Acquaintance
+namespace Acquaintance.RequestResponse
 {
     /// <summary>
     /// Interface for Request objects to help give the dispatch system a hint about the expected request type.

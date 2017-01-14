@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Acquaintance
+namespace Acquaintance.ScatterGather
 {
 
     public interface IDispatchableScatter<out TResponse> : IDisposable

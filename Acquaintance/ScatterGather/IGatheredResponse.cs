@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Acquaintance
+namespace Acquaintance.ScatterGather
 {
     public interface IGatheredResponse<out TResponse> : IEnumerable<TResponse>
     {
