@@ -74,7 +74,7 @@ namespace Acquaintance
 
         private TResponse RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
         {
-            TResponse response = default(TResponse);
+            var response = default(TResponse);
             var channel = strategy.GetExistingChannel<TRequest, TResponse>(name);
             if (channel == null)
                 return response;
