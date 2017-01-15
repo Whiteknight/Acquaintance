@@ -1,3 +1,5 @@
+using System;
+
 namespace Acquaintance.RequestResponse
 {
     public class ImmediateResponse<TResponse> : IDispatchableRequest<TResponse>
@@ -7,15 +9,17 @@ namespace Acquaintance.RequestResponse
             Response = response;
         }
 
-        public void Dispose()
-        {
-        }
-
         public TResponse Response { get; }
+        public bool Success => true;
+        public Exception ErrorInformation => null;
 
         public bool WaitForResponse()
         {
             return true;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

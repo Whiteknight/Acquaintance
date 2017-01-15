@@ -10,7 +10,6 @@ namespace Acquaintance.ScatterGather
         private readonly TRequest _request;
         private readonly int _timeoutMs;
         private readonly ManualResetEvent _resetEvent;
-        public TResponse[] Responses { get; private set; }
 
         public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, TRequest request, int timeoutMs = 1000)
         {
@@ -23,10 +22,26 @@ namespace Acquaintance.ScatterGather
             Responses = new TResponse[0];
         }
 
+        public TResponse[] Responses { get; private set; }
+        public bool Success { get; private set; }
+        public Exception ErrorInformation { get; private set; }
+
         public void Execute()
         {
-            Responses = _func.Invoke(_request);
-            _resetEvent.Set();
+            try
+            {
+                Responses = _func.Invoke(_request);
+                Success = true;
+            }
+            catch (Exception e)
+            {
+                Success = false;
+                ErrorInformation = e;
+            }
+            finally
+            {
+                _resetEvent.Set();
+            }
         }
 
         public bool WaitForResponse()

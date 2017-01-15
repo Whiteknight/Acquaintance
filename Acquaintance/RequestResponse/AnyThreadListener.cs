@@ -22,7 +22,7 @@ namespace Acquaintance.RequestResponse
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
-            var thread = _threadPool.GetFreeWorkerThreadDispatcher();
+            var thread = _threadPool.GetAnyThreadDispatcher();
             if (thread == null)
                 return new ImmediateResponse<TResponse>(_func.Invoke(request));
 

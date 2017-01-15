@@ -1,4 +1,6 @@
-﻿namespace Acquaintance.ScatterGather
+﻿using System;
+
+namespace Acquaintance.ScatterGather
 {
     public class ImmediateGather<TResponse> : IDispatchableScatter<TResponse>
     {
@@ -7,15 +9,17 @@
             Responses = responses;
         }
 
-        public void Dispose()
-        {
-        }
-
         public TResponse[] Responses { get; }
+        public bool Success => true;
+        public Exception ErrorInformation => null;
 
         public bool WaitForResponse()
         {
             return true;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
