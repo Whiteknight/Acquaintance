@@ -1,11 +1,11 @@
-﻿using Acquaintance.ScatterGather;
+﻿using Acquaintance.RequestResponse;
+using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Threading;
-using Acquaintance.RequestResponse;
 
 namespace Acquaintance.Tests
 {
@@ -32,7 +32,7 @@ namespace Acquaintance.Tests
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Responses.Should().HaveCount(1);
-            response.Responses[0].Text.Should().Be("RequestResponded");
+            response.Responses[0].Responses[0].Text.Should().Be("RequestResponded");
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace Acquaintance.Tests
 
             var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" });
 
-            var reduced = string.Join("", response.Responses.Select(r => r.Text).OrderBy(s => s));
+            var reduced = string.Join("", response.Responses.Select(r => r.Responses[0].Text).OrderBy(s => s));
             reduced.Should().Be("xAxBxCxDxE");
         }
 
@@ -129,7 +129,7 @@ namespace Acquaintance.Tests
             target.Participate<int, int>(l => l.WithChannelName("Test.A").Invoke(req => 1));
             target.Participate<int, int>(l => l.WithChannelName("Test.B").Invoke(req => 2));
             target.Participate<int, int>(l => l.WithChannelName("Test.C").Invoke(req => 3));
-            var response = target.Scatter<int, int>("Test.*", 0).Responses;
+            var response = target.Scatter<int, int>("Test.*", 0).ToArray();
             response.Should().BeEquivalentTo(1, 2, 3);
         }
 

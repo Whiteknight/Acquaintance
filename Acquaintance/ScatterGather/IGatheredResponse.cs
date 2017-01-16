@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Acquaintance.Common;
+using System.Collections.Generic;
 
 namespace Acquaintance.ScatterGather
 {
-    public interface IGatheredResponse<out TResponse> : IEnumerable<TResponse>
+    public interface IGatheredResponse<TResponse> : IEnumerable<TResponse>
     {
-        IReadOnlyList<TResponse> Responses { get; }
+        IReadOnlyList<CompleteGather<TResponse>> Responses { get; }
+
+        void ThrowAnyExceptions();
     }
 }

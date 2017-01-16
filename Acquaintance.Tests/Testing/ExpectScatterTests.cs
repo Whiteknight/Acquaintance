@@ -16,7 +16,7 @@ namespace Acquaintance.Tests.Testing
             target.ExpectScatter<int, int>(null).WillReturn(5);
             target.ExpectScatter<int, int>(null).WillReturn(6);
 
-            var result = target.Scatter<int, int>(4).Responses;
+            var result = target.Scatter<int, int>(4).ToArray();
             result.Should().BeEquivalentTo(5, 6);
 
             target.VerifyAllExpectations();

@@ -48,12 +48,12 @@ namespace Acquaintance.ScatterGather
                 if (_defaultRouteOrNull != null)
                 {
                     var response1 = _messageBus.Scatter<TRequest, TResponse>(_defaultRouteOrNull, request);
-                    return new ImmediateGather<TResponse>(response1.Responses.ToArray());
+                    return new ImmediateGather<TResponse>(response1.ToArray());
                 }
                 return new ImmediateGather<TResponse>(null);
             }
             var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
-            return new ImmediateGather<TResponse>(response.Responses.ToArray());
+            return new ImmediateGather<TResponse>(response.ToArray());
         }
 
         private IDispatchableScatter<TResponse> ScatterAllMatching(TRequest request)
@@ -62,7 +62,7 @@ namespace Acquaintance.ScatterGather
             foreach (var route in _routes.Where(r => r.Predicate(request)))
             {
                 var responses = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
-                allResponses = allResponses.Concat(responses.Responses);
+                allResponses = allResponses.Concat(responses.AsEnumerable());
             }
             return new ImmediateGather<TResponse>(allResponses.ToArray());
         }

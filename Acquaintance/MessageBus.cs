@@ -1,4 +1,5 @@
-﻿using Acquaintance.Logging;
+﻿using Acquaintance.Common;
+using Acquaintance.Logging;
 using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
@@ -69,28 +70,30 @@ namespace Acquaintance
 
         public TResponse Request<TRequest, TResponse>(string channelName, TRequest request)
         {
-            return RequestInternal<TRequest, TResponse>(channelName, request, _requestResponseStrategy);
+            return RequestInternal<TRequest, TResponse>(channelName, request, _requestResponseStrategy).Response;
         }
 
-        private TResponse RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
+        private CompleteResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
         {
-            var response = default(TResponse);
             var channel = strategy.GetExistingChannel<TRequest, TResponse>(name);
             if (channel == null)
-                return response;
+                return new CompleteResponse<TResponse>(default(TResponse), null);
 
             _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
             var waiter = channel.Request(request);
 
+            CompleteResponse<TResponse> response;
             bool complete = waiter.WaitForResponse();
             if (complete)
-                response = waiter.Response;
+                response = new CompleteResponse<TResponse>(waiter.Response, waiter.ErrorInformation);
+            else
+                response = new CompleteResponse<TResponse>(default(TResponse), null, false);
             waiter.Dispose();
 
             var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
             if (eavesdropChannels.Any())
             {
-                var conversation = new Conversation<TRequest, TResponse>(request, new List<TResponse> { response });
+                var conversation = new Conversation<TRequest, TResponse>(request, new List<TResponse> { response.Response });
                 _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, name, conversation.Responses.Count);
                 foreach (var eavesdropChannel in eavesdropChannels)
                 {
@@ -118,19 +121,28 @@ namespace Acquaintance
                 waiters.AddRange(channel.Scatter(request));
             }
 
-            var responses = new List<TResponse>();
+            var responses = new List<CompleteGather<TResponse>>();
+            var rawResponses = new List<TResponse>();
             foreach (var waiter in waiters)
             {
                 bool complete = waiter.WaitForResponse();
                 if (complete)
-                    responses.AddRange(waiter.Responses);
+                {
+                    responses.Add(new CompleteGather<TResponse>(waiter.Responses, waiter.ErrorInformation));
+                    rawResponses.AddRange(waiter.Responses);
+                }
+                else
+                    responses.Add(new CompleteGather<TResponse>(null, null, false));
+
                 waiter.Dispose();
             }
+
+            var response = new GatheredResponse<TResponse>(responses);
 
             var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
             if (eavesdropChannels.Any())
             {
-                var conversation = new Conversation<TRequest, TResponse>(request, responses);
+                var conversation = new Conversation<TRequest, TResponse>(request, rawResponses);
                 _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, name, conversation.Responses.Count);
                 foreach (var channel in eavesdropChannels)
                 {
@@ -139,7 +151,7 @@ namespace Acquaintance
                 }
             }
 
-            return new GatheredResponse<TResponse>(responses);
+            return response;
         }
 
         public IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener)
