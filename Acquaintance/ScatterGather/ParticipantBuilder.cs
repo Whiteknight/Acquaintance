@@ -22,6 +22,7 @@ namespace Acquaintance.ScatterGather
         private Func<TRequest, bool> _filter;
         private RouteBuilder<TRequest, TResponse> _routerBuilder;
         private bool _useDedicatedThread;
+        private Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> _modify;
 
         public ParticipantBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -170,6 +171,12 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
+        public IDetailsParticipantBuilder<TRequest, TResponse> ModifyParticipant(Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> modify)
+        {
+            _modify = modify;
+            return this;
+        }
+
         private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
         {
             switch (dispatchType)
@@ -183,20 +190,22 @@ namespace Acquaintance.ScatterGather
             }
         }
 
-        private IParticipant<TRequest, TResponse> WrapParticipant(IParticipant<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
+        private IParticipant<TRequest, TResponse> WrapParticipant(IParticipant<TRequest, TResponse> participant, Func<TRequest, bool> filter, int maxRequests)
         {
             if (filter != null)
-                listener = new FilteredParticipant<TRequest, TResponse>(listener, filter);
+                participant = new FilteredParticipant<TRequest, TResponse>(participant, filter);
             if (maxRequests > 0)
-                listener = new MaxRequestsParticipant<TRequest, TResponse>(listener, maxRequests);
-            return listener;
+                participant = new MaxRequestsParticipant<TRequest, TResponse>(participant, maxRequests);
+            if (_modify != null)
+                participant = _modify(participant);
+            return participant;
         }
 
-        private IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, IEnumerable<TResponse>> listener, bool useWeakReference)
+        private IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference)
         {
             if (useWeakReference)
-                return new WeakParticipantReference<TRequest, TResponse>(listener);
-            return new StrongParticipantReference<TRequest, TResponse>(listener);
+                return new WeakParticipantReference<TRequest, TResponse>(participant);
+            return new StrongParticipantReference<TRequest, TResponse>(participant);
         }
     }
 }

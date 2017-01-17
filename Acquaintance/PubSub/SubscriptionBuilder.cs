@@ -5,7 +5,11 @@ using System.Linq;
 
 namespace Acquaintance.PubSub
 {
-    public class SubscriptionBuilder<TPayload> : IChannelSubscriptionBuilder<TPayload>, IActionSubscriptionBuilder<TPayload>, IThreadSubscriptionBuilder<TPayload>, IDetailsSubscriptionBuilder<TPayload>
+    public class SubscriptionBuilder<TPayload> :
+        IChannelSubscriptionBuilder<TPayload>,
+        IActionSubscriptionBuilder<TPayload>,
+        IThreadSubscriptionBuilder<TPayload>,
+        IDetailsSubscriptionBuilder<TPayload>
     {
         private readonly IPubSubBus _messageBus;
         private readonly IThreadPool _threadPool;
@@ -18,6 +22,7 @@ namespace Acquaintance.PubSub
         private int _maxEvents;
         private int _threadId;
         private bool _useDedicatedThread;
+        private Func<ISubscription<TPayload>, ISubscription<TPayload>> _wrap;
 
         public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
         {
@@ -182,12 +187,20 @@ namespace Acquaintance.PubSub
             return this;
         }
 
+        public IDetailsSubscriptionBuilder<TPayload> ModifySubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap)
+        {
+            _wrap = wrap;
+            return this;
+        }
+
         private ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> subscription)
         {
             if (_filter != null)
                 subscription = new FilteredSubscription<TPayload>(subscription, _filter);
             if (_maxEvents > 0)
                 subscription = new MaxEventsSubscription<TPayload>(subscription, _maxEvents);
+            if (_wrap != null)
+                subscription = _wrap(subscription);
             return subscription;
         }
 

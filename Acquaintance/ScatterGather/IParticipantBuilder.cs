@@ -32,5 +32,6 @@ namespace Acquaintance.ScatterGather
         IDetailsParticipantBuilder<TRequest, TResponse> MaximumRequests(int maxRequests);
         IDetailsParticipantBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
         IDetailsParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
+        IDetailsParticipantBuilder<TRequest, TResponse> ModifyParticipant(Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> modify);
     }
 }

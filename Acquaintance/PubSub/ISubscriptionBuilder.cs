@@ -69,7 +69,7 @@ namespace Acquaintance.PubSub
         IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels);
     }
 
-    public interface IThreadSubscriptionBuilder<out TPayload>
+    public interface IThreadSubscriptionBuilder<TPayload>
     {
         /// <summary>
         /// Execute the subscriber on a managed worker thread
@@ -106,7 +106,7 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread();
     }
 
-    public interface IDetailsSubscriptionBuilder<out TPayload>
+    public interface IDetailsSubscriptionBuilder<TPayload>
     {
         /// <summary>
         /// Use a filter to determine if the message should be sent to this subscription or not.
@@ -121,5 +121,13 @@ namespace Acquaintance.PubSub
         /// <param name="maxEvents"></param>
         /// <returns>The builder</returns>
         IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents);
+
+        /// <summary>
+        /// Modify the ISubscription before it is added to the message bus. Allows the use of custom
+        /// options and wrappers/decorators which are not part of the builder
+        /// </summary>
+        /// <param name="wrap">A callback function to modify the generated ISubscription</param>
+        /// <returns>The builder</returns>
+        IDetailsSubscriptionBuilder<TPayload> ModifySubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap);
     }
 }

@@ -17,7 +17,7 @@ namespace Acquaintance.RequestResponse
         IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
     }
 
-    public interface IThreadListenerBuilder<out TRequest, TResponse>
+    public interface IThreadListenerBuilder<TRequest, TResponse>
     {
         IDetailsListenerBuilder<TRequest, TResponse> Immediate();
         IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread();
@@ -26,12 +26,13 @@ namespace Acquaintance.RequestResponse
         IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread();
     }
 
-    public interface IDetailsListenerBuilder<out TRequest, TResponse>
+    public interface IDetailsListenerBuilder<TRequest, TResponse>
     {
         IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests);
         IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
         IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
         IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxAttempts, int breakMs);
+        IDetailsListenerBuilder<TRequest, TResponse> ModifyListener(Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> modify);
     }
 
     public class ListenerBuilder<TRequest, TResponse> :
@@ -53,6 +54,7 @@ namespace Acquaintance.RequestResponse
         private bool _useDedicatedThread;
         private int _maxAttempts;
         private int _breakMs;
+        private Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> _modify;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -194,6 +196,12 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
+        public IDetailsListenerBuilder<TRequest, TResponse> ModifyListener(Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> modify)
+        {
+            _modify = modify;
+            return this;
+        }
+
         private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
         {
             IListener<TRequest, TResponse> listener;
@@ -221,6 +229,8 @@ namespace Acquaintance.RequestResponse
                 listener = new FilteredListener<TRequest, TResponse>(listener, filter);
             if (maxRequests > 0)
                 listener = new MaxRequestsListener<TRequest, TResponse>(listener, maxRequests);
+            if (_modify != null)
+                listener = _modify(listener);
             return listener;
         }
 
