@@ -20,6 +20,7 @@ namespace Acquaintance.ScatterGather
             _messageBus = messageBus;
         }
 
+        public Guid Id { get; set; }
         public IDisposable Token { get; set; }
 
         public bool CanHandle(TRequest request)
@@ -37,7 +38,7 @@ namespace Acquaintance.ScatterGather
                 case RouterModeType.AllMatchingRoutes:
                     return ScatterAllMatching(request);
             }
-            return new ImmediateGather<TResponse>(null);
+            return new ImmediateGather<TResponse>(Id, null);
         }
 
         private IDispatchableScatter<TResponse> ScatterFirstOrDefault(TRequest request)
@@ -48,12 +49,12 @@ namespace Acquaintance.ScatterGather
                 if (_defaultRouteOrNull != null)
                 {
                     var response1 = _messageBus.Scatter<TRequest, TResponse>(_defaultRouteOrNull, request);
-                    return new ImmediateGather<TResponse>(response1.ToArray());
+                    return new ImmediateGather<TResponse>(Id, response1.ToArray());
                 }
-                return new ImmediateGather<TResponse>(null);
+                return new ImmediateGather<TResponse>(Id, null);
             }
             var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
-            return new ImmediateGather<TResponse>(response.ToArray());
+            return new ImmediateGather<TResponse>(Id, response.ToArray());
         }
 
         private IDispatchableScatter<TResponse> ScatterAllMatching(TRequest request)
@@ -64,7 +65,7 @@ namespace Acquaintance.ScatterGather
                 var responses = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
                 allResponses = allResponses.Concat(responses.AsEnumerable());
             }
-            return new ImmediateGather<TResponse>(allResponses.ToArray());
+            return new ImmediateGather<TResponse>(Id, allResponses.ToArray());
         }
 
         public bool ShouldStopParticipating => false;

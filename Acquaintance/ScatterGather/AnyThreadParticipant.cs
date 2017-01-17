@@ -1,4 +1,5 @@
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.ScatterGather
 {
@@ -14,6 +15,7 @@ namespace Acquaintance.ScatterGather
             _threadPool = threadPool;
             _timeoutMs = timeoutMs;
         }
+        public Guid Id { get; set; }
 
         public bool CanHandle(TRequest request)
         {
@@ -24,9 +26,9 @@ namespace Acquaintance.ScatterGather
         {
             var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)
-                return new ImmediateGather<TResponse>(_func.Invoke(request));
+                return new ImmediateGather<TResponse>(Id, _func.Invoke(request));
 
-            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, _timeoutMs);
+            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, _timeoutMs);
             thread.DispatchAction(responseWaiter);
             return responseWaiter;
         }

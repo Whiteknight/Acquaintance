@@ -1,4 +1,5 @@
 ﻿using Acquaintance.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,6 +18,8 @@ namespace Acquaintance.RequestResponse
             _messageBus = messageBus;
         }
 
+        public Guid Id { get; set; }
+
         public bool CanHandle(TRequest request)
         {
             // TODO: Add Filtering
@@ -31,12 +34,12 @@ namespace Acquaintance.RequestResponse
                 if (_defaultRouteOrNull != null)
                 {
                     var response1 = _messageBus.Request<TRequest, TResponse>(_defaultRouteOrNull, request);
-                    return new ImmediateResponse<TResponse>(response1);
+                    return new ImmediateResponse<TResponse>(Id, response1);
                 }
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(Id, default(TResponse));
             }
             var response = _messageBus.Request<TRequest, TResponse>(route.ChannelName, request);
-            return new ImmediateResponse<TResponse>(response);
+            return new ImmediateResponse<TResponse>(Id, response);
         }
 
         public bool ShouldStopListening => false;

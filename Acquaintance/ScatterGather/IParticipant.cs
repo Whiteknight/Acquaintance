@@ -1,3 +1,5 @@
+using System;
+
 namespace Acquaintance.ScatterGather
 {
     public interface IParticipant<in TRequest, out TResponse>
@@ -5,5 +7,6 @@ namespace Acquaintance.ScatterGather
         bool CanHandle(TRequest request);
         IDispatchableScatter<TResponse> Scatter(TRequest request);
         bool ShouldStopParticipating { get; }
+        Guid Id { get; set; }
     }
 }

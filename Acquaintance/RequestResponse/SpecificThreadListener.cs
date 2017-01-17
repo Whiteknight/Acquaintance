@@ -1,4 +1,5 @@
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.RequestResponse
 {
@@ -17,6 +18,8 @@ namespace Acquaintance.RequestResponse
             _timeoutMs = timeoutMs;
         }
 
+        public Guid Id { get; set; }
+
         public bool CanHandle(TRequest request)
         {
             return _func.IsAlive;
@@ -26,9 +29,9 @@ namespace Acquaintance.RequestResponse
         {
             var thread = _threadPool.GetThreadDispatcher(_threadId, false);
             if (thread == null)
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(Id, default(TResponse));
 
-            var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, _timeoutMs);
+            var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, Id, _timeoutMs);
             thread.DispatchAction(responseWaiter);
             return responseWaiter;
         }

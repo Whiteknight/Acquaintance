@@ -11,7 +11,7 @@ namespace Acquaintance.RequestResponse
         private readonly int _timeoutMs;
         private readonly ManualResetEvent _resetEvent;
 
-        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, TRequest request, int timeoutMs = 1000)
+        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, TRequest request, Guid listenerId, int timeoutMs = 1000)
         {
             if (timeoutMs <= 0)
                 throw new ArgumentOutOfRangeException(nameof(timeoutMs));
@@ -19,11 +19,14 @@ namespace Acquaintance.RequestResponse
             _request = request;
             _timeoutMs = timeoutMs;
             _resetEvent = new ManualResetEvent(false);
+            ListenerId = listenerId;
         }
 
         public TResponse Response { get; private set; }
         public bool Success { get; private set; }
         public Exception ErrorInformation { get; private set; }
+
+        public Guid ListenerId { get; private set; }
 
         public void Execute()
         {

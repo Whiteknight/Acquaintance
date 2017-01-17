@@ -1,4 +1,5 @@
 ﻿using Acquaintance.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,6 +27,7 @@ namespace Acquaintance.PubSub
             _modeType = modeType;
         }
 
+        public Guid Id { get; set; }
         public bool ShouldUnsubscribe => false;
 
         public void Publish(TPayload payload)

@@ -1,4 +1,5 @@
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.RequestResponse
 {
@@ -24,13 +25,15 @@ namespace Acquaintance.RequestResponse
         {
             var thread = _threadPool.GetAnyThreadDispatcher();
             if (thread == null)
-                return new ImmediateResponse<TResponse>(_func.Invoke(request));
+                return new ImmediateResponse<TResponse>(Id, _func.Invoke(request));
 
-            var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, _timeoutMs);
+            var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, Id, _timeoutMs);
             thread.DispatchAction(responseWaiter);
             return responseWaiter;
         }
 
         public bool ShouldStopListening => !_func.IsAlive;
+
+        public Guid Id { get; set; }
     }
 }

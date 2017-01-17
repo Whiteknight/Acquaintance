@@ -25,6 +25,7 @@ namespace Acquaintance.PubSub
             _messageBus = messageBus;
         }
 
+        public Guid Id { get; set; }
         public bool ShouldUnsubscribe => false;
 
         public void Publish(TPayload payload)

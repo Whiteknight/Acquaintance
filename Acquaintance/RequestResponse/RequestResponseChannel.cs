@@ -18,7 +18,7 @@ namespace Acquaintance.RequestResponse
         {
             var listener = _listener;
             if (listener == null)
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(Id, default(TResponse));
 
             try
             {
@@ -30,7 +30,7 @@ namespace Acquaintance.RequestResponse
             }
             catch
             {
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(Id, default(TResponse));
             }
         }
 

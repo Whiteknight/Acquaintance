@@ -1,3 +1,5 @@
+using System;
+
 namespace Acquaintance.PubSub
 {
     public class ImmediatePubSubSubscription<TPayload> : ISubscription<TPayload>
@@ -11,6 +13,8 @@ namespace Acquaintance.PubSub
 
             _action = action;
         }
+
+        public Guid Id { get; set; }
 
         public void Publish(TPayload payload)
         {

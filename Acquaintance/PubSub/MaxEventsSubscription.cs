@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace Acquaintance.PubSub
 {
@@ -14,6 +15,12 @@ namespace Acquaintance.PubSub
 
             _inner = inner;
             _maxEvents = maxEvents;
+        }
+
+        public Guid Id
+        {
+            get { return _inner.Id; }
+            set { _inner.Id = value; }
         }
 
         public void Publish(TPayload payload)

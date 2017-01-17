@@ -17,6 +17,12 @@ namespace Acquaintance.PubSub
             _filter = filter;
         }
 
+        public Guid Id
+        {
+            get { return _inner.Id; }
+            set { _inner.Id = value; }
+        }
+
         public void Publish(TPayload payload)
         {
             if (!_filter(payload))

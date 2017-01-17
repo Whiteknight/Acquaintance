@@ -13,6 +13,12 @@ namespace Acquaintance.ScatterGather
             _filter = filter;
         }
 
+        public Guid Id
+        {
+            get { return _inner.Id; }
+            set { _inner.Id = value; }
+        }
+
         public bool CanHandle(TRequest request)
         {
             return _inner.CanHandle(request) || _filter(request);

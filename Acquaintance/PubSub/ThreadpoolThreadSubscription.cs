@@ -1,4 +1,5 @@
 ﻿using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.PubSub
 {
@@ -19,6 +20,7 @@ namespace Acquaintance.PubSub
             _action = action;
         }
 
+        public Guid Id { get; set; }
         public bool ShouldUnsubscribe => false;
 
         public void Publish(TPayload payload)

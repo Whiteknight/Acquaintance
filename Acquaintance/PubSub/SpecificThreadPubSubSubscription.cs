@@ -1,4 +1,5 @@
 using Acquaintance.Threading;
+using System;
 
 namespace Acquaintance.PubSub
 {
@@ -20,6 +21,8 @@ namespace Acquaintance.PubSub
             _threadId = threadId;
             _threadPool = threadPool;
         }
+
+        public Guid Id { get; set; }
 
         public void Publish(TPayload payload)
         {

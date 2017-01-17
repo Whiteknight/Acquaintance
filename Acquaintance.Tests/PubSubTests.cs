@@ -97,7 +97,7 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
-            var id = target.StartDedicatedWorkerThread();
+            var id = target.ThreadPool.StartDedicatedWorker();
             try
             {
 
@@ -121,10 +121,10 @@ namespace Acquaintance.Tests
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
-            var id = target.StartDedicatedWorkerThread();
+            var id = target.ThreadPool.StartDedicatedWorker();
             try
             {
-                target.StopDedicatedWorkerThread(id);
+                target.ThreadPool.StopDedicatedWorker(id);
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithChannelName("Test")
                     .Invoke(e => resetEvent.Set())

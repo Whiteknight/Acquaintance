@@ -39,19 +39,6 @@ namespace Acquaintance
 
         public IModuleManager Modules { get; }
 
-        public int StartDedicatedWorkerThread()
-        {
-            int id = ThreadPool.StartDedicatedWorker();
-            _logger.Debug("Starting dedicated worker thread {0}", id);
-            return id;
-        }
-
-        public void StopDedicatedWorkerThread(int id)
-        {
-            _logger.Debug("Stopping dedicated worker thread {0}", id);
-            ThreadPool.StopDedicatedWorker(id);
-        }
-
         public void Publish<TPayload>(string channelName, TPayload payload)
         {
             foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(channelName))
@@ -63,8 +50,12 @@ namespace Acquaintance
 
         public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
         {
+            if (subscription == null)
+                throw new ArgumentNullException(nameof(subscription));
+
+            subscription.Id = Guid.NewGuid();
             var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(channelName);
-            _logger.Debug("Adding subscription of type Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, channelName, channel.Id);
+            _logger.Debug("Adding subscription {0} of type Type={1} ChannelName={2} to channel Id={3}", subscription.Id, typeof(TPayload).FullName, channelName, channel.Id);
             return channel.Subscribe(subscription);
         }
 
@@ -156,8 +147,12 @@ namespace Acquaintance
 
         public IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener)
         {
+            if (listener == null)
+                throw new ArgumentNullException(nameof(listener));
+
+            listener.Id = Guid.NewGuid();
             var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName);
-            _logger.Debug("Listening RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
+            _logger.Debug("Listener {0} RequestType={1} ResponseType={2} ChannelName={3} to channel Id={4}", listener.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
             return channel.Listen(listener);
         }
 
@@ -170,8 +165,12 @@ namespace Acquaintance
 
         public IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant)
         {
+            if (participant == null)
+                throw new ArgumentNullException(nameof(participant));
+
+            participant.Id = Guid.NewGuid();
             var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName);
-            _logger.Debug("Participating on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
+            _logger.Debug("Participant {0} on RequestType={1} ResponseType={2} ChannelName={3}, on channel Id={4}", participant.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
             return channel.Participate(participant);
         }
 

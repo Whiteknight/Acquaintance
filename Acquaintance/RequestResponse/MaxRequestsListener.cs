@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 
 namespace Acquaintance.RequestResponse
 {
@@ -13,6 +14,12 @@ namespace Acquaintance.RequestResponse
             _maxRequests = maxRequests;
         }
 
+        public Guid Id
+        {
+            get { return _inner.Id; }
+            set { _inner.Id = value; }
+        }
+
         public bool CanHandle(TRequest request)
         {
             return _maxRequests > 0 || _inner.CanHandle(request);
@@ -21,13 +28,13 @@ namespace Acquaintance.RequestResponse
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
             if (ShouldStopListening)
-                return new ImmediateResponse<TResponse>(default(TResponse));
+                return new ImmediateResponse<TResponse>(Id, default(TResponse));
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
             if (maxRequests >= 0)
                 return _inner.Request(request);
 
             ShouldStopListening = true;
-            return new ImmediateResponse<TResponse>(default(TResponse));
+            return new ImmediateResponse<TResponse>(Id, default(TResponse));
         }
 
         public bool ShouldStopListening { get; private set; }

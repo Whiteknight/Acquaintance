@@ -11,6 +11,8 @@ namespace Acquaintance.RequestResponse
             _func = func;
         }
 
+        public Guid Id { get; set; }
+
         public bool CanHandle(TRequest request)
         {
             return _func.IsAlive;
@@ -19,7 +21,7 @@ namespace Acquaintance.RequestResponse
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
             var value = _func.Invoke(request);
-            return new ImmediateResponse<TResponse>(value);
+            return new ImmediateResponse<TResponse>(Id, value);
         }
 
         public static IListener<TRequest, TResponse> Create(Func<TRequest, TResponse> func)
