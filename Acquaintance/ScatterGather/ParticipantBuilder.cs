@@ -21,6 +21,7 @@ namespace Acquaintance.ScatterGather
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
         private RouteBuilder<TRequest, TResponse> _routerBuilder;
+        private bool _useDedicatedThread;
 
         public ParticipantBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -31,15 +32,17 @@ namespace Acquaintance.ScatterGather
 
             _messageBus = messageBus;
             _threadPool = threadPool;
+            _timeoutMs = 5000;
         }
 
         public string ChannelName { get; private set; }
 
         public IParticipant<TRequest, TResponse> BuildParticipant()
         {
-            IParticipant<TRequest, TResponse> participant = null;
-            // TODO: OnDedicatedThread
+            if (_useDedicatedThread)
+                _threadId = _threadPool.StartDedicatedWorker();
 
+            IParticipant<TRequest, TResponse> participant = null;
             if (_routerBuilder != null)
                 participant = _routerBuilder.BuildParticipant();
             else if (_funcReference != null)
@@ -50,6 +53,16 @@ namespace Acquaintance.ScatterGather
 
             participant = WrapParticipant(participant, _filter, _maxRequests);
             return participant;
+        }
+
+        public IDisposable WrapToken(IDisposable token)
+        {
+            if (token == null)
+                throw new ArgumentNullException(nameof(token));
+
+            if (_useDedicatedThread)
+                return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
+            return token;
         }
 
         public IActionParticipantBuilder<TRequest, TResponse> WithChannelName(string name)
@@ -132,7 +145,9 @@ namespace Acquaintance.ScatterGather
 
         public IDetailsParticipantBuilder<TRequest, TResponse> OnDedicatedThread()
         {
-            throw new NotImplementedException();
+            _dispatchType = DispatchThreadType.SpecificThread;
+            _useDedicatedThread = true;
+            return this;
         }
 
         public IDetailsParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)

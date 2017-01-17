@@ -13,6 +13,8 @@ namespace Acquaintance.ScatterGather
             _filter = filter;
         }
 
+        public bool ShouldStopParticipating => _inner.ShouldStopParticipating;
+
         public Guid Id
         {
             get { return _inner.Id; }
@@ -28,7 +30,5 @@ namespace Acquaintance.ScatterGather
         {
             return _inner.Scatter(request);
         }
-
-        public bool ShouldStopParticipating => _inner.ShouldStopParticipating;
     }
 }

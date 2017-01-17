@@ -22,6 +22,7 @@ namespace Acquaintance.ScatterGather
 
         public Guid Id { get; set; }
         public IDisposable Token { get; set; }
+        public bool ShouldStopParticipating => false;
 
         public bool CanHandle(TRequest request)
         {
@@ -67,7 +68,5 @@ namespace Acquaintance.ScatterGather
             }
             return new ImmediateGather<TResponse>(Id, allResponses.ToArray());
         }
-
-        public bool ShouldStopParticipating => false;
     }
 }

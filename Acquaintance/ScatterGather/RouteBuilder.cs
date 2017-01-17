@@ -43,8 +43,7 @@ namespace Acquaintance.ScatterGather
 
         public IParticipant<TRequest, TResponse> BuildParticipant()
         {
-            var listener = new ScatterRouter<TRequest, TResponse>(_messageBus, _routes, _defaultRoute, _mode);
-            return listener;
+            return new ScatterRouter<TRequest, TResponse>(_messageBus, _routes, _defaultRoute, _mode);
         }
     }
 }

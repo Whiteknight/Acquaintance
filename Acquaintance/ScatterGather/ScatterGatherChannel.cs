@@ -35,7 +35,9 @@ namespace Acquaintance.ScatterGather
                         toRemove.Add(kvp.Key);
                     waiters.Add(responseWaiter);
                 }
-                catch { }
+                catch (Exception e)
+                {
+                }
             }
             foreach (var id in toRemove)
                 Unsubscribe(id);

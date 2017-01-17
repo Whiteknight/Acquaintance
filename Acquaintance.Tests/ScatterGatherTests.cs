@@ -160,5 +160,26 @@ namespace Acquaintance.Tests
             results.Should().Contain(3);
             results.Should().Contain(4);
         }
+
+        [Test]
+        public void ParticipateScatterGather_OnDedicatedThread()
+        {
+            var target = new MessageBus();
+            try
+            {
+                var token = target.Participate<TestRequest, TestResponse>(builder => builder
+                    .WithChannelName("Test")
+                    .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
+                    .OnDedicatedThread());
+                var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
+
+                results.First().Text.Should().NotBeNullOrEmpty();
+                token.Dispose();
+            }
+            finally
+            {
+                target.Dispose();
+            }
+        }
     }
 }

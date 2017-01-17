@@ -13,6 +13,7 @@ namespace Acquaintance.ScatterGather
         }
 
         public Guid Id { get; set; }
+        public bool ShouldStopParticipating => !_func.IsAlive;
 
         public bool CanHandle(TRequest request)
         {
@@ -29,7 +30,5 @@ namespace Acquaintance.ScatterGather
         {
             return new ImmediateParticipant<TRequest, TResponse>(new StrongParticipantReference<TRequest, TResponse>(func));
         }
-
-        public bool ShouldStopParticipating => !_func.IsAlive;
     }
 }

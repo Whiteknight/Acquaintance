@@ -16,6 +16,7 @@ namespace Acquaintance.ScatterGather
             _timeoutMs = timeoutMs;
         }
         public Guid Id { get; set; }
+        public bool ShouldStopParticipating => !_func.IsAlive;
 
         public bool CanHandle(TRequest request)
         {
@@ -32,7 +33,5 @@ namespace Acquaintance.ScatterGather
             thread.DispatchAction(responseWaiter);
             return responseWaiter;
         }
-
-        public bool ShouldStopParticipating => !_func.IsAlive;
     }
 }

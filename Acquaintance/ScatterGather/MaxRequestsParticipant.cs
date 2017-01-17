@@ -14,6 +14,8 @@ namespace Acquaintance.ScatterGather
             _maxRequests = maxRequests;
         }
 
+        public bool ShouldStopParticipating { get; private set; }
+
         public Guid Id
         {
             get { return _inner.Id; }
@@ -29,6 +31,7 @@ namespace Acquaintance.ScatterGather
         {
             if (ShouldStopParticipating)
                 return new ImmediateGather<TResponse>(Id, null);
+
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
             if (maxRequests >= 0)
                 return _inner.Scatter(request);
@@ -36,7 +39,5 @@ namespace Acquaintance.ScatterGather
             ShouldStopParticipating = true;
             return new ImmediateGather<TResponse>(Id, null);
         }
-
-        public bool ShouldStopParticipating { get; private set; }
     }
 }
