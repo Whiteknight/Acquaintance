@@ -43,7 +43,7 @@ namespace Acquaintance.Testing
             _expectations.Add(expectation);
             _subscriptions.Listen<TRequest, TResponse>(l => l
                 .WithChannelName(name)
-                .InvokeFunction(r => expectation.TryHandle(r))
+                .Invoke(r => expectation.TryHandle(r))
                 .Immediate()
                 .WithFilter(filter));
             return expectation;

@@ -11,7 +11,7 @@ namespace Acquaintance.RequestResponse
 
     public interface IActionListenerBuilder<TRequest, TResponse>
     {
-        IThreadListenerBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false);
+        IThreadListenerBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> listener, bool useWeakReference = false);
         IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build);
         IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform);
         IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
@@ -31,6 +31,7 @@ namespace Acquaintance.RequestResponse
         IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests);
         IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
         IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
+        IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxAttempts, int breakMs);
     }
 
     public class ListenerBuilder<TRequest, TResponse> :
@@ -50,6 +51,8 @@ namespace Acquaintance.RequestResponse
         private Func<TRequest, bool> _filter;
         private RouteBuilder<TRequest, TResponse> _routeBuilder;
         private bool _useDedicatedThread;
+        private int _maxAttempts;
+        private int _breakMs;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -101,7 +104,7 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public IThreadListenerBuilder<TRequest, TResponse> InvokeFunction(Func<TRequest, TResponse> listener, bool useWeakReference = false)
+        public IThreadListenerBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> listener, bool useWeakReference = false)
         {
             _funcReference = CreateReference(listener, useWeakReference);
             return this;
@@ -116,7 +119,7 @@ namespace Acquaintance.RequestResponse
 
         public IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
         {
-            return InvokeFunction(request =>
+            return Invoke(request =>
             {
                 var transformed = transform(request);
                 return _messageBus.Request<TTransformed, TResponse>(sourceChannelName, transformed);
@@ -125,7 +128,7 @@ namespace Acquaintance.RequestResponse
 
         public IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
         {
-            return InvokeFunction(request =>
+            return Invoke(request =>
             {
                 var response = _messageBus.Request<TRequest, TSource>(sourceChannelName, request);
                 return transform(response);
@@ -184,6 +187,13 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
+        public IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxAttempts, int breakMs)
+        {
+            _maxAttempts = maxAttempts;
+            _breakMs = breakMs;
+            return this;
+        }
+
         private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
         {
             IListener<TRequest, TResponse> listener;
@@ -205,6 +215,8 @@ namespace Acquaintance.RequestResponse
 
         private IListener<TRequest, TResponse> WrapListener(IListener<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
         {
+            if (_maxAttempts > 0 && _breakMs > 0)
+                listener = new CircuitBreakerListener<TRequest, TResponse>(listener, _maxAttempts, _breakMs);
             if (filter != null)
                 listener = new FilteredListener<TRequest, TResponse>(listener, filter);
             if (maxRequests > 0)

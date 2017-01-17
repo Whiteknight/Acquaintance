@@ -28,7 +28,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Listen<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" }));
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
@@ -40,7 +40,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Listen<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" }));
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Request("Test", typeof(TestRequest), new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Should().BeOfType(typeof(TestResponse));
@@ -54,7 +54,7 @@ namespace Acquaintance.Tests
             {
                 target.Listen<TestRequest, TestResponse>(l => l
                     .WithChannelName("Test")
-                    .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
+                    .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
                     .OnWorkerThread()
                     .WithTimeout(2000));
                 var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
@@ -74,7 +74,7 @@ namespace Acquaintance.Tests
             string eavesdropped = null;
             target.Listen<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" })
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" })
                 .Immediate());
             target.Eavesdrop<TestRequest, TestResponse>(s => s
                 .WithChannelName("Test")
@@ -96,11 +96,11 @@ namespace Acquaintance.Tests
             {
                 target.Listen<GenericRequest<string>, GenericResponse<string>>(l => l
                     .WithChannelName("Test")
-                    .InvokeFunction(req => new GenericResponse<string>())
+                    .Invoke(req => new GenericResponse<string>())
                     .Immediate());
                 target.Listen<GenericRequest<int>, GenericResponse<int>>(l => l
                     .WithChannelName("Test")
-                    .InvokeFunction(req => new GenericResponse<int>())
+                    .Invoke(req => new GenericResponse<int>())
                     .Immediate());
             };
             act.ShouldNotThrow();
@@ -123,7 +123,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
             target.Listen<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test.A")
-                .InvokeFunction(req => new TestResponse { Text = req.Text + "Responded" }));
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Request<TestRequest, TestResponse>("Test.*", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
@@ -135,7 +135,7 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Listen<int, int>(l => l
                 .WithChannelName("Test")
-                .InvokeFunction(e => e + 5)
+                .Invoke(e => e + 5)
                 .Immediate()
                 .MaximumRequests(3));
             var responses = new List<int>();
@@ -155,7 +155,7 @@ namespace Acquaintance.Tests
             string request = null;
             target.Listen<string, int>(l => l
                 .WithChannelName("test string")
-                .InvokeFunction(r =>
+                .Invoke(r =>
                 {
                     request = r;
                     return 5;
@@ -175,13 +175,47 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Listen<int, string>(l => l
                 .WithChannelName("test string")
-                .InvokeFunction(r => "5"));
+                .Invoke(r => "5"));
             target.Listen<int, int>(l => l
                 .WithChannelName("test int")
                 .TransformResponseFrom<string>("test string", int.Parse));
             var response = target.Request<int, int>("test int", 4);
 
             response.Should().Be(5);
+        }
+
+        [Test]
+        public void Listen_ListenerBuilder_CircuitBreaker()
+        {
+            int requests = 0;
+            var target = new MessageBus();
+            target.Listen<int, int>(l => l
+                .OnDefaultChannel()
+                .Invoke(i =>
+                {
+                    requests++;
+                    if (i == 1)
+                        throw new Exception("test");
+                    return i * 10;
+                })
+                .OnWorkerThread()
+                .WithCircuitBreaker(1, 500));
+
+            // First request fails
+            var response = target.Request<int, int>(1);
+            response.Should().Be(0);
+            requests.Should().Be(1);
+
+            // Second request trips the circuit breaker and returns no result
+            response = target.Request<int, int>(2);
+            response.Should().Be(0);
+            requests.Should().Be(1);
+
+            // Third request passes, because of a delay so the circuit breaker can reset itself
+            Thread.Sleep(500);
+            response = target.Request<int, int>(3);
+            response.Should().Be(30);
+            requests.Should().Be(2);
         }
     }
 }

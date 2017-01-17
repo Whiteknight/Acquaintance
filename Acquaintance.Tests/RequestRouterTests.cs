@@ -12,10 +12,10 @@ namespace Acquaintance.Tests
             var target = new MessageBus();
             target.Listen<int, int>(l => l
                 .WithChannelName("Evens")
-                .InvokeFunction(e => e * 10));
+                .Invoke(e => e * 10));
             target.Listen<int, int>(l => l
                 .WithChannelName("Odds")
-                .InvokeFunction(e => e * 100));
+                .Invoke(e => e * 100));
 
             target.Listen<int, int>(l => l
                 .OnDefaultChannel()
