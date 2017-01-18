@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Nets;
 using FluentAssertions;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -10,7 +11,7 @@ namespace Acquaintance.Tests
     public class NetTests
     {
         [Test]
-        public void PipelineSimple()
+        public void Transform_Pipeline_Simple()
         {
             string output = null;
             var builder = new NetBuilder();
@@ -18,10 +19,10 @@ namespace Acquaintance.Tests
                 .ReadInput()
                 .Transform(s => s.ToUpperInvariant());
             builder.AddNode<string>("exclaim")
-                .ReadFrom("capitalize")
+                .ReadOutputFrom("capitalize")
                 .Transform(s => s + "!!!");
             builder.AddNode<string>("save string")
-                .ReadFrom("exclaim")
+                .ReadOutputFrom("exclaim")
                 .Handle(s =>
                 {
                     output = s;
@@ -31,6 +32,45 @@ namespace Acquaintance.Tests
             target.Inject("test");
             Thread.Sleep(1000);
             output.Should().Be("TEST!!!");
+        }
+
+        [Test]
+        public void Handle_Pipeline_Simple()
+        {
+            string output = "";
+            var builder = new NetBuilder();
+            builder.AddNode<string>("capitalize")
+                .ReadInput()
+                .Handle(s => output += s.ToUpperInvariant());
+            builder.AddNode<string>("exclaim")
+                .ReadOutputFrom("capitalize")
+                .Handle(s => output += s + "!!!");
+
+            var target = builder.BuildNet();
+            target.Inject("test");
+            Thread.Sleep(1000);
+            output.Should().Be("TESTtest!!!");
+        }
+
+        [Test]
+        public void Handle_Errors_Simple()
+        {
+            string output = "";
+            var builder = new NetBuilder();
+            builder.AddNode<string>("throws")
+                .ReadInput()
+                .Handle(s =>
+                {
+                    throw new Exception("throws");
+                });
+            builder.AddErrorNode<string>("save")
+                .ReadOutputFrom("throws")
+                .Handle(s => output = "caught error " + s.Error.Message);
+
+            var target = builder.BuildNet();
+            target.Inject("test");
+            Thread.Sleep(1000);
+            output.Should().Be("caught error throws");
         }
 
         [Test]
@@ -45,7 +85,7 @@ namespace Acquaintance.Tests
                 .OnDedicatedThreads(4);
 
             builder.AddNode<string>("output")
-                .ReadFrom("add thread id")
+                .ReadOutputFrom("add thread id")
                 .Handle(s =>
                 {
                     receivedMessages++;

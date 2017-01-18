@@ -22,12 +22,22 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<T> AddNode<T>(string name)
         {
+            return AddNodeInternal<T>(name, false);
+        }
+
+        private NodeBuilder<T> AddNodeInternal<T>(string name, bool readErrors)
+        {
             string key = name.ToLowerInvariant();
             if (_nodes.ContainsKey(key))
                 throw new System.Exception("Cannot add new node with same name as existing node");
-            var builder = new NodeBuilder<T>(key, _messageBus);
+            var builder = new NodeBuilder<T>(key, _messageBus, readErrors);
             _nodes.Add(key, builder);
             return builder;
+        }
+
+        public NodeBuilder<NodeErrorMessage<T>> AddErrorNode<T>(string name)
+        {
+            return AddNodeInternal<NodeErrorMessage<T>>(name, true);
         }
     }
 }

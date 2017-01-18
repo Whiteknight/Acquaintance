@@ -46,6 +46,8 @@
     <Compile Include="DispatchStrategyFactory.cs" />
     <Compile Include="EavesdropMessageBusExtensions.cs" />
     <Compile Include="Common\IDispatchable.cs" />
+    <Compile Include="Nets\NodeErrorMessage.cs" />
+    <Compile Include="Nets\NodeRepublishSubscriptionHandler.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />

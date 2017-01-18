@@ -12,23 +12,22 @@ namespace Acquaintance.Nets
         private Func<TInput, bool> _predicate;
         private string _channelName;
         private readonly IMessageBus _messageBus;
+        private readonly bool _readErrors;
+
         private readonly string _key;
         private int _onDedicatedThreads;
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents
-        // and thread affinity
+        // and thread affinity. Review list of SubscriptionBuilder features for inclusion
 
-        public NodeBuilder(string key, IMessageBus messageBus)
+        public NodeBuilder(string key, IMessageBus messageBus, bool readErrors)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
             _messageBus = messageBus;
-            _key = key;
-        }
+            _readErrors = readErrors;
 
-        private static string OutputChannelName(string key)
-        {
-            return "OutputFrom_" + key;
+            _key = key;
         }
 
         void INodeBuilder.BuildToMessageBus()
@@ -42,6 +41,150 @@ namespace Acquaintance.Nets
                 SubscribeSingleWorker(_channelName, true);
             else
                 SubscribeRoutedGroup();
+        }
+
+        public NodeBuilder<TInput> Transform<TOut>(Func<TInput, TOut> handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            if (_action != null)
+                throw new Exception("Node already has a handler defined");
+
+            string outputChannelName = OutputChannelName(_key);
+            string errorChannelName = ErrorChannelName(_key);
+            _action = m =>
+            {
+                try
+                {
+                    var result = handler(m);
+                    _messageBus.Publish(outputChannelName, result);
+                }
+                catch (Exception e)
+                {
+                    _messageBus.Publish(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                }
+            };
+            return this;
+        }
+
+        public NodeBuilder<TInput> TransformMany<TOut>(Func<TInput, IEnumerable<TOut>> handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+
+            if (_action != null)
+                throw new Exception("Node already has a handler defined");
+
+            string outputChannelName = OutputChannelName(_key);
+            string errorChannelName = ErrorChannelName(_key);
+            _action = m =>
+            {
+                try
+                {
+                    var results = handler(m);
+                    foreach (var r in results)
+                        _messageBus.Publish(outputChannelName, r);
+                }
+                catch (Exception e)
+                {
+                    _messageBus.Publish(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                }
+            };
+            return this;
+        }
+
+        public NodeBuilder<TInput> Handle(Action<TInput> action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            if (_action != null || _handler != null)
+                throw new Exception("Node already has a handler defined");
+
+            string outputChannelName = OutputChannelName(_key);
+            string errorChannelName = ErrorChannelName(_key);
+            _action = m =>
+            {
+                try
+                {
+                    action(m);
+                    _messageBus.Publish(outputChannelName, m);
+                }
+                catch (Exception e)
+                {
+                    _messageBus.Publish(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                }
+            };
+            return this;
+        }
+
+        public NodeBuilder<TInput> Handle(ISubscriptionHandler<TInput> handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+            if (_action != null || _handler != null)
+                throw new Exception("Node already has a handler defined");
+            string outputChannelName = OutputChannelName(_key);
+            string errorChannelName = ErrorChannelName(_key);
+            _handler = new NodeRepublishSubscriptionHandler<TInput>(handler, _messageBus, _key, outputChannelName, errorChannelName);
+            return this;
+        }
+
+        public NodeBuilder<TInput> ReadInput()
+        {
+            if (!string.IsNullOrEmpty(_channelName))
+                throw new Exception("Node can only read from a single input");
+            if (_readErrors)
+                throw new Exception("Cannot read errors from Net input");
+            _channelName = Net.NetworkInputChannelName;
+            return this;
+        }
+
+        public NodeBuilder<TInput> ReadOutputFrom(string nodeName)
+        {
+            if (string.IsNullOrEmpty(nodeName))
+                throw new ArgumentNullException(nameof(nodeName));
+            if (!string.IsNullOrEmpty(_channelName))
+                throw new Exception("Node can only read from a single input");
+
+            string key = nodeName.ToLowerInvariant();
+            string channelName = _readErrors ? ErrorChannelName(key) : OutputChannelName(key);
+            _channelName = channelName;
+            return this;
+        }
+
+        public NodeBuilder<TInput> OnCondition(Func<TInput, bool> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            if (_predicate != null)
+                throw new Exception("Node can only have a single predicate");
+            _predicate = predicate;
+            return this;
+        }
+
+        public NodeBuilder<TInput> OnDedicatedThread()
+        {
+            return OnDedicatedThreads(1);
+        }
+
+        public NodeBuilder<TInput> OnDedicatedThreads(int numThreads)
+        {
+            if (numThreads <= 0)
+                throw new ArgumentOutOfRangeException(nameof(numThreads));
+
+            _onDedicatedThreads = numThreads;
+            return this;
+        }
+
+        private static string OutputChannelName(string key)
+        {
+            return "OutputFrom_" + key;
+        }
+
+        private static string ErrorChannelName(string key)
+        {
+            return "ErrorFrom_" + key;
         }
 
         private void SubscribeRoutedGroup()
@@ -69,108 +212,6 @@ namespace Acquaintance.Nets
                 if (_predicate != null)
                     b4.WithFilter(_predicate);
             });
-        }
-
-        public NodeBuilder<TInput> Transform<TOut>(Func<TInput, TOut> handler)
-        {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
-
-            if (_action != null)
-                throw new Exception("Node already has a handler defined");
-
-            string outputChannelName = OutputChannelName(_key);
-            _action = e =>
-            {
-                var result = handler(e);
-                _messageBus.Publish(outputChannelName, result);
-            };
-            return this;
-        }
-
-        public NodeBuilder<TInput> TransformMany<TOut>(Func<TInput, IEnumerable<TOut>> handler)
-        {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
-
-            if (_action != null)
-                throw new Exception("Node already has a handler defined");
-
-            string outputChannelName = OutputChannelName(_key);
-            _action = e =>
-            {
-                var results = handler(e);
-                foreach (var r in results)
-                    _messageBus.Publish(outputChannelName, r);
-            };
-            return this;
-        }
-
-        public NodeBuilder<TInput> Handle(Action<TInput> action)
-        {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (_action != null || _handler != null)
-                throw new Exception("Node already has a handler defined");
-            _action = action;
-            return this;
-        }
-
-        public NodeBuilder<TInput> Handle(ISubscriptionHandler<TInput> handler)
-        {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
-            if (_action != null || _handler != null)
-                throw new Exception("Node already has a handler defined");
-            _handler = handler;
-            return this;
-        }
-
-
-
-        public NodeBuilder<TInput> ReadInput()
-        {
-            if (!string.IsNullOrEmpty(_channelName))
-                throw new Exception("Node can only read from a single input");
-            _channelName = Net.NetworkInputChannelName;
-            return this;
-        }
-
-        public NodeBuilder<TInput> ReadFrom(string nodeName)
-        {
-            if (string.IsNullOrEmpty(nodeName))
-                throw new ArgumentNullException(nameof(nodeName));
-            if (!string.IsNullOrEmpty(_channelName))
-                throw new Exception("Node can only read from a single input");
-
-            string key = nodeName.ToLowerInvariant();
-            string outputChannelName = OutputChannelName(key);
-            _channelName = outputChannelName;
-            return this;
-        }
-
-        public NodeBuilder<TInput> OnCondition(Func<TInput, bool> predicate)
-        {
-            if (predicate == null)
-                throw new ArgumentNullException(nameof(predicate));
-            if (_predicate != null)
-                throw new Exception("Node can only have a single predicate");
-            _predicate = predicate;
-            return this;
-        }
-
-        public NodeBuilder<TInput> OnDedicatedThread()
-        {
-            return OnDedicatedThreads(1);
-        }
-
-        public NodeBuilder<TInput> OnDedicatedThreads(int numThreads)
-        {
-            if (numThreads <= 0)
-                throw new ArgumentOutOfRangeException(nameof(numThreads));
-
-            _onDedicatedThreads = numThreads;
-            return this;
         }
     }
 }
