@@ -1,9 +1,9 @@
+using System.Threading;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
-using System.Threading;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.PubSub
 {
     [TestFixture]
     public partial class PubSubTests

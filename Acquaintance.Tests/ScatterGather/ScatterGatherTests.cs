@@ -1,13 +1,13 @@
-﻿using Acquaintance.RequestResponse;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
-using System;
-using System.Linq;
-using System.Threading;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.ScatterGather
 {
     [TestFixture]
     public class ScatterGatherTests

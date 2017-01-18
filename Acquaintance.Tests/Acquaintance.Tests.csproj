@@ -61,21 +61,21 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="MessageTimerTests.cs" />
-    <Compile Include="NetTests.cs" />
-    <Compile Include="RequestResponseStressTests.cs" />
-    <Compile Include="RequestRouterTests.cs" />
-    <Compile Include="PubSubTests.Router.cs" />
-    <Compile Include="PubSubTests.Stress.cs" />
-    <Compile Include="ScatterGatherTests.cs" />
-    <Compile Include="RequestResponseTests.cs" />
+    <Compile Include="Timers\MessageTimerTests.cs" />
+    <Compile Include="Nets\NetTests.cs" />
+    <Compile Include="RequestResponse\RequestResponseStressTests.cs" />
+    <Compile Include="RequestResponse\RequestRouterTests.cs" />
+    <Compile Include="PubSub\PubSubTests.Router.cs" />
+    <Compile Include="PubSub\PubSubTests.Stress.cs" />
+    <Compile Include="ScatterGather\ScatterGatherTests.cs" />
+    <Compile Include="RequestResponse\RequestResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PubSubTests.cs" />
-    <Compile Include="ScatterRouterTests.cs" />
+    <Compile Include="PubSub\PubSubTests.cs" />
+    <Compile Include="ScatterGather\ScatterRouterTests.cs" />
     <Compile Include="Testing\ExpectPublishTests.cs" />
     <Compile Include="Testing\ExpectRequestTests.cs" />
     <Compile Include="Testing\ExpectScatterTests.cs" />
-    <Compile Include="PubSubTests.Transform.cs" />
+    <Compile Include="PubSub\PubSubTests.Transform.cs" />
     <Compile Include="Utility\StringTrieTests.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -80,7 +80,7 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = true)
+        public IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = false)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));

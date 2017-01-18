@@ -1,11 +1,11 @@
-﻿using Acquaintance.Nets;
-using FluentAssertions;
-using NUnit.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Acquaintance.Nets;
+using FluentAssertions;
+using NUnit.Framework;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.Nets
 {
     [TestFixture]
     public class NetTests

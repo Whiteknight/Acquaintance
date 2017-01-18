@@ -1,10 +1,11 @@
-﻿using Acquaintance.Timers;
+﻿using Acquaintance;
 using FluentAssertions;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Threading;
+using Acquaintance.Timers;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.Timers
 {
     [TestFixture]
     public class MessageTimerTests

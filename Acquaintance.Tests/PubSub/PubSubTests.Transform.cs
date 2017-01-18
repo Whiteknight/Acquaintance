@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.PubSub
 {
     [TestFixture]
     public partial class PubSubTests

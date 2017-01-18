@@ -4,7 +4,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System.Threading;
 
-namespace Acquaintance.Tests
+namespace Acquaintance.Tests.PubSub
 {
     [TestFixture]
     public partial class PubSubTests
@@ -333,6 +333,28 @@ namespace Acquaintance.Tests
             target.Publish(5);
 
             handler.Sum.Should().Be(15);
+        }
+
+        public class TestService
+        {
+            public int Multiply(int i)
+            {
+                return i * i;
+            }
+        }
+
+        [Test]
+        public void SubscriptionBuilder_ActivateAndInvoke()
+        {
+            var target = new MessageBus();
+            int result = 0;
+            target.Subscribe<int>(b => b
+                .OnDefaultChannel()
+                .ActivateAndInvoke(i => new TestService(), (service, i) => result = service.Multiply(i))
+                .Immediate());
+
+            target.Publish(5);
+            result.Should().Be(25);
         }
     }
 }
