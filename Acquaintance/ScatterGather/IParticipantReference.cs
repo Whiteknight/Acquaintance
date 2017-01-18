@@ -19,13 +19,13 @@ namespace Acquaintance.ScatterGather
             _func = func;
         }
 
+        public bool IsAlive => true;
+
         public TResponse[] Invoke(TRequest request)
         {
             var responses = _func(request) ?? Enumerable.Empty<TResponse>();
             return responses.ToArray();
         }
-
-        public bool IsAlive => true;
     }
 
     public class WeakParticipantReference<TRequest, TResponse> : IParticipantReference<TRequest, TResponse>
@@ -36,6 +36,8 @@ namespace Acquaintance.ScatterGather
         {
             _func = new WeakReference<Func<TRequest, IEnumerable<TResponse>>>(func);
         }
+
+        public bool IsAlive { get; private set; }
 
         public TResponse[] Invoke(TRequest request)
         {
@@ -49,7 +51,5 @@ namespace Acquaintance.ScatterGather
             IsAlive = false;
             return new TResponse[0];
         }
-
-        public bool IsAlive { get; private set; }
     }
 }

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Acquaintance.Nets
+﻿namespace Acquaintance.Nets
 {
 
-    public interface INodeBuilder
+    internal interface INodeBuilder
     {
         void BuildToMessageBus();
     }

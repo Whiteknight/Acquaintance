@@ -3,6 +3,11 @@ using System;
 
 namespace Acquaintance.ScatterGather
 {
+    /// <summary>
+    /// Execute the participant on any available thread
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     public class AnyThreadParticipant<TRequest, TResponse> : IParticipant<TRequest, TResponse>
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;

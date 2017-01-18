@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace Acquaintance.ScatterGather
 {
+    /// <summary>
+    /// Executes the participant reference on the current thread
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     public class ImmediateParticipant<TRequest, TResponse> : IParticipant<TRequest, TResponse>
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;

@@ -17,7 +17,7 @@ namespace Acquaintance.ScatterGather
             _routes = new List<EventRoute<TRequest>>();
         }
 
-        public RouteBuilder<TRequest, TResponse> Mode(RouterModeType mode)
+        public RouteBuilder<TRequest, TResponse> WithMode(RouterModeType mode)
         {
             _mode = mode;
             return this;

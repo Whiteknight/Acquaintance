@@ -2,6 +2,10 @@
 
 namespace Acquaintance.Nets
 {
+    /// <summary>
+    /// Message type to hold error information from a Net Node.
+    /// </summary>
+    /// <typeparam name="TPayload"></typeparam>
     public class NodeErrorMessage<TPayload>
     {
         public NodeErrorMessage(string nodeKey, TPayload payload, Exception error)

@@ -2,6 +2,9 @@
 
 namespace Acquaintance.Nets
 {
+    /// <summary>
+    /// Builder type to construct a new Net
+    /// </summary>
     public class NetBuilder
     {
         private readonly Dictionary<string, INodeBuilder> _nodes;

@@ -3,7 +3,7 @@ using System;
 
 namespace Acquaintance.Nets
 {
-    public class NodeRepublishSubscriptionHandler<TPayload> : ISubscriptionHandler<TPayload>
+    internal class NodeRepublishSubscriptionHandler<TPayload> : ISubscriptionHandler<TPayload>
     {
         private readonly ISubscriptionHandler<TPayload> _inner;
         private readonly IPublishable _messageBus;

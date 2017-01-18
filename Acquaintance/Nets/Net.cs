@@ -1,5 +1,8 @@
 ﻿namespace Acquaintance.Nets
 {
+    /// <summary>
+    /// MessageBus wrapper which represents a network of independent processing nodes
+    /// </summary>
     public class Net
     {
         public const string NetworkInputChannelName = "NetworkInput";

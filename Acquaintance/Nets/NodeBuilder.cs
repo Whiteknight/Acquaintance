@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace Acquaintance.Nets
 {
+    /// <summary>
+    /// Builder type for building a Net Node. Behaviors and options of the Node can be specified
+    /// in the builder.
+    /// </summary>
+    /// <typeparam name="TInput"></typeparam>
     public class NodeBuilder<TInput> : INodeBuilder
     {
         private Action<TInput> _action;
@@ -43,10 +48,10 @@ namespace Acquaintance.Nets
                 SubscribeRoutedGroup();
         }
 
-        public NodeBuilder<TInput> Transform<TOut>(Func<TInput, TOut> handler)
+        public NodeBuilder<TInput> Transform<TOut>(Func<TInput, TOut> transform)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            if (transform == null)
+                throw new ArgumentNullException(nameof(transform));
 
             if (_action != null)
                 throw new Exception("Node already has a handler defined");
@@ -57,7 +62,7 @@ namespace Acquaintance.Nets
             {
                 try
                 {
-                    var result = handler(m);
+                    var result = transform(m);
                     _messageBus.Publish(outputChannelName, result);
                 }
                 catch (Exception e)
