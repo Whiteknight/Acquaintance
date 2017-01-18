@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Acquaintance</id>
-    <version>0.6.0-beta</version>
+    <version>0.7.0-beta</version>
     <title>$title$</title>
     <authors>Andrew F. Whitworth</authors>
     <owners>$author$</owners>
@@ -13,4 +13,10 @@
     <copyright>Copyright 2016</copyright>
     <tags>Messaging Pub/Sub Request/Response Scatter/Gather</tags>
   </metadata>
+  <files>
+        <file src="bin\Release\net45\Acquaintance.dll" target="lib\net45\Acquaintance.dll" />
+        <file src="bin\Release\net45\Acquaintance.pdb" target="lib\net45\Acquaintance.pdb" />
+        <file src="bin\Release\net46\Acquaintance.dll" target="lib\net46\Acquaintance.dll" />
+        <file src="bin\Release\net46\Acquaintance.pdb" target="lib\net46\Acquaintance.pdb" />
+    </files>
 </package>
