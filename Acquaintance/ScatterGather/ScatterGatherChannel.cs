@@ -37,6 +37,7 @@ namespace Acquaintance.ScatterGather
                 }
                 catch (Exception e)
                 {
+                    // TODO: We should never get here. If we do, the error should be logged
                 }
             }
             foreach (var id in toRemove)

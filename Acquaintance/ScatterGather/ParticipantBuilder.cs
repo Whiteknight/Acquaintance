@@ -33,6 +33,7 @@ namespace Acquaintance.ScatterGather
 
             _messageBus = messageBus;
             _threadPool = threadPool;
+            _dispatchType = DispatchThreadType.AnyWorkerThread;
             _timeoutMs = 5000;
         }
 

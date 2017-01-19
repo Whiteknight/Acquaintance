@@ -61,6 +61,10 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="Eavesdrop\ScatterGatherEavesdropTests.cs" />
+    <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
+    <Compile Include="ScatterGather\ScatterGather.MaxRequests.Tests.cs" />
+    <Compile Include="ScatterGather\ScatterGather.Threading.Tests.cs" />
     <Compile Include="Timers\MessageTimerTests.cs" />
     <Compile Include="Nets\NetTests.cs" />
     <Compile Include="RequestResponse\RequestResponseStressTests.cs" />
@@ -71,7 +75,7 @@
     <Compile Include="RequestResponse\RequestResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PubSub\PubSubTests.cs" />
-    <Compile Include="ScatterGather\ScatterRouterTests.cs" />
+    <Compile Include="ScatterGather\ScatterGather.Router.Tests.cs" />
     <Compile Include="Testing\ExpectPublishTests.cs" />
     <Compile Include="Testing\ExpectRequestTests.cs" />
     <Compile Include="Testing\ExpectScatterTests.cs" />
@@ -86,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <Compile Include="ScatterGather\ScatterGather.Patterns.Tests.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

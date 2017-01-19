@@ -27,8 +27,15 @@ namespace Acquaintance.ScatterGather
 
         public IDispatchableScatter<TResponse> Scatter(TRequest request)
         {
-            var value = _func.Invoke(request);
-            return new ImmediateGather<TResponse>(Id, value);
+            try
+            {
+                var value = _func.Invoke(request);
+                return new ImmediateGather<TResponse>(Id, value);
+            }
+            catch (Exception e)
+            {
+                return ImmediateGather<TResponse>.Error(Id, e);
+            }
         }
 
         public static IParticipant<TRequest, TResponse> Create(Func<TRequest, IEnumerable<TResponse>> func)

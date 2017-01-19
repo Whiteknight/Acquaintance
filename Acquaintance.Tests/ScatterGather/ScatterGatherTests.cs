@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using Acquaintance.RequestResponse;
+﻿using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
-using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System;
+using System.Linq;
 
 namespace Acquaintance.Tests.ScatterGather
 {
@@ -36,59 +34,30 @@ namespace Acquaintance.Tests.ScatterGather
         }
 
         [Test]
-        public void ParticipateScatterGather_WorkerThread()
-        {
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
-
-            try
-            {
-                target.Participate<TestRequest, TestResponse>(l => l
-                    .WithChannelName("Test")
-                    .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
-                    .OnWorkerThread()
-                    .WithTimeout(2000));
-                var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
-
-                response.Should().NotBeNull();
-            }
-            finally
-            {
-                target.Dispose();
-            }
-        }
-
-        [Test]
-        public void ParticipateScatterGather_MapReduce()
+        public void ParticipateScatterGather_WeakReference()
         {
             var target = new MessageBus();
-
-            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "A" }));
-            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "B" }));
-            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "C" }));
-            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "D" }));
-            target.Participate<TestRequest, TestResponse>(l => l.Invoke(r => new TestResponse { Text = r.Text + "E" }));
-
-            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" });
-
-            var reduced = string.Join("", response.Responses.Select(r => r.Responses[0].Text).OrderBy(s => s));
-            reduced.Should().Be("xAxBxCxDxE");
-        }
-
-        [Test]
-        public void ParticipateScatterGather_Eavesdrop()
-        {
-            var target = new MessageBus();
-            string eavesdropped = null;
-
             target.Participate<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test")
-                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
-            target.Eavesdrop<TestRequest, TestResponse>(s => s
-                .WithChannelName("Test")
-                .Invoke(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
-                .Immediate());
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }, true));
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
-            eavesdropped.Should().Be("RequestResponded");
+            response.Should().NotBeNull();
+            response.Responses.Should().HaveCount(1);
+            response.Responses[0].Responses[0].Text.Should().Be("RequestResponded");
+        }
+
+        [Test]
+        public void ParticipateScatterGather_OnDefaultChannel()
+        {
+            var target = new MessageBus();
+            target.Participate<TestRequest, TestResponse>(l => l
+                .OnDefaultChannel()
+                .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
+
+            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "Request" });
+            response.Should().NotBeNull();
+            response.Responses.Should().HaveCount(1);
+            response.Responses[0].Responses[0].Text.Should().Be("RequestResponded");
         }
 
         private class GenericRequest<T> { }
@@ -137,10 +106,10 @@ namespace Acquaintance.Tests.ScatterGather
         public void Participate_ParticipantBuilder_TransformRequestTo()
         {
             var target = new MessageBus();
-            target.Participate<string, int>(l => l.Invoke(s => s.Length));
-            target.Participate<string, int>(l => l.Invoke(s => s.Length * 2));
+            target.Participate<string, int>(l => l.OnDefaultChannel().Invoke(s => s.Length));
+            target.Participate<string, int>(l => l.OnDefaultChannel().Invoke(s => s.Length * 2));
 
-            target.Participate<int, int>(l => l.TransformRequestTo<string>(null, i => i.ToString()));
+            target.Participate<int, int>(l => l.OnDefaultChannel().TransformRequestTo<string>(null, i => i.ToString()));
 
             var results = target.Scatter<int, int>(100);
             results.Should().Contain(3);
@@ -151,10 +120,10 @@ namespace Acquaintance.Tests.ScatterGather
         public void Participate_ParticipantBuilder_TransformResponseFrom()
         {
             var target = new MessageBus();
-            target.Participate<int, string>(l => l.Invoke(s => s.ToString()));
-            target.Participate<int, string>(l => l.Invoke(s => s.ToString() + "A"));
+            target.Participate<int, string>(l => l.OnDefaultChannel().Invoke(s => s.ToString()));
+            target.Participate<int, string>(l => l.OnDefaultChannel().Invoke(s => s.ToString() + "A"));
 
-            target.Participate<int, int>(l => l.TransformResponseFrom<string>(null, i => i.Length));
+            target.Participate<int, int>(l => l.OnDefaultChannel().TransformResponseFrom<string>(null, i => i.Length));
 
             var results = target.Scatter<int, int>(100);
             results.Should().Contain(3);
@@ -162,24 +131,48 @@ namespace Acquaintance.Tests.ScatterGather
         }
 
         [Test]
-        public void ParticipateScatterGather_OnDedicatedThread()
+        public void ParticipateScatterGather_ThrowAnyExceptions()
         {
             var target = new MessageBus();
-            try
-            {
-                var token = target.Participate<TestRequest, TestResponse>(builder => builder
-                    .WithChannelName("Test")
-                    .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
-                    .OnDedicatedThread());
-                var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
+            target.Participate<int, int>(l => l
+                .OnDefaultChannel()
+                .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
+                .OnWorkerThread());
 
-                results.First().Text.Should().NotBeNullOrEmpty();
-                token.Dispose();
-            }
-            finally
-            {
-                target.Dispose();
-            }
+            var response = target.Scatter<int, int>(1);
+            Action act = () => response.ThrowAnyExceptions();
+            act.ShouldThrow<AggregateException>();
+
+        }
+
+        [Test]
+        public void ParticipateScatterGather_ThrowAnyExceptions_Immediate()
+        {
+            var target = new MessageBus();
+            target.Participate<int, int>(l => l
+                .OnDefaultChannel()
+                .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
+                .Immediate());
+
+            var response = target.Scatter<int, int>(1);
+            Action act = () => response.ThrowAnyExceptions();
+            act.ShouldThrow<AggregateException>();
+        }
+
+        [Test]
+        public void ParticipateScatterGather_ModifyParticipant()
+        {
+            var target = new MessageBus();
+            target.Participate<int, int>(l => l
+                .OnDefaultChannel()
+                .Invoke(req => 1)
+                .Immediate()
+                .ModifyParticipant(p => new MaxRequestsParticipant<int, int>(p, 2)));
+
+            target.Scatter<int, int>(1).ToList().Should().NotBeEmpty();
+            target.Scatter<int, int>(2).ToList().Should().NotBeEmpty();
+            target.Scatter<int, int>(3).ToList().Should().BeEmpty();
+            target.Scatter<int, int>(4).ToList().Should().BeEmpty();
         }
     }
 }

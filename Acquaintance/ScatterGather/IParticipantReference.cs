@@ -35,6 +35,7 @@ namespace Acquaintance.ScatterGather
         public WeakParticipantReference(Func<TRequest, IEnumerable<TResponse>> func)
         {
             _func = new WeakReference<Func<TRequest, IEnumerable<TResponse>>>(func);
+            IsAlive = true;
         }
 
         public bool IsAlive { get; private set; }
