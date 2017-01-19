@@ -17,7 +17,7 @@ namespace Acquaintance.RequestResponse
         public IDispatchableRequest<TResponse> Request(TRequest request)
         {
             var listener = _listener;
-            if (listener == null)
+            if (listener == null || !listener.CanHandle(request))
                 return new ImmediateResponse<TResponse>(Id, default(TResponse));
 
             try

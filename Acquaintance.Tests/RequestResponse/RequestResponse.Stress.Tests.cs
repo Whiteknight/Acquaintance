@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Acquaintance.Tests.RequestResponse
 {
     [TestFixture]
-    public class RequestResponseStressTests
+    public class RequestResponse_Stress_Tests
     {
         [Test]
         public void RequestResponseStress_Test()

@@ -32,6 +32,7 @@ namespace Acquaintance.RequestResponse
         public WeakListenerReference(Func<TRequest, TResponse> func)
         {
             _func = new WeakReference<Func<TRequest, TResponse>>(func);
+            IsAlive = true;
         }
 
         public TResponse Invoke(TRequest request)

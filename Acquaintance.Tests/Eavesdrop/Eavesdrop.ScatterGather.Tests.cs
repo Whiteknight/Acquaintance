@@ -6,7 +6,7 @@ using System.Linq;
 namespace Acquaintance.Tests.Eavesdrop
 {
     [TestFixture]
-    public class ScatterGatherEavesdropTests
+    public class Eavesdrop_ScatterGather_Tests
     {
         private class TestResponse
         {

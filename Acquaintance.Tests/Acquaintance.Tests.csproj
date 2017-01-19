@@ -61,17 +61,23 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Eavesdrop\ScatterGatherEavesdropTests.cs" />
+    <Compile Include="Eavesdrop\Eavesdrop.RequestResponse.Tests.cs" />
+    <Compile Include="Eavesdrop\Eavesdrop.ScatterGather.Tests.cs" />
     <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
     <Compile Include="PubSub\PubSub.MaxEvents.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Filter.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.MaxRequests.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.CircuitBreaker.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Threading.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Transform.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.MaxRequests.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Threading.Tests.cs" />
     <Compile Include="Timers\MessageTimerTests.cs" />
     <Compile Include="Nets\NetTests.cs" />
-    <Compile Include="RequestResponse\RequestResponseStressTests.cs" />
-    <Compile Include="RequestResponse\RequestRouterTests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Stress.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Router.Tests.cs" />
     <Compile Include="PubSub\PubSub.Router.Tests.cs" />
     <Compile Include="PubSub\PubSub.Stress.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGatherTests.cs" />

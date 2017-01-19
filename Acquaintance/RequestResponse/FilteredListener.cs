@@ -21,7 +21,7 @@ namespace Acquaintance.RequestResponse
 
         public bool CanHandle(TRequest request)
         {
-            return _inner.CanHandle(request) || _filter(request);
+            return _inner.CanHandle(request) && _filter(request);
         }
 
         public IDispatchableRequest<TResponse> Request(TRequest request)
