@@ -37,7 +37,7 @@ namespace Acquaintance.Nets
 
         void INodeBuilder.BuildToMessageBus()
         {
-            if (_action == null)
+            if (_action == null && _handler == null)
                 throw new Exception("No action provided");
 
             if (_onDedicatedThreads == 0)
