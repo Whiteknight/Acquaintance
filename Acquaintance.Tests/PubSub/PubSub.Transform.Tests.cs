@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Acquaintance.Tests.PubSub
 {
     [TestFixture]
-    public partial class PubSubTests
+    public class PubSub_Transform_Tests
     {
         private class InputEvent
         {

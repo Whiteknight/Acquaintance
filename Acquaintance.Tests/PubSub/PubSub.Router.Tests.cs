@@ -3,7 +3,8 @@ using NUnit.Framework;
 
 namespace Acquaintance.Tests.PubSub
 {
-    public class EventRouterTests
+    [TestFixture]
+    public class PubSub_Router_Tests
     {
         private class TestPubSubEvent
         {

@@ -1,12 +1,12 @@
-using System.Threading;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
+using System.Threading;
 
 namespace Acquaintance.Tests.PubSub
 {
     [TestFixture]
-    public partial class PubSubTests
+    public class PubSub_Stress_Tests
     {
         private class TestPubSubStressEvent
         {

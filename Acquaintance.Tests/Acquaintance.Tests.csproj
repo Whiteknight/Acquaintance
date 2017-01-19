@@ -62,6 +62,9 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Eavesdrop\ScatterGatherEavesdropTests.cs" />
+    <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
+    <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
+    <Compile Include="PubSub\PubSub.MaxEvents.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.MaxRequests.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Threading.Tests.cs" />
@@ -69,8 +72,8 @@
     <Compile Include="Nets\NetTests.cs" />
     <Compile Include="RequestResponse\RequestResponseStressTests.cs" />
     <Compile Include="RequestResponse\RequestRouterTests.cs" />
-    <Compile Include="PubSub\PubSubTests.Router.cs" />
-    <Compile Include="PubSub\PubSubTests.Stress.cs" />
+    <Compile Include="PubSub\PubSub.Router.Tests.cs" />
+    <Compile Include="PubSub\PubSub.Stress.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGatherTests.cs" />
     <Compile Include="RequestResponse\RequestResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -79,7 +82,7 @@
     <Compile Include="Testing\ExpectPublishTests.cs" />
     <Compile Include="Testing\ExpectRequestTests.cs" />
     <Compile Include="Testing\ExpectScatterTests.cs" />
-    <Compile Include="PubSub\PubSubTests.Transform.cs" />
+    <Compile Include="PubSub\PubSub.Transform.Tests.cs" />
     <Compile Include="Utility\StringTrieTests.cs" />
   </ItemGroup>
   <ItemGroup>

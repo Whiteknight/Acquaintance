@@ -229,15 +229,10 @@ namespace Acquaintance.PubSub
                     subscription = new ImmediatePubSubSubscription<TPayload>(actionReference);
                     break;
                 default:
-                    subscription = CreateDefaultSubscription(actionReference, _threadPool);
+                    subscription = new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
                     break;
             }
             return subscription;
-        }
-
-        private static ISubscription<TPayload> CreateDefaultSubscription(ISubscriberReference<TPayload> actionReference, IThreadPool threadPool)
-        {
-            return new AnyThreadPubSubSubscription<TPayload>(actionReference, threadPool);
         }
     }
 }
