@@ -2,6 +2,12 @@
 
 namespace Acquaintance.RequestResponse
 {
+    /// <summary>
+    /// A reference to a listener callback or other handler. The reference may optionally be a weak
+    /// reference so the target might be garbage collected at any time.
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     public interface IListenerReference<in TRequest, out TResponse>
     {
         TResponse Invoke(TRequest request);

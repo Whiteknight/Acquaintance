@@ -3,38 +3,6 @@ using System;
 
 namespace Acquaintance.RequestResponse
 {
-    public interface IChannelListenerBuilder<TRequest, TResponse>
-    {
-        IActionListenerBuilder<TRequest, TResponse> WithChannelName(string name);
-        IActionListenerBuilder<TRequest, TResponse> OnDefaultChannel();
-    }
-
-    public interface IActionListenerBuilder<TRequest, TResponse>
-    {
-        IThreadListenerBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> listener, bool useWeakReference = false);
-        IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build);
-        IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform);
-        IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
-    }
-
-    public interface IThreadListenerBuilder<TRequest, TResponse>
-    {
-        IDetailsListenerBuilder<TRequest, TResponse> Immediate();
-        IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread();
-        IDetailsListenerBuilder<TRequest, TResponse> OnThread(int threadId);
-        IDetailsListenerBuilder<TRequest, TResponse> OnThreadPool();
-        IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread();
-    }
-
-    public interface IDetailsListenerBuilder<TRequest, TResponse>
-    {
-        IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests);
-        IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
-        IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
-        IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxAttempts, int breakMs);
-        IDetailsListenerBuilder<TRequest, TResponse> ModifyListener(Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> modify);
-    }
-
     public class ListenerBuilder<TRequest, TResponse> :
         IChannelListenerBuilder<TRequest, TResponse>,
         IActionListenerBuilder<TRequest, TResponse>,

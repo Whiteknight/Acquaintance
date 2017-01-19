@@ -62,6 +62,7 @@
     <Compile Include="Nets\NodeErrorMessage.cs" />
     <Compile Include="Nets\NodeRepublishSubscriptionHandler.cs" />
     <Compile Include="RequestResponse\CircuitBreakerListener.cs" />
+    <Compile Include="RequestResponse\IListenerBuilder.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />
