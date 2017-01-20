@@ -98,6 +98,10 @@ Here are some common use-cases which Acquaintance was explicitly designed to han
 
 Acquaintance is not a silver-bullet solution, and comparing it to other solutions and patterns is going to yield some positive and some negative points. It is important to consider the specific needs of your application before deciding whether to use Acquaintance or an alternative pattern or library.
 
-At it's heart, Acquaintance runs contrary to some important Object-Oriented Programming principles and ideas. It conflicts with Dependency Injection, for example, and it suffers from the same discoverability problems that often make "Service Locator" an anti-pattern. Adding Acquaintance into software which is a big mess and doesn't follow good OOP design best practices might just make things worse. Look for places in your system which demand loose-coupling and require one or more of the use-cases described above. 
+At it's heart, Acquaintance runs contrary to some important Object-Oriented Programming principles and ideas. It conflicts with Dependency Injection, for example, and it suffers from the same discoverability problems that often make "Service Locator" an anti-pattern. Using Acquaintance for too much runs the risk of your message bus looking like a "God Object", and loose-coupling of this sort can make your code impervious to code analysis and refactoring tools. Adding Acquaintance into software which is a big mess and doesn't follow good OOP design best practices might just make things worse. Look for places in your system which demand loose-coupling and require one or more of the use-cases described above. 
 
 Message-passing in Acquaintance is cheaper than making a remote call to a separate service, but it's much more expensive than passing a message in a language like Objective-C or Erlang. You don't want to use Acquaintance for every single method call, and you want to keep performance in mind whenever you employ it.
+
+Acquaintance works with threading primitives to provide dispatching behaviors, and it is entirely possible for you to configure Acquaintance to produce bottlenecks, resource starvation and soft-deadlocks if you are not paying enough attention to system design. 
+
+All this being said, there are many situations where Acquaintance can be much more help than hinderance, and many teams which can find real benefit in it's features. 
