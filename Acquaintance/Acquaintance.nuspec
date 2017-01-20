@@ -7,7 +7,7 @@
     <authors>Andrew F. Whitworth</authors>
     <owners>$author$</owners>
     <licenseUrl>https://github.com/Whiteknight/Acquaintance/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/Whiteknight/Acquaintance/</projectUrl>
+    <projectUrl>https://whiteknight.github.io/Acquaintance/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Internal messaging for loosely-coupled applications</description>
     <copyright>Copyright 2016</copyright>
