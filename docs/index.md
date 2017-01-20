@@ -3,7 +3,11 @@
 Acquaintance is a .NET library for intra-process communications. It's like an in-memory message bus that loosely-coupled parts of your application can use to communicate with each other. At the heart, Acquaintance implements 3 basic communication patterns: *Publish/Subscribe*, *Request/Response* and *Scatter/Gather*.
 In addition to these three basic patterns, Acquaintance has a few other tricks and features which can help most medium to large applications stay organized and safe.
 
-To start, create a message bus:
+Get Acquaintance from nuget:
+
+    Install-Package Acquaintance
+
+When you're ready to code, create a message bus:
 
     var messageBus = new MessageBus();
 
@@ -24,6 +28,8 @@ Publish/Subscribe is a pattern where you have events of interest being generated
 Unlike the C# `event` mechanism, the message bus solves the chicken-and-egg problem by allowing the event producer and the event consumers to be created in any order, at any time. 
 
 Unlike callback delegates, Acquaintance will automatically dispatch your request onto a worker thread so it doesn't block other processing.
+
+With Acquaintance it's easy to interact with other communications mechanisms be sending to and receiving from other communication channels such as ZeroMQ, RabbitMQ, NServiceBus or Kafka.
 
 ## Request/Response
 
@@ -88,4 +94,10 @@ Here are some common use-cases which Acquaintance was explicitly designed to han
 6. Serving as an easy bridge for external resources, queues and Enterprise Service Buses
 7. Acting as the communication mechanism for domain events in a Domain-Driven solution
 
-Acquaintance is not a silver-bullet solution, and comparing it to other solutions and patterns is going to yield some positive and some negative. It is important to consider the specific needs of your application before deciding whether to use Acquaintance or an alternative pattern or library.
+## Contraindications
+
+Acquaintance is not a silver-bullet solution, and comparing it to other solutions and patterns is going to yield some positive and some negative points. It is important to consider the specific needs of your application before deciding whether to use Acquaintance or an alternative pattern or library.
+
+At it's heart, Acquaintance runs contrary to some important Object-Oriented Programming principles and ideas. It conflicts with Dependency Injection, for example, and it suffers from the same discoverability problems that often make "Service Locator" an anti-pattern. Adding Acquaintance into software which is a big mess and doesn't follow good OOP design best practices might just make things worse. Look for places in your system which demand loose-coupling and require one or more of the use-cases described above. 
+
+Message-passing in Acquaintance is cheaper than making a remote call to a separate service, but it's much more expensive than passing a message in a language like Objective-C or Erlang. You don't want to use Acquaintance for every single method call, and you want to keep performance in mind whenever you employ it.
