@@ -156,5 +156,10 @@ namespace Acquaintance
             }
             return tokens;
         }
+
+        public static WrappedAction<TPayload> WrapAction<TPayload>(this IPubSubBus messageBus, Action<TPayload> action, Action<IThreadSubscriptionBuilder<TPayload>> build = null)
+        {
+            return new ActionWrapper<TPayload>().WrapAction(messageBus, action, build);
+        }
     }
 }

@@ -67,12 +67,14 @@
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
     <Compile Include="PubSub\PubSub.MaxEvents.Tests.cs" />
     <Compile Include="PubSub\PubSub.Message.Tests.cs" />
+    <Compile Include="PubSub\PubSub.Wrap.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Filter.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.MaxRequests.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.CircuitBreaker.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Proxy.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Threading.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Transform.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Wrap.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.CircuitBreaker.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Router.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />

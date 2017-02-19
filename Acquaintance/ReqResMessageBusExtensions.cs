@@ -113,5 +113,10 @@ namespace Acquaintance
         {
             return new RequestChannelProxy<TRequest, TResponse>(messageBus);
         }
+
+        public static WrappedFunction<TRequest, TResponse> WrapFunction<TRequest, TResponse>(this IReqResBus messageBus, Func<TRequest, TResponse> func, Action<IThreadListenerBuilder<TRequest, TResponse>> build)
+        {
+            return new RequestFuncWrapper<TRequest, TResponse>().WrapFunction(messageBus, func, build);
+        }
     }
 }
