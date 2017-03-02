@@ -145,6 +145,11 @@
     <Compile Include="RequestResponse\RequestResponseChannel.cs" />
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="ScatterGather\SpecificThreadParticipant.cs" />
+    <Compile Include="Sources\EventSourceContext.cs" />
+    <Compile Include="Sources\EventSourceExtensions.cs" />
+    <Compile Include="Sources\EventSourceModule.cs" />
+    <Compile Include="Sources\IEventSourceContext.cs" />
+    <Compile Include="Sources\IEventSource.cs" />
     <Compile Include="SubscriptionCollection.cs" />
     <Compile Include="SubscriptionToken.cs" />
     <Compile Include="Testing\ExpectationFailedException.cs" />
@@ -156,7 +161,9 @@
     <Compile Include="Testing\TestingModule.cs" />
     <Compile Include="Threading\DispatchThreadType.cs" />
     <Compile Include="Threading\DummyMessageHandlerThreadContext.cs" />
+    <Compile Include="Threading\EventSourceThread.cs" />
     <Compile Include="Threading\IActionDispatcher.cs" />
+    <Compile Include="Threading\IEventSourceThread.cs" />
     <Compile Include="Threading\IMessageHandlerThreadContext.cs" />
     <Compile Include="Threading\IThreadAction.cs" />
     <Compile Include="Threading\IThreadPool.cs" />

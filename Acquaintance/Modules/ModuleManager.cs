@@ -33,7 +33,7 @@ namespace Acquaintance.Modules
             return new ModuleToken(this, id);
         }
 
-        public IEnumerable<TModule> GetByType<TModule>()
+        public IEnumerable<TModule> Get<TModule>()
             where TModule : IMessageBusModule
         {
             return _modules.Values.OfType<TModule>().ToList();

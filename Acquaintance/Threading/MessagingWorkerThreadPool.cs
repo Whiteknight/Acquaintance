@@ -13,6 +13,7 @@ namespace Acquaintance.Threading
         private readonly ConcurrentDictionary<int, IMessageHandlerThreadContext> _detachedContexts;
         private readonly IActionDispatcher _threadPoolDispatcher;
         private readonly ConcurrentDictionary<int, MessageHandlerThread> _dedicatedWorkers;
+        private readonly ConcurrentDictionary<int, string> _registeredThreads;
         private readonly int _maxQueuedMessages;
 
         public MessagingWorkerThreadPool(int numFreeWorkers = 0, int maxQueuedMessages = 1000)
@@ -24,6 +25,7 @@ namespace Acquaintance.Threading
             _freeWorkers = new List<MessageHandlerThread>();
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
             _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
+            _registeredThreads = new ConcurrentDictionary<int, string>();
 
             if (numFreeWorkers < 0)
                 throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
@@ -117,6 +119,17 @@ namespace Acquaintance.Threading
         {
             var currentThreadId = Thread.CurrentThread.ManagedThreadId;
             return GetThreadContext(currentThreadId, true);
+        }
+
+        public void RegisterManagedThread(int threadId, string purpose)
+        {
+            _registeredThreads.TryAdd(threadId, purpose);
+        }
+
+        public void UnregisterManagedThread(int threadId)
+        {
+            string purpose;
+            _registeredThreads.TryRemove(threadId, out purpose);
         }
 
         private IMessageHandlerThreadContext CreateDetachedContext()

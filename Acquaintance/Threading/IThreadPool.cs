@@ -13,5 +13,8 @@ namespace Acquaintance.Threading
         IActionDispatcher GetAnyThreadDispatcher();
         IActionDispatcher GetCurrentThreadDispatcher();
         IMessageHandlerThreadContext GetCurrentThreadContext();
+
+        void RegisterManagedThread(int threadId, string purpose);
+        void UnregisterManagedThread(int threadId);
     }
 }

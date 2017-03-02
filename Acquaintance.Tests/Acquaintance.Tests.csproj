@@ -74,6 +74,7 @@
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.MaxRequests.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Threading.Tests.cs" />
+    <Compile Include="Sources\SourceModuleTests.cs" />
     <Compile Include="Timers\MessageTimerTests.cs" />
     <Compile Include="Nets\NetTests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Stress.Tests.cs" />

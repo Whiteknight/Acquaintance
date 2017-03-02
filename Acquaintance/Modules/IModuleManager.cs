@@ -7,7 +7,7 @@ namespace Acquaintance.Modules
     {
         IDisposable Add(IMessageBusModule module);
 
-        IEnumerable<TModule> GetByType<TModule>()
+        IEnumerable<TModule> Get<TModule>()
             where TModule : IMessageBusModule;
 
     }

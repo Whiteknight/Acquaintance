@@ -7,7 +7,6 @@ using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Acquaintance
@@ -210,7 +209,7 @@ namespace Acquaintance
         private static ILogger CreateDefaultLogger()
         {
 #if DEBUG
-            return new DelegateLogger(s => Debug.WriteLine(s));
+            return new DelegateLogger(s => System.Diagnostics.Debug.WriteLine(s));
 #else
             return new SilentLogger();
 #endif

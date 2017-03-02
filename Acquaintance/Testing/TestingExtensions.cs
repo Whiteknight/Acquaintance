@@ -27,7 +27,7 @@ namespace Acquaintance.Testing
 
         private static TestingModule GetTestingModule(IMessageBus messageBus)
         {
-            TestingModule module = messageBus.Modules.GetByType<TestingModule>().FirstOrDefault();
+            TestingModule module = messageBus.Modules.Get<TestingModule>().FirstOrDefault();
             if (module != null)
                 return module;
             module = new TestingModule();
