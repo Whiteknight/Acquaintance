@@ -5,6 +5,7 @@ namespace Acquaintance.Threading
     public interface IThreadPool : IDisposable
     {
         int NumberOfRunningFreeWorkers { get; }
+        ThreadReport GetThreadReport();
         int StartDedicatedWorker();
         void StopDedicatedWorker(int threadId);
         IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate);
@@ -14,7 +15,7 @@ namespace Acquaintance.Threading
         IActionDispatcher GetCurrentThreadDispatcher();
         IMessageHandlerThreadContext GetCurrentThreadContext();
 
-        void RegisterManagedThread(int threadId, string purpose);
+        void RegisterManagedThread(IThreadManager manager, int threadId, string purpose);
         void UnregisterManagedThread(int threadId);
     }
 }

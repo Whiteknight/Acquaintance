@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Acquaintance.Sources
 {
-    public class EventSourceModule : IMessageBusModule
+    public class EventSourceModule : IMessageBusModule, IThreadManager
     {
         private IMessageBus _messageBus;
         private readonly ConcurrentDictionary<Guid, IEventSourceThread> _threads;
@@ -47,7 +47,7 @@ namespace Acquaintance.Sources
             {
                 // TODO: Handle the rare error
             }
-            _messageBus.ThreadPool.RegisterManagedThread(thread.ThreadId, "SourceModule thread " + thread.Id);
+            _messageBus.ThreadPool.RegisterManagedThread(this, thread.ThreadId, "SourceModule thread " + thread.Id);
             return new ThreadToken(this, thread, thread.Id);
         }
 
@@ -80,7 +80,7 @@ namespace Acquaintance.Sources
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            // TODO: This
         }
     }
 }
