@@ -12,7 +12,7 @@ namespace Acquaintance.ScatterGather
         IDetailsParticipantBuilder<TRequest, TResponse>
     {
         private readonly IThreadPool _threadPool;
-        private readonly IReqResBus _messageBus;
+        private readonly IScatterGatherBus _messageBus;
 
         private DispatchThreadType _dispatchType;
         private int _threadId;
@@ -24,7 +24,7 @@ namespace Acquaintance.ScatterGather
         private bool _useDedicatedThread;
         private Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> _modify;
 
-        public ParticipantBuilder(IReqResBus messageBus, IThreadPool threadPool)
+        public ParticipantBuilder(IScatterGatherBus messageBus, IThreadPool threadPool)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));

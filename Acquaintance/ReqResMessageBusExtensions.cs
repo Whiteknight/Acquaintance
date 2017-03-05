@@ -6,6 +6,12 @@ namespace Acquaintance
 {
     public static class ReqResMessageBusExtensions
     {
+        public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, string channelName, TRequest request)
+        {
+            var envelope = messageBus.EnvelopeFactory.Create(channelName, request);
+            return messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
+        }
+
         /// <summary>
         /// Make a request of the given type on the default channel
         /// </summary>
@@ -14,7 +20,7 @@ namespace Acquaintance
         /// <param name="messageBus">The message bus</param>
         /// <param name="request">The request object, which represents the input arguments to the RPC</param>
         /// <returns>A token representing the subscription which, when disposed, cancels the subscription</returns>
-        public static TResponse Request<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
+        public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, TRequest request)
         {
             return messageBus.Request<TRequest, TResponse>(string.Empty, request);
         }
@@ -30,15 +36,21 @@ namespace Acquaintance
         /// <param name="requestType">The runtime type of the request</param>
         /// <param name="request">The request object</param>
         /// <returns>The response object</returns>
-        public static object Request(this IRequestable messageBus, string channelName, Type requestType, object request)
+        public static object Request(this IReqResBus messageBus, string channelName, Type requestType, object request)
         {
             var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
             if (requestInterface == null)
                 return null;
+
+            var factoryMethod = messageBus.EnvelopeFactory.GetType()
+                .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
+                .MakeGenericMethod(requestType);
+            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { channelName, request, null });
+
             var responseType = requestInterface.GetGenericArguments().Single();
 
-            var method = messageBus.GetType().GetMethod("Request").MakeGenericMethod(requestType, responseType);
-            return method.Invoke(messageBus, new[] { channelName, request });
+            var method = messageBus.GetType().GetMethod(nameof(messageBus.RequestEnvelope)).MakeGenericMethod(requestType, responseType);
+            return method.Invoke(messageBus, new[] { envelope });
         }
 
         /// <summary>

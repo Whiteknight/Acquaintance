@@ -1,8 +1,8 @@
 namespace Acquaintance.PubSub
 {
-    public interface ISubscriberReference<in TPayload>
+    public interface ISubscriberReference<TPayload>
     {
-        void Invoke(TPayload payload);
+        void Invoke(Envelope<TPayload> message);
         bool IsAlive { get; }
     }
 }

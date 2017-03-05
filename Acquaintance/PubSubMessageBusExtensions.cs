@@ -6,17 +6,29 @@ namespace Acquaintance
     public static class PubSubMessageBusExtensions
     {
         /// <summary>
+        /// Publish an event of the given type on the given channel
+        /// </summary>
+        /// <typeparam name="TPayload">The type of event payload to publish</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="payload">The event payload object to send to subscribers. This object should not be modified after publishing to avoid concurrency conflicts.</param>
+        public static void Publish<TPayload>(this IPubSubBus messageBus, string channelName, TPayload payload)
+        {
+            var envelope = messageBus.EnvelopeFactory.Create<TPayload>(channelName, payload);
+            messageBus.PublishEnvelope<TPayload>(envelope);
+        }
+
+        /// <summary>
         /// Publish the given payload as an event on the default channel
         /// </summary>
         /// <typeparam name="TPayload">The type of payload object</typeparam>
         /// <param name="messageBus">The message bus</param>
         /// <param name="payload">The payload object to publish as an event. This object should not
         /// be modified after publishing, to prevent concurrency conflicts.</param>
-        public static void Publish<TPayload>(this IPublishable messageBus, TPayload payload)
+        public static void Publish<TPayload>(this IPubSubBus messageBus, TPayload payload)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
-            messageBus.Publish(string.Empty, payload);
+            Publish(messageBus, string.Empty, payload);
         }
 
         /// <summary>
@@ -28,12 +40,18 @@ namespace Acquaintance
         /// <param name="channelName">The name of the channel</param>
         /// <param name="payloadType">The runtime-known type of the payload object</param>
         /// <param name="payload">The payload object itself.</param>
-        public static void Publish(this IPublishable messageBus, string channelName, Type payloadType, object payload)
+        public static void Publish(this IPubSubBus messageBus, string channelName, Type payloadType, object payload)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
-            var method = messageBus.GetType().GetMethod("Publish").MakeGenericMethod(payloadType);
-            method.Invoke(messageBus, new[] { channelName, payload });
+
+            var factoryMethod = messageBus.EnvelopeFactory.GetType()
+                .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
+                .MakeGenericMethod(payloadType);
+            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { channelName, payload, null });
+
+            var method = messageBus.GetType().GetMethod(nameof(messageBus.PublishEnvelope)).MakeGenericMethod(payloadType);
+            method.Invoke(messageBus, new[] { envelope });
         }
 
         /// <summary>

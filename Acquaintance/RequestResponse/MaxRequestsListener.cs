@@ -20,12 +20,12 @@ namespace Acquaintance.RequestResponse
             set { _inner.Id = value; }
         }
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
             return _maxRequests > 0 || _inner.CanHandle(request);
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
         {
             if (ShouldStopListening)
                 return new ImmediateResponse<TResponse>(Id, default(TResponse));

@@ -16,9 +16,9 @@ namespace Acquaintance.PubSub
 
         public Guid Id { get; set; }
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
-            _action.Invoke(payload);
+            _action.Invoke(message);
         }
 
         public bool ShouldUnsubscribe => !_action.IsAlive;

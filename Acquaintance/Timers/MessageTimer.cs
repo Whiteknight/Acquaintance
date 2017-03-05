@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Acquaintance;
+using System;
 using System.Threading;
 
 namespace Acquaintance.Timers

@@ -7,6 +7,7 @@ namespace Acquaintance.PubSub
         private readonly ISubscription<TPayload> _inner;
         private readonly Func<TPayload, bool> _filter;
 
+        // TODO: Ability to filter on Envelope metadata?
         public FilteredSubscription(ISubscription<TPayload> inner, Func<TPayload, bool> filter)
         {
             if (inner == null)
@@ -23,12 +24,12 @@ namespace Acquaintance.PubSub
             set { _inner.Id = value; }
         }
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
-            if (!_filter(payload))
+            if (!_filter(message.Payload))
                 return;
 
-            _inner.Publish(payload);
+            _inner.Publish(message);
         }
 
         public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe;

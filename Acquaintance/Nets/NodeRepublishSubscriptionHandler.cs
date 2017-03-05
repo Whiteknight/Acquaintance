@@ -6,12 +6,12 @@ namespace Acquaintance.Nets
     internal class NodeRepublishSubscriptionHandler<TPayload> : ISubscriptionHandler<TPayload>
     {
         private readonly ISubscriptionHandler<TPayload> _inner;
-        private readonly IPublishable _messageBus;
+        private readonly IPubSubBus _messageBus;
         private readonly string _nodeKey;
         private readonly string _outputChannelName;
         private readonly string _errorChannelName;
 
-        public NodeRepublishSubscriptionHandler(ISubscriptionHandler<TPayload> inner, IPublishable messageBus, string nodeKey, string outputChannelName, string errorChannelName)
+        public NodeRepublishSubscriptionHandler(ISubscriptionHandler<TPayload> inner, IPubSubBus messageBus, string nodeKey, string outputChannelName, string errorChannelName)
         {
             _inner = inner;
             _messageBus = messageBus;
@@ -20,16 +20,17 @@ namespace Acquaintance.Nets
             _errorChannelName = errorChannelName;
         }
 
-        public void Handle(TPayload payload)
+        public void Handle(Envelope<TPayload> message)
         {
             try
             {
-                _inner.Handle(payload);
-                _messageBus.Publish(_outputChannelName, payload);
+                _inner.Handle(message);
+                message = message.RedirectToChannel(_outputChannelName);
+                _messageBus.PublishEnvelope(message);
             }
             catch (Exception e)
             {
-                _messageBus.Publish(_errorChannelName, new NodeErrorMessage<TPayload>(_nodeKey, payload, e));
+                _messageBus.Publish(_errorChannelName, new NodeErrorMessage<TPayload>(_nodeKey, message.Payload, e));
             }
         }
     }

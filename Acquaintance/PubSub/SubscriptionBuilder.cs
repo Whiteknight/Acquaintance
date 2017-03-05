@@ -91,6 +91,17 @@ namespace Acquaintance.PubSub
             return this;
         }
 
+        public IThreadSubscriptionBuilder<TPayload> InvokeEnvelope(Action<Envelope<TPayload>> action, bool useWeakReferences = false)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            if (_actionReference != null)
+                throw new Exception("Can only have a single action");
+            var reference = CreateActionReference(action, useWeakReferences);
+            _actionReference = reference;
+            return this;
+        }
+
         public IThreadSubscriptionBuilder<TPayload> Invoke(ISubscriptionHandler<TPayload> handler)
         {
             if (handler == null)
@@ -175,6 +186,7 @@ namespace Acquaintance.PubSub
             return this;
         }
 
+        // TODO: Should we have an option where the Filter predicate takes an Envelope<TPayload>?
         public IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
         {
             _filter = filter;
@@ -204,11 +216,18 @@ namespace Acquaintance.PubSub
             return subscription;
         }
 
+        private static ISubscriberReference<TPayload> CreateActionReference(Action<Envelope<TPayload>> act, bool useWeakReferences)
+        {
+            if (useWeakReferences)
+                return new EnvelopeWeakSubscriberReference<TPayload>(act);
+            return new EnvelopeStrongSubscriberReference<TPayload>(act);
+        }
+
         private static ISubscriberReference<TPayload> CreateActionReference(Action<TPayload> act, bool useWeakReferences)
         {
             if (useWeakReferences)
-                return new WeakSubscriberReference<TPayload>(act);
-            return new StrongSubscriberReference<TPayload>(act);
+                return new PayloadWeakSubscriberReference<TPayload>(act);
+            return new PayloadStrongSubscriberReference<TPayload>(act);
         }
 
         private ISubscription<TPayload> CreateSubscription(ISubscriberReference<TPayload> actionReference, DispatchThreadType dispatchType, int threadId)

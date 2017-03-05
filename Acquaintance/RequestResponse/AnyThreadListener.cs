@@ -16,12 +16,12 @@ namespace Acquaintance.RequestResponse
             _timeoutMs = timeoutMs;
         }
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
             return _func.IsAlive;
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
         {
             var thread = _threadPool.GetAnyThreadDispatcher();
             if (thread == null)

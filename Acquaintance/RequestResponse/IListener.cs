@@ -7,7 +7,7 @@ namespace Acquaintance.RequestResponse
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IListener<in TRequest, out TResponse>
+    public interface IListener<TRequest, out TResponse>
     {
         /// <summary>
         /// Determine if the listener can handle the request depending on the current state of the
@@ -15,7 +15,7 @@ namespace Acquaintance.RequestResponse
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        bool CanHandle(TRequest request);
+        bool CanHandle(Envelope<TRequest> request);
 
         /// <summary>
         /// Receive the request and produce a response. This behavior may be dispatched to a worker
@@ -24,7 +24,7 @@ namespace Acquaintance.RequestResponse
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        IDispatchableRequest<TResponse> Request(TRequest request);
+        IDispatchableRequest<TResponse> Request(Envelope<TRequest> request);
 
         /// <summary>
         /// Whether the listener has satisfied all the requests it is able, and needs to be removed

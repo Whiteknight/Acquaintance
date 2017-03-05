@@ -21,12 +21,12 @@ namespace Acquaintance.PubSub
 
         public bool IsAlive => true;
 
-        public void Invoke(TPayload payload)
+        public void Invoke(Envelope<TPayload> message)
         {
-            var service = _createService(payload);
+            var service = _createService(message.Payload);
             if (service == null)
                 throw new NullReferenceException("Activated service is null");
-            _handler(service, payload);
+            _handler(service, message.Payload);
         }
     }
 }

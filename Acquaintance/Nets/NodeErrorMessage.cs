@@ -15,8 +15,8 @@ namespace Acquaintance.Nets
             Error = error;
         }
 
-        public string NodeKey { get; private set; }
-        public TPayload Payload { get; private set; }
-        public Exception Error { get; private set; }
+        public string NodeKey { get; }
+        public TPayload Payload { get; }
+        public Exception Error { get; }
     }
 }

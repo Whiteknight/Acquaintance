@@ -9,9 +9,9 @@ namespace Acquaintance.PubSub
     {
         private readonly string[] _channels;
         private int _idx;
-        private readonly IPublishable _messageBus;
+        private readonly IPubSubBus _messageBus;
 
-        public RoundRobinDispatchSubscription(IPublishable messageBus, IEnumerable<string> channels)
+        public RoundRobinDispatchSubscription(IPubSubBus messageBus, IEnumerable<string> channels)
         {
             if (channels == null)
                 throw new ArgumentNullException(nameof(channels));
@@ -28,13 +28,14 @@ namespace Acquaintance.PubSub
         public Guid Id { get; set; }
         public bool ShouldUnsubscribe => false;
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
             int idx = Interlocked.Increment(ref _idx);
             idx = idx % _channels.Length;
 
             string channel = _channels[idx];
-            _messageBus.Publish(channel, payload);
+            message = message.RedirectToChannel(channel);
+            _messageBus.PublishEnvelope(message);
         }
     }
 }

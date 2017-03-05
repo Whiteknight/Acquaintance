@@ -16,15 +16,15 @@ namespace Acquaintance.PubSub
 
         public Guid Id { get; }
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
-            List<Guid> toUnsubscribe = new List<Guid>();
+            var toUnsubscribe = new List<Guid>();
             foreach (var kvp in _subscriptions)
             {
                 try
                 {
                     var subscriber = kvp.Value;
-                    subscriber.Publish(payload);
+                    subscriber.Publish(message);
                     if (subscriber.ShouldUnsubscribe)
                         toUnsubscribe.Add(kvp.Key);
                 }

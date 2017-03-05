@@ -103,9 +103,9 @@ namespace Acquaintance.Tests.PubSub
             public int Sum { get; private set; }
 
 
-            public void Handle(int payload)
+            public void Handle(Envelope<int> message)
             {
-                Sum += payload;
+                Sum += message.Payload;
             }
         }
 
@@ -163,6 +163,19 @@ namespace Acquaintance.Tests.PubSub
             for (int i = 1; i < 100000; i *= 10)
                 target.Publish("Test", i);
             x.Should().Be(111);
+        }
+
+        [Test]
+        public void SubscribeAndPublish_InvokeEnvelope()
+        {
+            var target = new MessageBus();
+            string text = null;
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithChannelName("Test")
+                .InvokeEnvelope(e => text = e.Payload.Text)
+                .Immediate());
+            target.Publish("Test", new TestPubSubEvent("Test2"));
+            text.Should().Be("Test2");
         }
     }
 }

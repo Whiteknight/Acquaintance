@@ -8,11 +8,11 @@ namespace Acquaintance.ScatterGather
     public class ScatterRouter<TRequest, TResponse> : IParticipant<TRequest, TResponse>
     {
         private readonly IReadOnlyList<EventRoute<TRequest>> _routes;
-        private readonly IReqResBus _messageBus;
+        private readonly IScatterGatherBus _messageBus;
         private readonly string _defaultRouteOrNull;
         private readonly RouterModeType _modeType;
 
-        public ScatterRouter(IReqResBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, string defaultRouteOrNull, RouterModeType modeType)
+        public ScatterRouter(IScatterGatherBus messageBus, IReadOnlyList<EventRoute<TRequest>> routes, string defaultRouteOrNull, RouterModeType modeType)
         {
             _routes = routes;
             _defaultRouteOrNull = defaultRouteOrNull;

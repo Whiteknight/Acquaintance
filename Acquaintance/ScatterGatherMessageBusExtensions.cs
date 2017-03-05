@@ -5,12 +5,12 @@ namespace Acquaintance
 {
     public static class ScatterGatherMessageBusExtensions
     {
-        public static IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(this IRequestable messageBus, TRequest request)
+        public static IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(this IScatterGatherBus messageBus, TRequest request)
         {
             return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
         }
 
-        public static IDisposable Participate<TRequest, TResponse>(this IReqResBus messageBus, Action<IChannelParticipantBuilder<TRequest, TResponse>> build)
+        public static IDisposable Participate<TRequest, TResponse>(this IScatterGatherBus messageBus, Action<IChannelParticipantBuilder<TRequest, TResponse>> build)
         {
             var builder = new ParticipantBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
             build(builder);

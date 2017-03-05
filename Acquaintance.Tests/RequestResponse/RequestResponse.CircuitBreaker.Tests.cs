@@ -25,7 +25,7 @@ namespace Acquaintance.Tests.RequestResponse
                 .OnWorkerThread()
                 .WithCircuitBreaker(1, 500));
 
-            // First request fails
+            // First request fails. This trips the circuit breaker
             var response = target.Request<int, int>(1);
             response.Should().Be(0);
             requests.Should().Be(1);
@@ -35,8 +35,8 @@ namespace Acquaintance.Tests.RequestResponse
             response.Should().Be(0);
             requests.Should().Be(1);
 
-            // Third request passes, because of a delay so the circuit breaker can reset itself
-            Thread.Sleep(500);
+            // Third request passes. The circuit breaker has time to reset itself
+            Thread.Sleep(1000);
             response = target.Request<int, int>(3);
             response.Should().Be(30);
             requests.Should().Be(2);

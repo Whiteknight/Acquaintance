@@ -7,11 +7,11 @@ namespace Acquaintance.RequestResponse
     public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDispatchableRequest<TResponse>
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
-        private readonly TRequest _request;
+        private readonly Envelope<TRequest> _request;
         private readonly int _timeoutMs;
         private readonly ManualResetEvent _resetEvent;
 
-        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, TRequest request, Guid listenerId, int timeoutMs = 1000)
+        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, Envelope<TRequest> request, Guid listenerId, int timeoutMs = 1000)
         {
             if (timeoutMs <= 0)
                 throw new ArgumentOutOfRangeException(nameof(timeoutMs));
@@ -26,7 +26,7 @@ namespace Acquaintance.RequestResponse
         public bool Success { get; private set; }
         public Exception ErrorInformation { get; private set; }
 
-        public Guid ListenerId { get; private set; }
+        public Guid ListenerId { get; }
 
         public void Execute()
         {

@@ -39,6 +39,8 @@ namespace Acquaintance.RequestResponse
         /// <returns></returns>
         IThreadListenerBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> listener, bool useWeakReference = false);
 
+        IThreadListenerBuilder<TRequest, TResponse> InvokeEnvelope(Func<Envelope<TRequest>, TResponse> listener, bool useWeakReference = false);
+
         /// <summary>
         /// Route the request to a different channel based on routing rules
         /// </summary>

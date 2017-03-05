@@ -8,11 +8,11 @@ namespace Acquaintance.PubSub
     public class RoutingSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly List<EventRoute<TPayload>> _routes;
-        private readonly IPublishable _messageBus;
+        private readonly IPubSubBus _messageBus;
         private readonly string _defaultRouteOrNull;
         private readonly RouterModeType _modeType;
 
-        public RoutingSubscription(IPublishable messageBus, IEnumerable<EventRoute<TPayload>> routes, string defaultRouteOrNull, RouterModeType modeType)
+        public RoutingSubscription(IPubSubBus messageBus, IEnumerable<EventRoute<TPayload>> routes, string defaultRouteOrNull, RouterModeType modeType)
         {
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
@@ -30,45 +30,53 @@ namespace Acquaintance.PubSub
         public Guid Id { get; set; }
         public bool ShouldUnsubscribe => false;
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
             switch (_modeType)
             {
                 case RouterModeType.FirstMatchingRoute:
-                    PublishFirstOrDefault(payload);
+                    PublishFirstOrDefault(message);
                     break;
                 case RouterModeType.AllMatchingRoutes:
-                    PublishAllMatching(payload);
+                    PublishAllMatching(message);
                     break;
                 default:
                     break;
             }
         }
 
-        private void PublishFirstOrDefault(TPayload payload)
+        private void PublishFirstOrDefault(Envelope<TPayload> message)
         {
-            var route = _routes.FirstOrDefault(r => r.Predicate(payload));
+            var route = _routes.FirstOrDefault(r => r.Predicate(message.Payload));
             if (route != null)
             {
-                _messageBus.Publish(route.ChannelName, payload);
+                message = message.RedirectToChannel(route.ChannelName);
+                _messageBus.PublishEnvelope(message);
                 return;
             }
 
             if (_defaultRouteOrNull != null)
-                _messageBus.Publish(_defaultRouteOrNull, payload);
+            {
+                message = message.RedirectToChannel(_defaultRouteOrNull);
+                _messageBus.PublishEnvelope(message);
+            }
         }
 
-        private void PublishAllMatching(TPayload payload)
+        private void PublishAllMatching(Envelope<TPayload> message)
         {
             bool hasMatch = false;
-            foreach (var route in _routes.Where(r => r.Predicate(payload)))
+            foreach (var route in _routes.Where(r => r.Predicate(message.Payload)))
             {
                 hasMatch = true;
-                _messageBus.Publish(route.ChannelName, payload);
+                var newMessage = message.RedirectToChannel(route.ChannelName);
+                _messageBus.PublishEnvelope(newMessage);
             }
 
             if (!hasMatch && _defaultRouteOrNull != null)
-                _messageBus.Publish(_defaultRouteOrNull, payload);
+            {
+                var newMessage = message.RedirectToChannel(_defaultRouteOrNull);
+                _messageBus.PublishEnvelope(newMessage);
+            }
         }
     }
 }

@@ -9,9 +9,9 @@ namespace Acquaintance.PubSub
     /// object, but still want IMessageBus to handle thread dispatching.
     /// </summary>
     /// <typeparam name="TPayload"></typeparam>
-    public interface ISubscriptionHandler<in TPayload>
+    public interface ISubscriptionHandler<TPayload>
     {
-        void Handle(TPayload payload);
+        void Handle(Envelope<TPayload> message);
     }
 
     public class SubscriptionHandlerActionReference<TPayload> : ISubscriberReference<TPayload>
@@ -25,9 +25,9 @@ namespace Acquaintance.PubSub
             _handler = handler;
         }
 
-        public void Invoke(TPayload payload)
+        public void Invoke(Envelope<TPayload> message)
         {
-            _handler.Handle(payload);
+            _handler.Handle(message);
         }
 
         public bool IsAlive => true;

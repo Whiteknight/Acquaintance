@@ -11,10 +11,10 @@ namespace Acquaintance.PubSub
         public ThreadPoolThreadSubscription(IThreadPool threadPool, ISubscriberReference<TPayload> action)
         {
             if (threadPool == null)
-                throw new System.ArgumentNullException(nameof(threadPool));
+                throw new ArgumentNullException(nameof(threadPool));
 
             if (action == null)
-                throw new System.ArgumentNullException(nameof(action));
+                throw new ArgumentNullException(nameof(action));
 
             _threadPool = threadPool;
             _action = action;
@@ -23,9 +23,9 @@ namespace Acquaintance.PubSub
         public Guid Id { get; set; }
         public bool ShouldUnsubscribe => false;
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
-            var action = new PublishEventThreadAction<TPayload>(_action, payload);
+            var action = new PublishEventThreadAction<TPayload>(_action, message);
             var context = _threadPool.GetThreadPoolActionDispatcher();
             context.DispatchAction(action);
         }

@@ -182,9 +182,9 @@ namespace Acquaintance.Tests.Nets
 
         private class TestHandler : ISubscriptionHandler<int>
         {
-            public void Handle(int payload)
+            public void Handle(Envelope<int> message)
             {
-                Value = payload;
+                Value = message.Payload;
             }
 
             public int Value { get; private set; }

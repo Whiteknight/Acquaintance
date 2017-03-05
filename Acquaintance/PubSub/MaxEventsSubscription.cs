@@ -23,11 +23,11 @@ namespace Acquaintance.PubSub
             set { _inner.Id = value; }
         }
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
             int maxEvents = Interlocked.Decrement(ref _maxEvents);
             if (maxEvents >= 0)
-                _inner.Publish(payload);
+                _inner.Publish(message);
         }
 
         public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe || _maxEvents <= 0;

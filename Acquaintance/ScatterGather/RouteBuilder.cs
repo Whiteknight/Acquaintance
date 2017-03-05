@@ -6,12 +6,12 @@ namespace Acquaintance.ScatterGather
 {
     public class RouteBuilder<TRequest, TResponse>
     {
-        private readonly IReqResBus _messageBus;
+        private readonly IScatterGatherBus _messageBus;
         private readonly List<EventRoute<TRequest>> _routes;
         private string _defaultRoute;
         private RouterModeType _mode;
 
-        public RouteBuilder(IReqResBus messageBus)
+        public RouteBuilder(IScatterGatherBus messageBus)
         {
             _messageBus = messageBus;
             _routes = new List<EventRoute<TRequest>>();

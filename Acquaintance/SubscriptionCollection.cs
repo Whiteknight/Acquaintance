@@ -11,7 +11,7 @@ namespace Acquaintance
     /// SubscriptionCollection holds a collection of subscription tokens so that they can all be
     /// disposed at once.
     /// </summary>
-    public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IDisposable
+    public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IScatterGatherBus, IDisposable
     {
         private readonly IMessageBus _messageBus;
         private readonly List<IDisposable> _subscriptions;
@@ -23,6 +23,8 @@ namespace Acquaintance
         }
 
         public IThreadPool ThreadPool => _messageBus.ThreadPool;
+
+        public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
         public void Dispose()
         {
@@ -58,19 +60,19 @@ namespace Acquaintance
             return token;
         }
 
-        public void Publish<TPayload>(string channelName, TPayload payload)
+        public TResponse RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> request)
         {
-            _messageBus.Publish<TPayload>(channelName, payload);
-        }
-
-        public TResponse Request<TRequest, TResponse>(string channelName, TRequest request)
-        {
-            return _messageBus.Request<TRequest, TResponse>(channelName, request);
+            return _messageBus.RequestEnvelope<TRequest, TResponse>(request);
         }
 
         public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request)
         {
             return _messageBus.Scatter<TRequest, TResponse>(channelName, request);
+        }
+
+        public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)
+        {
+            _messageBus.PublishEnvelope<TPayload>(envelope);
         }
     }
 }

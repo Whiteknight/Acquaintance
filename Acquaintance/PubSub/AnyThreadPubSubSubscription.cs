@@ -22,10 +22,10 @@ namespace Acquaintance.PubSub
 
         public Guid Id { get; set; }
 
-        public void Publish(TPayload payload)
+        public void Publish(Envelope<TPayload> message)
         {
             var thread = _threadPool.GetAnyThreadDispatcher();
-            thread.DispatchAction(new PublishEventThreadAction<TPayload>(_action, payload));
+            thread.DispatchAction(new PublishEventThreadAction<TPayload>(_action, message));
         }
 
         public bool ShouldUnsubscribe => false;

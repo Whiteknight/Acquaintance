@@ -27,12 +27,12 @@ namespace Acquaintance.RequestResponse
 
         public bool ShouldStopListening => _inner.ShouldStopListening;
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
             return _inner.CanHandle(request);
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
         {
             // TODO: Move breaking logic into a reusable CircuitBreaker class so we can share the
             // core logic with Scatter/Gather

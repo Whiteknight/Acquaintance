@@ -19,12 +19,12 @@ namespace Acquaintance.RequestResponse
             set { _inner.Id = value; }
         }
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
-            return _inner.CanHandle(request) && _filter(request);
+            return _inner.CanHandle(request) && _filter(request.Payload);
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
         {
             return _inner.Request(request);
         }

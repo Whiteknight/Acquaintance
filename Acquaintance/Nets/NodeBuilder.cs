@@ -63,11 +63,13 @@ namespace Acquaintance.Nets
                 try
                 {
                     var result = transform(m);
-                    _messageBus.Publish(outputChannelName, result);
+                    var envelope = _messageBus.EnvelopeFactory.Create(outputChannelName, result);
+                    _messageBus.PublishEnvelope(envelope);
                 }
                 catch (Exception e)
                 {
-                    _messageBus.Publish(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                    var envelope = _messageBus.EnvelopeFactory.Create(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                    _messageBus.PublishEnvelope(envelope);
                 }
             };
             return this;

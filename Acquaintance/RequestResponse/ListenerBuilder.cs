@@ -80,6 +80,12 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
+        public IThreadListenerBuilder<TRequest, TResponse> InvokeEnvelope(Func<Envelope<TRequest>, TResponse> listener, bool useWeakReference = false)
+        {
+            _funcReference = CreateReference(listener, useWeakReference);
+            return this;
+        }
+
         public IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
         {
             _routeBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
@@ -205,8 +211,15 @@ namespace Acquaintance.RequestResponse
         private IListenerReference<TRequest, TResponse> CreateReference(Func<TRequest, TResponse> listener, bool useWeakReference)
         {
             if (useWeakReference)
-                return new WeakListenerReference<TRequest, TResponse>(listener);
-            return new StrongListenerReference<TRequest, TResponse>(listener);
+                return new PayloadWeakListenerReference<TRequest, TResponse>(listener);
+            return new PayloadStrongListenerReference<TRequest, TResponse>(listener);
+        }
+
+        private IListenerReference<TRequest, TResponse> CreateReference(Func<Envelope<TRequest>, TResponse> listener, bool useWeakReference)
+        {
+            if (useWeakReference)
+                return new EnvelopeWeakListenerReference<TRequest, TResponse>(listener);
+            return new EnvelopeStrongListenerReference<TRequest, TResponse>(listener);
         }
     }
 }

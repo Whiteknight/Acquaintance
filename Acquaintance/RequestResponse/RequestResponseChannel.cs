@@ -14,7 +14,7 @@ namespace Acquaintance.RequestResponse
 
         public Guid Id { get; }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
         {
             var listener = _listener;
             if (listener == null || !listener.CanHandle(request))

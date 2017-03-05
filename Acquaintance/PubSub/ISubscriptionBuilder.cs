@@ -29,6 +29,8 @@ namespace Acquaintance.PubSub
         /// <returns>The builder</returns>
         IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = true);
 
+        IThreadSubscriptionBuilder<TPayload> InvokeEnvelope(Action<Envelope<TPayload>> action, bool useWeakReferences = false);
+
         /// <summary>
         /// Invoke a method on a handler object in response to the event
         /// </summary>

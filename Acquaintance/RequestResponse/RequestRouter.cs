@@ -20,25 +20,28 @@ namespace Acquaintance.RequestResponse
 
         public Guid Id { get; set; }
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
             // TODO: Add Filtering
             return true;
         }
 
-        public IDispatchableRequest<TResponse> Request(TRequest request)
+        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
         {
-            var route = _routes.FirstOrDefault(r => r.Predicate(request));
+            var route = _routes.FirstOrDefault(r => r.Predicate(request.Payload));
             if (route == null)
             {
                 if (_defaultRouteOrNull != null)
                 {
-                    var response1 = _messageBus.Request<TRequest, TResponse>(_defaultRouteOrNull, request);
+                    request = request.RedirectToChannel(_defaultRouteOrNull);
+                    var response1 = _messageBus.RequestEnvelope<TRequest, TResponse>(request);
                     return new ImmediateResponse<TResponse>(Id, response1);
                 }
                 return new ImmediateResponse<TResponse>(Id, default(TResponse));
             }
-            var response = _messageBus.Request<TRequest, TResponse>(route.ChannelName, request);
+
+            request = request.RedirectToChannel(route.ChannelName);
+            var response = _messageBus.RequestEnvelope<TRequest, TResponse>(request);
             return new ImmediateResponse<TResponse>(Id, response);
         }
 

@@ -13,9 +13,10 @@ namespace Acquaintance
         /// The threadpool which holds worker threads for dispatching requests and events
         /// </summary>
         IThreadPool ThreadPool { get; }
+        IEnvelopeFactory EnvelopeFactory { get; }
     }
 
-    public interface ISubscribable : IBusBase
+    public interface IPubSubBus : IBusBase
     {
         /// <summary>
         /// Subscribe to pub/sub events for the given type, on the given channel name.
@@ -25,26 +26,21 @@ namespace Acquaintance
         /// <param name="subscription">The subscription object to receive the events</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription);
+
+        void PublishEnvelope<TPayload>(Envelope<TPayload> envelope);
     }
 
-    public interface IPublishable
+    public interface IReqResBus : IBusBase
     {
         /// <summary>
-        /// Publish an event of the given type on the given channel
+        /// Make a request and expect a single response
         /// </summary>
-        /// <typeparam name="TPayload">The type of event payload to publish</typeparam>
-        /// <param name="channelName">The name of the channel</param>
-        /// <param name="payload">The event payload object to send to subscribers. This object should not be modified after publishing to avoid concurrency conflicts.</param>
-        void Publish<TPayload>(string channelName, TPayload payload);
-    }
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="request">The request object which represents the input arguments to the RPC call</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        TResponse RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> request);
 
-    public interface IPubSubBus : IPublishable, ISubscribable
-    {
-
-    }
-
-    public interface IListenable : IBusBase
-    {
         /// <summary>
         /// Listen for an incoming request and provide a response.
         /// </summary>
@@ -54,16 +50,6 @@ namespace Acquaintance
         /// <param name="listener">The listener to receive the request and provide a response</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener);
-
-        /// <summary>
-        /// Listen for incoming scatters and provide responses
-        /// </summary>
-        /// <typeparam name="TRequest">The type of request object</typeparam>
-        /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="channelName">The name of the channel</param>
-        /// <param name="participant">The participant which receives the request and provides responses.</param>
-        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant);
 
         /// <summary>
         /// Eavesdrop on request/response and scatter/gather conversations, and receive events when
@@ -77,18 +63,8 @@ namespace Acquaintance
         IDisposable Eavesdrop<TRequest, TResponse>(string channelName, ISubscription<Conversation<TRequest, TResponse>> subscriber);
     }
 
-    public interface IRequestable
+    public interface IScatterGatherBus : IBusBase
     {
-        /// <summary>
-        /// Make a request and expect a single response
-        /// </summary>
-        /// <typeparam name="TRequest">The type of request object</typeparam>
-        /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="channelName">The name of the channel</param>
-        /// <param name="request">The request object which represents the input arguments to the RPC call</param>
-        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        TResponse Request<TRequest, TResponse>(string channelName, TRequest request);
-
         /// <summary>
         /// Make a request and receive many responses
         /// </summary>
@@ -98,14 +74,21 @@ namespace Acquaintance
         /// <param name="request">The request object</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request);
+
+        /// <summary>
+        /// Listen for incoming scatters and provide responses
+        /// </summary>
+        /// <typeparam name="TRequest">The type of request object</typeparam>
+        /// <typeparam name="TResponse">The type of response object</typeparam>
+        /// <param name="channelName">The name of the channel</param>
+        /// <param name="participant">The participant which receives the request and provides responses.</param>
+        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
+        IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant);
+
+        // TODO: An Eavesdrop variant for scatter/gather?
     }
 
-    public interface IReqResBus : IListenable, IRequestable
-    {
-
-    }
-
-    public interface IMessageBus : IPubSubBus, IReqResBus, IDisposable
+    public interface IMessageBus : IPubSubBus, IReqResBus, IScatterGatherBus, IDisposable
     {
         /// <summary>
         /// Extension modules for the message bus which may add additional features.

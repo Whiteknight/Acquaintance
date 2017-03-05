@@ -28,6 +28,7 @@ namespace Acquaintance
             _logger = logger ?? CreateDefaultLogger();
             ThreadPool = threadPool ?? new MessagingWorkerThreadPool(2);
             Modules = new ModuleManager(this, _logger);
+            EnvelopeFactory = new EnvelopeFactory();
 
             dispatcherFactory = dispatcherFactory ?? new SimpleDispatchStrategyFactory();
             _pubSubStrategy = dispatcherFactory.CreatePubSubStrategy();
@@ -38,13 +39,16 @@ namespace Acquaintance
 
         public IModuleManager Modules { get; }
 
-        public void Publish<TPayload>(string channelName, TPayload payload)
+        public IEnvelopeFactory EnvelopeFactory { get; }
+
+        public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {
-            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(channelName))
+            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(message.Channel))
             {
-                _logger.Debug("Publishing message Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, channelName, channel.Id);
-                channel.Publish(payload);
+                _logger.Debug("Publishing message Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, message.Channel, channel.Id);
+                channel.Publish(message);
             }
+            // TODO: Interceptors here so we can send messages to plugins or to federated instances
         }
 
         public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
@@ -58,18 +62,18 @@ namespace Acquaintance
             return channel.Subscribe(subscription);
         }
 
-        public TResponse Request<TRequest, TResponse>(string channelName, TRequest request)
+        public TResponse RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> request)
         {
-            return RequestInternal<TRequest, TResponse>(channelName, request, _requestResponseStrategy).Response;
+            return RequestInternal<TRequest, TResponse>(request, _requestResponseStrategy).Response;
         }
 
-        private CompleteResponse<TResponse> RequestInternal<TRequest, TResponse>(string name, TRequest request, IReqResChannelDispatchStrategy strategy)
+        private CompleteResponse<TResponse> RequestInternal<TRequest, TResponse>(Envelope<TRequest> request, IReqResChannelDispatchStrategy strategy)
         {
-            var channel = strategy.GetExistingChannel<TRequest, TResponse>(name);
+            var channel = strategy.GetExistingChannel<TRequest, TResponse>(request.Channel);
             if (channel == null)
                 return new CompleteResponse<TResponse>(default(TResponse), null);
 
-            _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+            _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Channel, channel.Id);
             var waiter = channel.Request(request);
 
             CompleteResponse<TResponse> response;
@@ -80,15 +84,16 @@ namespace Acquaintance
                 response = new CompleteResponse<TResponse>(default(TResponse), null, false);
             waiter.Dispose();
 
-            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
+            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(request.Channel).ToList();
             if (eavesdropChannels.Any())
             {
-                var conversation = new Conversation<TRequest, TResponse>(request, new List<TResponse> { response.Response });
-                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, name, conversation.Responses.Count);
+                var conversation = new Conversation<TRequest, TResponse>(request.Payload, new List<TResponse> { response.Response });
+                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Channel, conversation.Responses.Count);
                 foreach (var eavesdropChannel in eavesdropChannels)
                 {
-                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
-                    eavesdropChannel.Publish(conversation);
+                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Channel, channel.Id);
+                    var envelope = EnvelopeFactory.Create(null, conversation);
+                    eavesdropChannel.Publish(envelope);
                 }
             }
 
@@ -137,7 +142,8 @@ namespace Acquaintance
                 foreach (var channel in eavesdropChannels)
                 {
                     _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
-                    channel.Publish(conversation);
+                    var envelope = EnvelopeFactory.Create(null, conversation);
+                    channel.Publish(envelope);
                 }
             }
 

@@ -8,22 +8,22 @@ namespace Acquaintance.RequestResponse
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IListenerReference<in TRequest, out TResponse>
+    public interface IListenerReference<TRequest, out TResponse>
     {
-        TResponse Invoke(TRequest request);
+        TResponse Invoke(Envelope<TRequest> request);
         bool IsAlive { get; }
     }
 
-    public class StrongListenerReference<TRequest, TResponse> : IListenerReference<TRequest, TResponse>
+    public class EnvelopeStrongListenerReference<TRequest, TResponse> : IListenerReference<TRequest, TResponse>
     {
-        private readonly Func<TRequest, TResponse> _func;
+        private readonly Func<Envelope<TRequest>, TResponse> _func;
 
-        public StrongListenerReference(Func<TRequest, TResponse> func)
+        public EnvelopeStrongListenerReference(Func<Envelope<TRequest>, TResponse> func)
         {
             _func = func;
         }
 
-        public TResponse Invoke(TRequest request)
+        public TResponse Invoke(Envelope<TRequest> request)
         {
             return _func(request);
         }
@@ -31,21 +31,61 @@ namespace Acquaintance.RequestResponse
         public bool IsAlive => true;
     }
 
-    public class WeakListenerReference<TRequest, TResponse> : IListenerReference<TRequest, TResponse>
+    public class PayloadStrongListenerReference<TRequest, TResponse> : IListenerReference<TRequest, TResponse>
+    {
+        private readonly Func<TRequest, TResponse> _func;
+
+        public PayloadStrongListenerReference(Func<TRequest, TResponse> func)
+        {
+            _func = func;
+        }
+
+        public TResponse Invoke(Envelope<TRequest> request)
+        {
+            return _func(request.Payload);
+        }
+
+        public bool IsAlive => true;
+    }
+
+    public class EnvelopeWeakListenerReference<TRequest, TResponse> : IListenerReference<TRequest, TResponse>
+    {
+        private readonly WeakReference<Func<Envelope<TRequest>, TResponse>> _func;
+
+        public EnvelopeWeakListenerReference(Func<Envelope<TRequest>, TResponse> func)
+        {
+            _func = new WeakReference<Func<Envelope<TRequest>, TResponse>>(func);
+            IsAlive = true;
+        }
+
+        public TResponse Invoke(Envelope<TRequest> request)
+        {
+            Func<Envelope<TRequest>, TResponse> func;
+            if (_func.TryGetTarget(out func))
+                return func(request);
+
+            IsAlive = false;
+            return default(TResponse);
+        }
+
+        public bool IsAlive { get; private set; }
+    }
+
+    public class PayloadWeakListenerReference<TRequest, TResponse> : IListenerReference<TRequest, TResponse>
     {
         private readonly WeakReference<Func<TRequest, TResponse>> _func;
 
-        public WeakListenerReference(Func<TRequest, TResponse> func)
+        public PayloadWeakListenerReference(Func<TRequest, TResponse> func)
         {
             _func = new WeakReference<Func<TRequest, TResponse>>(func);
             IsAlive = true;
         }
 
-        public TResponse Invoke(TRequest request)
+        public TResponse Invoke(Envelope<TRequest> request)
         {
             Func<TRequest, TResponse> func;
             if (_func.TryGetTarget(out func))
-                return func(request);
+                return func(request.Payload);
 
             IsAlive = false;
             return default(TResponse);

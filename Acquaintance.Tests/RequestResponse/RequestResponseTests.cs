@@ -32,6 +32,18 @@ namespace Acquaintance.Tests.RequestResponse
         }
 
         [Test]
+        public void ListenRequestAndResponse_InvokeEnvelope()
+        {
+            var target = new MessageBus();
+            target.Listen<TestRequest, TestResponse>(l => l
+                .WithChannelName("Test")
+                .InvokeEnvelope(req => new TestResponse { Text = req.Payload.Text + "Responded" }));
+            var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            response.Should().NotBeNull();
+            response.Text.Should().Be("RequestResponded");
+        }
+
+        [Test]
         public void ListenRequestAndResponse_WeakReference()
         {
             var target = new MessageBus();

@@ -6,12 +6,12 @@ namespace Acquaintance.PubSub
 {
     public class RouteBuilder<TPayload>
     {
-        private readonly IPublishable _messageBus;
+        private readonly IPubSubBus _messageBus;
         private readonly List<EventRoute<TPayload>> _routes;
         private string _defaultRoute;
         private RouterModeType _mode;
 
-        public RouteBuilder(IPublishable messageBus)
+        public RouteBuilder(IPubSubBus messageBus)
         {
             _messageBus = messageBus;
             _routes = new List<EventRoute<TPayload>>();
