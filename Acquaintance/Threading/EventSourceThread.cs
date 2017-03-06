@@ -59,6 +59,7 @@ namespace Acquaintance.Threading
                     // TODO: Some kind of alert or event that tells the rest of the system that we've stopped?
                     return;
                 }
+                // TODO: Make IterationDelayMs configurable when we set up the source. 
                 Thread.Sleep(IterationDelayMs);
             }
         }

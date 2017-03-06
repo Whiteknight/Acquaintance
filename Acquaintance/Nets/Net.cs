@@ -17,5 +17,9 @@
         {
             _messageBus.Publish<T>(NetworkInputChannelName, payload);
         }
+
+        // TODO: Method to Validate the net. Keep a list of all channels written to and read from.
+        // If any node is reading from a channel which is not currently being read to, report a 
+        // problem.
     }
 }
