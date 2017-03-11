@@ -35,7 +35,7 @@ namespace Acquaintance.Threading
                 _freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages);
                 for (int i = 0; i < numFreeWorkers; i++)
                 {
-                    var thread = new MessageHandlerThread(_freeWorkerContext);
+                    var thread = new MessageHandlerThread(_freeWorkerContext, $"AcquaintanceFW{i}");
                     _freeWorkers.Add(thread);
                     thread.Start();
                 }
@@ -47,7 +47,7 @@ namespace Acquaintance.Threading
         public int StartDedicatedWorker()
         {
             var context = new MessageHandlerThreadContext(_maxQueuedMessages);
-            var worker = new MessageHandlerThread(context);
+            var worker = new MessageHandlerThread(context, "AcquaintanceDW");
             worker.Start();
             bool ok = _dedicatedWorkers.TryAdd(worker.ThreadId, worker);
             if (!ok)

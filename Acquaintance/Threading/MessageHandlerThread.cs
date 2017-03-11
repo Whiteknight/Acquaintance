@@ -6,17 +6,17 @@ namespace Acquaintance.Threading
     public class MessageHandlerThread : IDisposable
     {
         private readonly Thread _thread;
-        private readonly IMessageHandlerThreadContext _context;
         private bool _started;
 
-        public MessageHandlerThread(IMessageHandlerThreadContext context)
+        public MessageHandlerThread(IMessageHandlerThreadContext context, string name)
         {
             _thread = new Thread(HandlerThreadFunc);
+            _thread.Name = name;
             _started = false;
-            _context = context;
+            Context = context;
         }
 
-        public IMessageHandlerThreadContext Context => _context;
+        public IMessageHandlerThreadContext Context { get; }
 
         public int ThreadId => _thread.ManagedThreadId;
 
@@ -24,7 +24,7 @@ namespace Acquaintance.Threading
         {
             if (_started)
                 return;
-            _thread.Start(_context);
+            _thread.Start(Context);
             _started = true;
         }
 
@@ -32,7 +32,7 @@ namespace Acquaintance.Threading
         {
             if (!_started)
                 return;
-            _context.Stop();
+            Context.Stop();
             _thread.Join();
             _started = false;
         }
@@ -48,17 +48,15 @@ namespace Acquaintance.Threading
                 IThreadAction action = context.GetAction();
                 if (context.ShouldStop)
                     return;
-                while (action != null)
+                if (action == null)
+                    continue;
+                try
                 {
-                    try
-                    {
-                        action.Execute();
-                    }
-                    catch (Exception e)
-                    {
-                        // TODO: Log it or inform the user somehow?
-                    }
-                    action = context.GetAction();
+                    action.Execute();
+                }
+                catch (Exception e)
+                {
+                    // TODO: Log it or inform the user somehow?
                 }
             }
         }
