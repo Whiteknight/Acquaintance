@@ -27,7 +27,7 @@ namespace Acquaintance.PubSub
         /// <param name="action">The callback action to invoke</param>
         /// <param name="useWeakReferences">Whether to use a weak reference when storing the callback reference</param>
         /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = true);
+        IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = false);
 
         IThreadSubscriptionBuilder<TPayload> InvokeEnvelope(Action<Envelope<TPayload>> action, bool useWeakReferences = false);
 
