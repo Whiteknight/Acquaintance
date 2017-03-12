@@ -55,6 +55,20 @@ namespace Acquaintance
         }
 
         /// <summary>
+        /// Publish an encapsulated message to the bus
+        /// </summary>
+        /// <param name="messageBus">The message bus</param>
+        /// <param name="message">The encapsulated message with all necessary publish details</param>
+        public static void PublishMessage(this IPubSubBus messageBus, IPublishableMessage message)
+        {
+            if (messageBus == null)
+                throw new ArgumentNullException(nameof(messageBus));
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+            message.PublishTo(messageBus);
+        }
+
+        /// <summary>
         /// Build a subscription using common options
         /// </summary>
         /// <typeparam name="TPayload">The type of object to listen for</typeparam>

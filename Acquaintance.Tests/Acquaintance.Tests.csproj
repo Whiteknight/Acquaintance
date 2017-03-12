@@ -66,6 +66,7 @@
     <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
     <Compile Include="PubSub\PubSub.MaxEvents.Tests.cs" />
+    <Compile Include="PubSub\PubSub.Message.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Filter.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.MaxRequests.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.CircuitBreaker.Tests.cs" />
