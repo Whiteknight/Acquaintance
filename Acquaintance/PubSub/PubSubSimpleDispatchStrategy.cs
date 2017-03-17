@@ -22,12 +22,13 @@ namespace Acquaintance.PubSub
         public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name)
         {
             string key = GetPubSubKey(typeof(TPayload), name);
-            if (!_pubSubChannels.ContainsKey(key))
-                _pubSubChannels.TryAdd(key, new PubSubChannel<TPayload>());
-            var channel = _pubSubChannels[key] as IPubSubChannel<TPayload>;
-            if (channel == null)
+
+            var channel = _pubSubChannels.GetOrAdd(key, k => new PubSubChannel<TPayload>());
+            var typedChannel = channel as IPubSubChannel<TPayload>;
+            if (typedChannel == null)
                 throw new Exception("Channel has incorrect type");
-            return channel;
+
+            return typedChannel;
         }
 
         public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name)
@@ -35,10 +36,17 @@ namespace Acquaintance.PubSub
             string key = GetPubSubKey(typeof(TPayload), name);
             if (!_pubSubChannels.ContainsKey(key))
                 return Enumerable.Empty<IPubSubChannel<TPayload>>();
-            var channel = _pubSubChannels[key] as IPubSubChannel<TPayload>;
-            if (channel == null)
+
+            IPubSubChannel channel;
+            bool ok = _pubSubChannels.TryGetValue(key, out channel);
+            if (!ok || channel == null)
                 return Enumerable.Empty<IPubSubChannel<TPayload>>();
-            return new[] { channel };
+
+            var typedChannel = channel as IPubSubChannel<TPayload>;
+            if (typedChannel == null)
+                return Enumerable.Empty<IPubSubChannel<TPayload>>();
+
+            return new[] { typedChannel };
         }
 
         public void Dispose()
