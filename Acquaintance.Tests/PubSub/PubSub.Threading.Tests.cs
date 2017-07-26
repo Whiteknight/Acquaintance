@@ -34,7 +34,10 @@ namespace Acquaintance.Tests.PubSub
         [Test]
         public void Subscribe_SubscriptionBuilder_OnWorkerThread()
         {
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                ThreadPool = new MessagingWorkerThreadPool(1)
+            });
             var resetEvent = new ManualResetEvent(false);
             try
             {
@@ -141,7 +144,10 @@ namespace Acquaintance.Tests.PubSub
         [Test]
         public void Subscribe_SubscriptionBuilder_WorkerThread()
         {
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                ThreadPool = new MessagingWorkerThreadPool(1)
+            });
             try
             {
                 var resetEvent = new AutoResetEvent(false);

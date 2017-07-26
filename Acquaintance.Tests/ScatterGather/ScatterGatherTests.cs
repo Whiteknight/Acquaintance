@@ -94,7 +94,10 @@ namespace Acquaintance.Tests.ScatterGather
         [Test]
         public void ParticipateScatterGather_Wildcards()
         {
-            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                DispatchStrategy = new TrieDispatchStrategyFactory()
+            });
             target.Participate<int, int>(l => l.WithChannelName("Test.A").Invoke(req => 1));
             target.Participate<int, int>(l => l.WithChannelName("Test.B").Invoke(req => 2));
             target.Participate<int, int>(l => l.WithChannelName("Test.C").Invoke(req => 3));

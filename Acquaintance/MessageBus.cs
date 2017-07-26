@@ -17,20 +17,21 @@ namespace Acquaintance
     public sealed class MessageBus : IMessageBus
     {
         private readonly ILogger _logger;
-        public IThreadPool ThreadPool { get; }
         private readonly IPubSubChannelDispatchStrategy _pubSubStrategy;
         private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IScatterGatherChannelDispatchStrategy _scatterGatherStrategy;
 
-        public MessageBus(IThreadPool threadPool = null, ILogger logger = null, IDispatchStrategyFactory dispatcherFactory = null)
+        public MessageBus(MessageBusCreateParameters parameters = null)
         {
-            _logger = logger ?? CreateDefaultLogger();
-            ThreadPool = threadPool ?? new MessagingWorkerThreadPool(2);
+            parameters = parameters ?? MessageBusCreateParameters.Default;
+            _logger = parameters.GetLogger();
+            ThreadPool = parameters.GetThreadPool();
+
             Modules = new ModuleManager(this, _logger);
             EnvelopeFactory = new EnvelopeFactory();
 
-            dispatcherFactory = dispatcherFactory ?? new SimpleDispatchStrategyFactory();
+            var dispatcherFactory = parameters.GetDispatchStrategyFactory();
             _pubSubStrategy = dispatcherFactory.CreatePubSubStrategy();
             _eavesdropStrategy = dispatcherFactory.CreatePubSubStrategy();
             _requestResponseStrategy = dispatcherFactory.CreateRequestResponseStrategy();
@@ -38,6 +39,7 @@ namespace Acquaintance
         }
 
         public IModuleManager Modules { get; }
+        public IThreadPool ThreadPool { get; }
 
         public IEnvelopeFactory EnvelopeFactory { get; }
 
@@ -210,15 +212,6 @@ namespace Acquaintance
             _eavesdropStrategy.Dispose();
             _scatterGatherStrategy.Dispose();
             ThreadPool.Dispose();
-        }
-
-        private static ILogger CreateDefaultLogger()
-        {
-#if DEBUG
-            return new DelegateLogger(s => System.Diagnostics.Debug.WriteLine(s));
-#else
-            return new SilentLogger();
-#endif
         }
     }
 }

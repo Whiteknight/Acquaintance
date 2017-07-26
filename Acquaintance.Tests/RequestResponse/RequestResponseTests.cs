@@ -117,7 +117,10 @@ namespace Acquaintance.Tests.RequestResponse
         [Test]
         public void ListenRequestAndResponse_Wildcards()
         {
-            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                DispatchStrategy = new TrieDispatchStrategyFactory()
+            });
             target.Listen<TestRequest, TestResponse>(l => l
                 .WithChannelName("Test.A")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));

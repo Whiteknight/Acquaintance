@@ -16,7 +16,10 @@ namespace Acquaintance.Tests.PubSub
         public void WorkerThread_Stress()
         {
             const int numEvents = 100000;
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4));
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                ThreadPool = new MessagingWorkerThreadPool(4)
+            });
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubStressEvent>(s => s
@@ -38,7 +41,11 @@ namespace Acquaintance.Tests.PubSub
         public void WorkerThread_Stress_Wildcards()
         {
             const int numEvents = 100000;
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(4), dispatcherFactory: new TrieDispatchStrategyFactory());
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                ThreadPool = new MessagingWorkerThreadPool(4),
+                DispatchStrategy = new TrieDispatchStrategyFactory()
+            });
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubStressEvent>(s => s

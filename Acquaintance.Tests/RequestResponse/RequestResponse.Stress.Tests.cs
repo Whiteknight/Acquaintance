@@ -26,7 +26,10 @@ namespace Acquaintance.Tests.RequestResponse
         public void RequestResponseStress_Wildcards()
         {
             const int numEvents = 100000;
-            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                DispatchStrategy = new TrieDispatchStrategyFactory()
+            });
             target.Listen<int, int>(l => l.WithChannelName("Test").Invoke(x => 5));
             int total = 0;
             for (int i = 0; i < numEvents; i++)

@@ -22,7 +22,10 @@ namespace Acquaintance.Tests.RequestResponse
         [Test]
         public void ListenRequestAndResponse_WorkerThread()
         {
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                ThreadPool = new MessagingWorkerThreadPool(1)
+            });
             try
             {
                 target.Listen<TestRequest, TestResponse>(l => l

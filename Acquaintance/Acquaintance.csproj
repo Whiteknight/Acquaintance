@@ -62,6 +62,7 @@
     <Compile Include="Common\IDispatchable.cs" />
     <Compile Include="Envelope.cs" />
     <Compile Include="IEnvelopeFactory.cs" />
+    <Compile Include="MessageBusCreateParameters.cs" />
     <Compile Include="Nets\NodeErrorMessage.cs" />
     <Compile Include="Nets\NodeRepublishSubscriptionHandler.cs" />
     <Compile Include="PubSub\IPublishableMessage.cs" />

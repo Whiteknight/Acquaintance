@@ -33,7 +33,10 @@ namespace Acquaintance.Tests.PubSub
         [Test]
         public void SubscribeAndPublish_Wildcards()
         {
-            var target = new MessageBus(dispatcherFactory: new TrieDispatchStrategyFactory());
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                DispatchStrategy = new TrieDispatchStrategyFactory()
+            });
             int count = 0;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithChannelName("1.X.c")

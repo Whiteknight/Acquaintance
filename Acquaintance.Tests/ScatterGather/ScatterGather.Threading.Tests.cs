@@ -23,7 +23,10 @@ namespace Acquaintance.Tests.ScatterGather
         [Test]
         public void ParticipateScatterGather_WorkerThread()
         {
-            var target = new MessageBus(threadPool: new MessagingWorkerThreadPool(1));
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                ThreadPool = new MessagingWorkerThreadPool(1)
+            });
 
             try
             {
