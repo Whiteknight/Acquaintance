@@ -66,6 +66,8 @@
     <Compile Include="Nets\NodeErrorMessage.cs" />
     <Compile Include="Nets\NodeRepublishSubscriptionHandler.cs" />
     <Compile Include="PubSub\IPublishableMessage.cs" />
+    <Compile Include="PubSub\SubscriptionAttribute.cs" />
+    <Compile Include="PubSub\SubscriptionScanner.cs" />
     <Compile Include="RequestResponse\CircuitBreakerListener.cs" />
     <Compile Include="RequestResponse\IListenerBuilder.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />

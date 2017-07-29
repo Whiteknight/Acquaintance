@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="Eavesdrop\Eavesdrop.RequestResponse.Tests.cs" />
     <Compile Include="Eavesdrop\Eavesdrop.ScatterGather.Tests.cs" />
+    <Compile Include="PubSub\PubSub.AutoSubscribe.Tests.cs" />
     <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
     <Compile Include="PubSub\PubSub.MaxEvents.Tests.cs" />

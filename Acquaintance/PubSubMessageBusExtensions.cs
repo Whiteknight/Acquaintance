@@ -1,5 +1,7 @@
 ﻿using Acquaintance.PubSub;
 using System;
+using System.Reflection;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -88,6 +90,38 @@ namespace Acquaintance
 
             var token = messageBus.Subscribe(builder.ChannelName, subscription);
             return builder.WrapToken(token);
+        }
+
+        public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj)
+        {
+            return new SubscriptionScanner().AutoSubscribe(messageBus, obj);
+        }
+
+        public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
+        {
+            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(new Type[] { payloadType });
+            return method.Invoke(null, new object[] { messageBus, topics, target, subscriber } ) as IDisposable;
+        }
+
+        private static IDisposable SubscribeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
+        {
+            if (topics == null || topics.Length == 0)
+            {
+                return Subscribe<TPayload>(messageBus, b => b
+                    .OnDefaultChannel()
+                    .Invoke(p => subscriber.Invoke(target, new object[] { p })));
+            }
+
+            var tokens = new DisposableCollection();
+            foreach (var topic in topics)
+            {
+                var token = Subscribe<TPayload>(messageBus, b => b
+                    .WithChannelName(topic)
+                    .Invoke(p => subscriber.Invoke(target, new object[] { p })));
+                tokens.Add(token);
+            }
+            return tokens;
         }
     }
 }
