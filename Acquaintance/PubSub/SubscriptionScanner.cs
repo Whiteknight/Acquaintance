@@ -28,10 +28,22 @@ namespace Acquaintance.PubSub
                 if (parameters.Length != 1)
                     continue;
 
-                foreach (var attr in attrs.Where(a => parameters[0].ParameterType.IsAssignableFrom(a.Type)))
+                foreach (var attr in attrs)
                 {
-                    var token = messageBus.SubscribeUntyped(attr.Type, attr.Topics, obj, method);
-                    tokens.Add(token);
+                    if (parameters[0].ParameterType.IsAssignableFrom(attr.Type))
+                    {
+                        var token = messageBus.SubscribeUntyped(attr.Type, attr.Topics, obj, method);
+                        tokens.Add(token);
+                        continue;
+                    }
+
+                    var envelopeType = typeof(Envelope<>).MakeGenericType(attr.Type);
+                    if (parameters[0].ParameterType.IsAssignableFrom(envelopeType))
+                    {
+                        var token = messageBus.SubscribeEnvelopeUntyped(attr.Type, attr.Topics, obj, method);
+                        tokens.Add(token);
+                        continue;
+                    }
                 }
             }
             return tokens;

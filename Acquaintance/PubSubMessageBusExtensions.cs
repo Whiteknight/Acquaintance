@@ -100,7 +100,7 @@ namespace Acquaintance
         public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
         {
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(new Type[] { payloadType });
+            method = method.MakeGenericMethod(payloadType);
             return method.Invoke(null, new object[] { messageBus, topics, target, subscriber } ) as IDisposable;
         }
 
@@ -119,6 +119,33 @@ namespace Acquaintance
                 var token = Subscribe<TPayload>(messageBus, b => b
                     .WithChannelName(topic)
                     .Invoke(p => subscriber.Invoke(target, new object[] { p })));
+                tokens.Add(token);
+            }
+            return tokens;
+        }
+
+        public static IDisposable SubscribeEnvelopeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
+        {
+            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeEnvelopeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(payloadType);
+            return method.Invoke(null, new object[] { messageBus, topics, target, subscriber }) as IDisposable;
+        }
+
+        private static IDisposable SubscribeEnvelopeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
+        {
+            if (topics == null || topics.Length == 0)
+            {
+                return Subscribe<TPayload>(messageBus, b => b
+                    .OnDefaultChannel()
+                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e })));
+            }
+
+            var tokens = new DisposableCollection();
+            foreach (var topic in topics)
+            {
+                var token = Subscribe<TPayload>(messageBus, b => b
+                    .WithChannelName(topic)
+                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e })));
                 tokens.Add(token);
             }
             return tokens;

@@ -77,5 +77,39 @@ namespace Acquaintance.Tests.PubSub
                 obj.Value.Should().Be("test2");
             }
         }
+
+        public class TestClass3
+        {
+            private readonly ManualResetEvent _wait;
+
+            public TestClass3(ManualResetEvent wait)
+            {
+                _wait = wait;
+            }
+
+            public string Value { get; private set; }
+
+            [Subscription(typeof(string))]
+            public void StringSubscriber(Envelope<string> s)
+            {
+                Value = s.Payload;
+                _wait.Set();
+            }
+        }
+
+        [Test]
+        public void Autosubscribe_Envelope()
+        {
+            using (var wait = new ManualResetEvent(false))
+            {
+                var target = new MessageBus();
+                var obj = new TestClass3(wait);
+                var token = target.AutoSubscribe(obj);
+
+                target.Publish("test");
+                wait.WaitOne(2000).Should().Be(true);
+                obj.Value.Should().Be("test");
+            }
+        }
     }
 }
