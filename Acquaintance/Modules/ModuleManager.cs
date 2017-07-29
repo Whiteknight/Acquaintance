@@ -22,6 +22,11 @@ namespace Acquaintance.Modules
         public IDisposable Add(IMessageBusModule module)
         {
             var id = Guid.NewGuid();
+            return Add(id, module);
+        }
+
+        public IDisposable Add(Guid id, IMessageBusModule module)
+        {
             _logger.Debug("Adding module Id={0} Type={1}", id, module.GetType().Name);
             module.Attach(_messageBus);
             if (!_modules.TryAdd(id, module))
@@ -39,6 +44,12 @@ namespace Acquaintance.Modules
             where TModule : IMessageBusModule
         {
             return _modules.Values.OfType<TModule>().ToList();
+        }
+
+        public TModule Get<TModule>(Guid id)
+            where TModule : IMessageBusModule
+        {
+            return (TModule)_modules[id];
         }
 
         public void Dispose()
