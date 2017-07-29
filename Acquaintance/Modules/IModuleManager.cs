@@ -12,6 +12,5 @@ namespace Acquaintance.Modules
             where TModule : IMessageBusModule;
         TModule Get<TModule>(Guid id)
             where TModule : IMessageBusModule;
-
     }
 }

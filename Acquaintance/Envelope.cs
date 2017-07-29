@@ -33,7 +33,7 @@ namespace Acquaintance
         {
             var envelope = new Envelope<TPayload>(Id, Topic, Payload, true);
             if (_metadata != null)
-                envelope._metadata = new Dictionary<string, string>(_metadata);
+                envelope._metadata = new ConcurrentDictionary<string, string>(_metadata);
             return envelope;
         }
 

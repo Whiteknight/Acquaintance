@@ -6,6 +6,8 @@ namespace Acquaintance.Testing
 {
     public static class TestingExtensions
     {
+        private static readonly Guid _id = Guid.NewGuid();
+
         public static PublishExpectation<TPayload> ExpectPublish<TPayload>(this IMessageBus messageBus, string name, Func<TPayload, bool> filter = null, string description = null)
         {
             return GetTestingModule(messageBus).ExpectPublish(name, filter, description);
@@ -29,6 +31,9 @@ namespace Acquaintance.Testing
         public static IDisposable InitializeTesting(this IMessageBus messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            var module = messageBus.Modules.Get<TestingModule>().FirstOrDefault();
+            if (module != null)
+                throw new Exception("Testing is already initialized");
             return messageBus.Modules.Add(new TestingModule());
         }
 
