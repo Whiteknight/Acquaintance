@@ -8,11 +8,17 @@ namespace Acquaintance.Tests.Testing
     [TestFixture]
     public class ExpectRequestTests
     {
+        private IMessageBus CreateTarget()
+        {
+            var messageBus = new MessageBus();
+            messageBus.InitializeTesting();
+            return messageBus;
+        }
+
         [Test]
         public void ExpectRequest_WillReturnConstant()
         {
-            var target = new MessageBus();
-            target.InitializeTesting();
+            var target = CreateTarget();
             target.ExpectRequest<int, int>(null).WillReturn(5);
 
             var result = target.RequestWait<int, int>(4);
@@ -24,8 +30,7 @@ namespace Acquaintance.Tests.Testing
         [Test]
         public void ExpectRequest_WillReturnFactory()
         {
-            var target = new MessageBus();
-            target.InitializeTesting();
+            var target = CreateTarget();
             target.ExpectRequest<int, int>(null).WillReturn(x => x + 5);
 
             var result = target.RequestWait<int, int>(4);
@@ -37,8 +42,7 @@ namespace Acquaintance.Tests.Testing
         [Test]
         public void ExpectRequest_Callback()
         {
-            var target = new MessageBus();
-            target.InitializeTesting();
+            var target = CreateTarget();
             int value = 0;
             target.ExpectRequest<int, int>(null).WillReturn(5).Callback((req, res) => value = req + res);
 
@@ -50,8 +54,7 @@ namespace Acquaintance.Tests.Testing
         [Test]
         public void ExpectRequest_UnmetExpectation()
         {
-            var target = new MessageBus();
-            target.InitializeTesting();
+            var target = CreateTarget();
             target.ExpectRequest<int, int>(null);
 
             Action act = () => target.VerifyAllExpectations();

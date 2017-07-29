@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Acquaintance.RabbitMq</AssemblyName>
+    <RootNamespace>Acquaintance.RabbitMq</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.1.0-alpha1</Version>
+    <Authors>Andrew F. Whitworth</Authors>
+    <Company />
+    <Description>Internal messaging for loosely-coupled applications, RabbitMQ integration</Description>
+    <Copyright>Copyright 2016-2017</Copyright>
+    <PackageLicenseUrl>https://github.com/Whiteknight/Acquaintance/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://whiteknight.github.io/Acquaintance/</PackageProjectUrl>
+    <AssemblyVersion>0.1.0.1</AssemblyVersion>
+    <FileVersion>0.1.0.1</FileVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>7</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="EasyNetQ" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Acquaintance\Acquaintance.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -8,11 +8,17 @@ namespace Acquaintance.Tests.Testing
     [TestFixture]
     public class ExpectPublishTests
     {
-        [Test]
-        public void ExpectPublish_Test()
+        private IMessageBus CreateTarget()
         {
             var messageBus = new MessageBus();
             messageBus.InitializeTesting();
+            return messageBus;
+        }
+
+        [Test]
+        public void ExpectPublish_Test()
+        {
+            var messageBus = CreateTarget();
             messageBus.ExpectPublish<int>(null);
 
             messageBus.Publish(5);
@@ -23,8 +29,7 @@ namespace Acquaintance.Tests.Testing
         [Test]
         public void ExpectPublish_Failed()
         {
-            var messageBus = new MessageBus();
-            messageBus.InitializeTesting();
+            var messageBus = CreateTarget();
             messageBus.ExpectPublish<int>(null);
 
             Action act = () => messageBus.VerifyAllExpectations();
@@ -46,8 +51,8 @@ namespace Acquaintance.Tests.Testing
         [Test]
         public void ExpectPublish_Callback()
         {
-            var messageBus = new MessageBus();
-            messageBus.InitializeTesting();
+            var messageBus = CreateTarget();
+
             int value = 0;
             messageBus.ExpectPublish<int>(null).Callback(e => value = e);
 

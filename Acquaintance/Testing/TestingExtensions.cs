@@ -28,6 +28,9 @@ namespace Acquaintance.Testing
         public static IDisposable InitializeTesting(this IMessageBus messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            var module = messageBus.Modules.Get<TestingModule>();
+            if (module != null)
+                throw new Exception("Testing is already initialized");
             return messageBus.Modules.Add(new TestingModule());
         }
 

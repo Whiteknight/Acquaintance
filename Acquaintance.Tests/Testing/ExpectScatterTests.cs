@@ -45,15 +45,14 @@ namespace Acquaintance.Tests.Testing
         //    value.Should().Be(13);
         //}
 
-        [Test]
-        public void ExpectScatter_UnmetExpectation()
-        {
-            var target = new MessageBus();
-            target.InitializeTesting();
-            target.ExpectScatter<int, int>(null);
+        //[Test]
+        //public void ExpectScatter_UnmetExpectation()
+        //{
+        //    var target = CreateTarget();
+        //    target.ExpectScatter<int, int>(null);
 
-            Action act = () => target.VerifyAllExpectations();
-            act.ShouldThrow<ExpectationFailedException>();
-        }
+        //    Action act = () => target.VerifyAllExpectations();
+        //    act.ShouldThrow<ExpectationFailedException>();
+        //}
     }
 }
