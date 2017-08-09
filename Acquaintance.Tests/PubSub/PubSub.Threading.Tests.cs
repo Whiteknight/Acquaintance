@@ -36,7 +36,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(1)
+                ThreadPool = new MessagingWorkerThreadPool(null, 1)
             });
             var resetEvent = new ManualResetEvent(false);
             try
@@ -146,7 +146,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(1)
+                ThreadPool = new MessagingWorkerThreadPool(null, 1)
             });
             try
             {

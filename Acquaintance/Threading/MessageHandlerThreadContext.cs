@@ -1,5 +1,7 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
+using Acquaintance.Logging;
 
 namespace Acquaintance.Threading
 {
@@ -9,12 +11,15 @@ namespace Acquaintance.Threading
         private int _disposing;
         private readonly int _maxQueuedMessages;
 
-        public MessageHandlerThreadContext(int maxQueuedMessages)
+        public MessageHandlerThreadContext(int maxQueuedMessages, ILogger log)
         {
+            Log = log ?? new SilentLogger();
             _queue = new BlockingCollection<IThreadAction>();
             _disposing = 0;
             _maxQueuedMessages = maxQueuedMessages;
         }
+
+        public ILogger Log { get; }
 
         public bool ShouldStop { get; private set; }
 
@@ -42,8 +47,9 @@ namespace Acquaintance.Threading
                     return null;
                 return action;
             }
-            catch
+            catch (Exception e)
             {
+                Log.Warn("Unhandled exception in thread context: {0}\n{1}", e.Message, e.StackTrace);
                 return null;
             }
         }

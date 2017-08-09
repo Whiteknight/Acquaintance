@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using Acquaintance.Logging;
 
 namespace Acquaintance.RequestResponse
 {
@@ -12,12 +13,12 @@ namespace Acquaintance.RequestResponse
             _reqResChannels = new ConcurrentDictionary<string, IReqResChannel>();
         }
 
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
         {
             var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
             {
-                var newChannel = CreateChannel<TRequest, TResponse>();
+                var newChannel = CreateChannel<TRequest, TResponse>(log);
                 _reqResChannels.TryAdd(key, newChannel);
             }
             var channel = _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
@@ -41,9 +42,9 @@ namespace Acquaintance.RequestResponse
             _reqResChannels.Clear();
         }
 
-        private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
+        private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>(ILogger log)
         {
-            return new RequestResponseChannel<TRequest, TResponse>();
+            return new RequestResponseChannel<TRequest, TResponse>(log);
         }
 
         private static string GetReqResKey(Type requestType, Type responseType, string name)

@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Acquaintance.Logging;
 
 namespace Acquaintance.PubSub
 {
     public class PubSubChannel<TPayload> : IPubSubChannel<TPayload>
     {
+        private readonly ILogger _log;
         private readonly ConcurrentDictionary<Guid, ISubscription<TPayload>> _subscriptions;
 
-        public PubSubChannel()
+        public PubSubChannel(ILogger log)
         {
+            _log = log;
             _subscriptions = new ConcurrentDictionary<Guid, ISubscription<TPayload>>();
             Id = Guid.NewGuid();
         }
@@ -28,7 +31,10 @@ namespace Acquaintance.PubSub
                     if (subscriber.ShouldUnsubscribe)
                         toUnsubscribe.Add(kvp.Key);
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    _log.Error("Error on publish to subscription {0}: {1}\n{2}", kvp.Key, e.Message, e.StackTrace);
+                }
             }
             foreach (var id in toUnsubscribe)
                 Unsubscribe(id);

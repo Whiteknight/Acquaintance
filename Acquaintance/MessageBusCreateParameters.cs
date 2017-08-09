@@ -22,9 +22,9 @@ namespace Acquaintance
 #endif
         }
 
-        public IThreadPool GetThreadPool()
+        public IThreadPool GetThreadPool(ILogger log)
         {
-            return ThreadPool ?? new MessagingWorkerThreadPool(2);
+            return ThreadPool ?? new MessagingWorkerThreadPool(log, 2);
         }
 
         public IDispatchStrategyFactory GetDispatchStrategyFactory()

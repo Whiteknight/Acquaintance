@@ -58,7 +58,7 @@ namespace Acquaintance.Threading
                 }
                 catch (Exception e)
                 {
-                    // TODO: Log it or inform the user somehow?
+                    context.Log.Warn("Unhandled exception on worker thread: {1}\n{2}", e.Message, e.StackTrace);
                 }
             }
         }

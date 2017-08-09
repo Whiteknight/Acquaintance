@@ -2,6 +2,7 @@ using Acquaintance.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Logging;
 
 namespace Acquaintance.ScatterGather
 {
@@ -14,10 +15,10 @@ namespace Acquaintance.ScatterGather
             _channels = new StringTrie<IScatterGatherChannel>();
         }
 
-        public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
+        public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
         {
             name = name ?? string.Empty;
-            var channel = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'), CreateChannel<TRequest, TResponse>) as IScatterGatherChannel<TRequest, TResponse>;
+            var channel = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'), () => CreateChannel<TRequest, TResponse>(log)) as IScatterGatherChannel<TRequest, TResponse>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");
             return channel;
@@ -34,9 +35,9 @@ namespace Acquaintance.ScatterGather
             _channels.OnEach(c => c?.Dispose());
         }
 
-        private IScatterGatherChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
+        private IScatterGatherChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>(ILogger log)
         {
-            return new ScatterGatherChannel<TRequest, TResponse>();
+            return new ScatterGatherChannel<TRequest, TResponse>(log);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Logging;
 
 namespace Acquaintance.PubSub
 {
@@ -19,11 +20,11 @@ namespace Acquaintance.PubSub
             return $"Type={type.AssemblyQualifiedName}:Name={name ?? string.Empty}";
         }
 
-        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name)
+        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name, ILogger log)
         {
             string key = GetPubSubKey(typeof(TPayload), name);
 
-            var channel = _pubSubChannels.GetOrAdd(key, k => new PubSubChannel<TPayload>());
+            var channel = _pubSubChannels.GetOrAdd(key, k => new PubSubChannel<TPayload>(log));
             var typedChannel = channel as IPubSubChannel<TPayload>;
             if (typedChannel == null)
                 throw new Exception("Channel has incorrect type");

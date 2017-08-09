@@ -25,7 +25,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(1)
+                ThreadPool = new MessagingWorkerThreadPool(null, 1)
             });
 
             try

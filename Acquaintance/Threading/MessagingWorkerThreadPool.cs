@@ -3,11 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Acquaintance.Logging;
 
 namespace Acquaintance.Threading
 {
     public class MessagingWorkerThreadPool : IThreadPool
     {
+        private readonly ILogger _log;
         private readonly int _maxQueuedMessages;
         private readonly List<MessageHandlerThread> _freeWorkers;
         private readonly IMessageHandlerThreadContext _freeWorkerContext;
@@ -17,15 +19,16 @@ namespace Acquaintance.Threading
         private readonly ConcurrentDictionary<int, MessageHandlerThread> _dedicatedWorkers;
         private readonly ConcurrentDictionary<int, RegisteredManagedThread> _registeredThreads;
 
-        public MessagingWorkerThreadPool(int numFreeWorkers = 0, int maxQueuedMessages = 1000)
+        public MessagingWorkerThreadPool(ILogger log, int numFreeWorkers = 0, int maxQueuedMessages = 1000)
         {
             if (maxQueuedMessages <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxQueuedMessages));
             if (numFreeWorkers < 0)
                 throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
 
+            _log = log;
             _maxQueuedMessages = maxQueuedMessages;
-            _threadPoolDispatcher = new ThreadPoolActionDispatcher();
+            _threadPoolDispatcher = new ThreadPoolActionDispatcher(_log);
             _freeWorkers = new List<MessageHandlerThread>();
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
             _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
@@ -33,7 +36,7 @@ namespace Acquaintance.Threading
 
             if (numFreeWorkers > 0)
             {
-                _freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages);
+                _freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages, _log);
                 for (int i = 0; i < numFreeWorkers; i++)
                 {
                     var thread = new MessageHandlerThread(_freeWorkerContext, $"AcquaintanceFW{i}");
@@ -47,7 +50,7 @@ namespace Acquaintance.Threading
 
         public int StartDedicatedWorker()
         {
-            var context = new MessageHandlerThreadContext(_maxQueuedMessages);
+            var context = new MessageHandlerThreadContext(_maxQueuedMessages, _log);
             var worker = new MessageHandlerThread(context, "AcquaintanceDW");
             worker.Start();
             bool ok = _dedicatedWorkers.TryAdd(worker.ThreadId, worker);
@@ -76,18 +79,14 @@ namespace Acquaintance.Threading
             if (ok)
                 return worker.Context;
 
-            IMessageHandlerThreadContext context;
+            
             if (allowAutoCreate)
-            {
-                context = _detachedContexts.GetOrAdd(threadId, id => CreateDetachedContext());
-                return context;
-            }
+                return _detachedContexts.GetOrAdd(threadId, id => CreateDetachedContext());
 
-            ok = _detachedContexts.TryGetValue(threadId, out context);
-            if (ok)
+            if (_detachedContexts.TryGetValue(threadId, out IMessageHandlerThreadContext context))
                 return context;
 
-            return new DummyMessageHandlerThreadContext();
+            return new DummyMessageHandlerThreadContext(_log);
         }
 
         public IActionDispatcher GetFreeWorkerThreadDispatcher()
@@ -130,7 +129,7 @@ namespace Acquaintance.Threading
 
         private IMessageHandlerThreadContext CreateDetachedContext()
         {
-            return new MessageHandlerThreadContext(_maxQueuedMessages);
+            return new MessageHandlerThreadContext(_maxQueuedMessages, _log);
         }
 
         public ThreadReport GetThreadReport()

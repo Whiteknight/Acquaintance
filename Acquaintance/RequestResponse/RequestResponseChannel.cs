@@ -1,14 +1,17 @@
 using System;
+using Acquaintance.Logging;
 
 namespace Acquaintance.RequestResponse
 {
     public class RequestResponseChannel<TRequest, TResponse> : IReqResChannel<TRequest, TResponse>
     {
+        private readonly ILogger _log;
         private Guid _tokenId;
         private IListener<TRequest, TResponse> _listener;
 
-        public RequestResponseChannel()
+        public RequestResponseChannel(ILogger log)
         {
+            _log = log;
             Id = Guid.NewGuid();
         }
 
@@ -28,8 +31,9 @@ namespace Acquaintance.RequestResponse
 
                 return waiter;
             }
-            catch
+            catch (Exception e)
             {
+                _log.Warn("Listener {0} threw exception {1}\n{2}", Id, e.Message, e.StackTrace);
                 return new ImmediateResponse<TResponse>(Id, default(TResponse));
             }
         }

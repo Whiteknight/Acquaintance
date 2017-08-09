@@ -21,11 +21,10 @@ namespace Acquaintance.Modules
 
         public IDisposable Add(IMessageBusModule module)
         {
-            Guid id = Guid.NewGuid();
+            var id = Guid.NewGuid();
             _logger.Debug("Adding module Id={0} Type={1}", id, module.GetType().Name);
             module.Attach(_messageBus);
-            bool added = _modules.TryAdd(id, module);
-            if (!added)
+            if (!_modules.TryAdd(id, module))
                 return null;
 
             _logger.Debug("Starting module Id={0} Type={1}", id, module.GetType().Name);
@@ -48,8 +47,7 @@ namespace Acquaintance.Modules
 
         private void RemoveModule(Guid id)
         {
-            IMessageBusModule module;
-            _modules.TryRemove(id, out module);
+            _modules.TryRemove(id, out IMessageBusModule module);
 
             _logger.Debug("Stopping module Id={0} Type={1}", id, module.GetType().Name);
             module.Stop();

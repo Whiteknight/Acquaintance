@@ -1,6 +1,8 @@
 using Acquaintance.Utility;
 using System;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using Acquaintance.Logging;
 
 namespace Acquaintance.RequestResponse
 {
@@ -13,10 +15,10 @@ namespace Acquaintance.RequestResponse
             _channels = new StringTrie<IReqResChannel>();
         }
 
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
         {
             name = name ?? string.Empty;
-            var channel = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'), CreateChannel<TRequest, TResponse>) as IReqResChannel<TRequest, TResponse>;
+            var channel = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'), () => CreateChannel<TRequest, TResponse>(log)) as IReqResChannel<TRequest, TResponse>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");
             return channel;
@@ -35,9 +37,9 @@ namespace Acquaintance.RequestResponse
             _channels.OnEach(c => c?.Dispose());
         }
 
-        private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
+        private IReqResChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>(ILogger log)
         {
-            return new RequestResponseChannel<TRequest, TResponse>();
+            return new RequestResponseChannel<TRequest, TResponse>(log);
         }
     }
 }

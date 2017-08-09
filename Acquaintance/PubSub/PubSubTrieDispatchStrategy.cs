@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Logging;
 
 namespace Acquaintance.PubSub
 {
@@ -14,10 +15,10 @@ namespace Acquaintance.PubSub
             _channels = new StringTrie<IPubSubChannel>();
         }
 
-        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name)
+        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name, ILogger log)
         {
             name = name ?? string.Empty;
-            var channel = _channels.GetOrInsert(typeof(TPayload).FullName, name.Split('.'), () => new PubSubChannel<TPayload>()) as IPubSubChannel<TPayload>;
+            var channel = _channels.GetOrInsert(typeof(TPayload).FullName, name.Split('.'), () => new PubSubChannel<TPayload>(log)) as IPubSubChannel<TPayload>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");
             return channel;

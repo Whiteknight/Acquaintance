@@ -18,7 +18,7 @@ namespace Acquaintance.Tests.PubSub
             const int numEvents = 100000;
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(4)
+                ThreadPool = new MessagingWorkerThreadPool(null, 4)
             });
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
@@ -43,7 +43,7 @@ namespace Acquaintance.Tests.PubSub
             const int numEvents = 100000;
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(4),
+                ThreadPool = new MessagingWorkerThreadPool(null, 4),
                 DispatchStrategy = new TrieDispatchStrategyFactory()
             });
             int count = 0;

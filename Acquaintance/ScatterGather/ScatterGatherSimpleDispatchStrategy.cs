@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Logging;
 
 namespace Acquaintance.ScatterGather
 {
@@ -14,12 +15,12 @@ namespace Acquaintance.ScatterGather
             _reqResChannels = new ConcurrentDictionary<string, IScatterGatherChannel>();
         }
 
-        public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
+        public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
         {
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
             {
-                var newChannel = CreateChannel<TRequest, TResponse>();
+                var newChannel = CreateChannel<TRequest, TResponse>(log);
                 _reqResChannels.TryAdd(key, newChannel);
             }
             var channel = _reqResChannels[key] as IScatterGatherChannel<TRequest, TResponse>;
@@ -46,9 +47,9 @@ namespace Acquaintance.ScatterGather
             _reqResChannels.Clear();
         }
 
-        private IScatterGatherChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>()
+        private IScatterGatherChannel<TRequest, TResponse> CreateChannel<TRequest, TResponse>(ILogger log)
         {
-            return new ScatterGatherChannel<TRequest, TResponse>();
+            return new ScatterGatherChannel<TRequest, TResponse>(log);
         }
 
         private static string GetReqResKey(Type requestType, Type responseType, string name)

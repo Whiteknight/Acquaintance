@@ -1,15 +1,18 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using Acquaintance.Logging;
 
 namespace Acquaintance.ScatterGather
 {
     public class ScatterGatherChannel<TRequest, TResponse> : IScatterGatherChannel<TRequest, TResponse>
     {
+        private readonly ILogger _log;
         private readonly ConcurrentDictionary<Guid, IParticipant<TRequest, TResponse>> _participants;
 
-        public ScatterGatherChannel()
+        public ScatterGatherChannel(ILogger log)
         {
+            _log = log;
             _participants = new ConcurrentDictionary<Guid, IParticipant<TRequest, TResponse>>();
             Id = Guid.NewGuid();
         }
@@ -37,7 +40,7 @@ namespace Acquaintance.ScatterGather
                 }
                 catch (Exception e)
                 {
-                    // TODO: We should never get here. If we do, the error should be logged
+                    _log.Warn("Participant {0} threw exception {1}\n{2}", kvp.Key, e.Message, e.StackTrace);
                 }
             }
             foreach (var id in toRemove)
