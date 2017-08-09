@@ -12,14 +12,14 @@ namespace Acquaintance.Nets
     /// <typeparam name="TInput"></typeparam>
     public class NodeBuilder<TInput> : INodeBuilder
     {
+        private readonly IMessageBus _messageBus;
+        private readonly bool _readErrors;
+        private readonly string _key;
+
         private Action<TInput> _action;
         private ISubscriptionHandler<TInput> _handler;
         private Func<TInput, bool> _predicate;
         private string _channelName;
-        private readonly IMessageBus _messageBus;
-        private readonly bool _readErrors;
-
-        private readonly string _key;
         private int _onDedicatedThreads;
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents

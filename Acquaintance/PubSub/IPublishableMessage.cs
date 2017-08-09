@@ -60,7 +60,7 @@ namespace Acquaintance.PubSub
             if (messageBus == null)
                 throw new ArgumentNullException(nameof(messageBus));
 
-            messageBus.Publish<TPayload>(_channelName, _payload);
+            messageBus.Publish(_channelName, _payload);
         }
     }
 }

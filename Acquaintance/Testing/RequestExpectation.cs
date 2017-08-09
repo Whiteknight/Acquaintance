@@ -9,8 +9,9 @@ namespace Acquaintance.Testing
         private readonly string _channelName;
         private readonly string _description;
         private readonly Func<TRequest, bool> _filter;
-        private Func<TRequest, TResponse> _getResponse;
         private readonly List<Action<TRequest, TResponse>> _actions;
+
+        private Func<TRequest, TResponse> _getResponse;
 
         public RequestExpectation(string channelName, string description, Func<TRequest, bool> filter)
         {
@@ -22,7 +23,7 @@ namespace Acquaintance.Testing
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             builder.Append("Request of type ");
             builder.Append(typeof(TRequest).FullName);
             builder.Append(" Response of type ");

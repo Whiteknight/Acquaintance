@@ -15,8 +15,8 @@ namespace Acquaintance
         /// <param name="payload">The event payload object to send to subscribers. This object should not be modified after publishing to avoid concurrency conflicts.</param>
         public static void Publish<TPayload>(this IPubSubBus messageBus, string channelName, TPayload payload)
         {
-            var envelope = messageBus.EnvelopeFactory.Create<TPayload>(channelName, payload);
-            messageBus.PublishEnvelope<TPayload>(envelope);
+            var envelope = messageBus.EnvelopeFactory.Create(channelName, payload);
+            messageBus.PublishEnvelope(envelope);
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Acquaintance
         {
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new object[] { messageBus, topics, target, subscriber } ) as IDisposable;
+            return method.Invoke(null, new[] { messageBus, topics, target, subscriber } ) as IDisposable;
         }
 
         private static IDisposable SubscribeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)

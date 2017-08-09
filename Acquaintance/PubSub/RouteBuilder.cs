@@ -8,6 +8,7 @@ namespace Acquaintance.PubSub
     {
         private readonly IPubSubBus _messageBus;
         private readonly List<EventRoute<TPayload>> _routes;
+
         private string _defaultRoute;
         private RouterModeType _mode;
 

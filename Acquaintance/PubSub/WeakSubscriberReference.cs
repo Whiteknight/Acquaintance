@@ -14,8 +14,7 @@ namespace Acquaintance.PubSub
 
         public void Invoke(Envelope<TPayload> message)
         {
-            Action<TPayload> act;
-            if (_action.TryGetTarget(out act))
+            if (_action.TryGetTarget(out Action<TPayload> act))
                 act(message.Payload);
             else
                 IsAlive = false;
@@ -36,8 +35,7 @@ namespace Acquaintance.PubSub
 
         public void Invoke(Envelope<TPayload> message)
         {
-            Action<Envelope<TPayload>> act;
-            if (_action.TryGetTarget(out act))
+            if (_action.TryGetTarget(out Action<Envelope<TPayload>> act))
                 act(message);
             else
                 IsAlive = false;

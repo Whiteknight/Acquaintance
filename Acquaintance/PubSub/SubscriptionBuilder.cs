@@ -44,19 +44,21 @@ namespace Acquaintance.PubSub
             if (_useDedicatedThread)
                 _threadId = _threadPool.StartDedicatedWorker();
 
-            ISubscription<TPayload> subscription = null;
-            if (_actionReference != null)
-                subscription = CreateSubscription(_actionReference, _dispatchType, _threadId);
-            else if (_routeBuilder != null)
-                subscription = _routeBuilder.BuildSubscription();
-            else if (_distributionList != null && _distributionList.Any())
-                subscription = new RoundRobinDispatchSubscription<TPayload>(_messageBus, _distributionList);
-
-            if (subscription == null)
-                throw new Exception("No action specified");
+            var subscription = BuildSubscriptionInternal();
 
             subscription = WrapSubscription(subscription);
             return subscription;
+        }
+
+        private ISubscription<TPayload> BuildSubscriptionInternal()
+        {
+            if (_actionReference != null)
+                return CreateSubscription(_actionReference, _dispatchType, _threadId);
+            if (_routeBuilder != null)
+                return _routeBuilder.BuildSubscription();
+            if (_distributionList != null && _distributionList.Any())
+                return new RoundRobinDispatchSubscription<TPayload>(_messageBus, _distributionList);
+            throw new Exception("No action specified");
         }
 
         public IDisposable WrapToken(IDisposable token)
@@ -232,26 +234,19 @@ namespace Acquaintance.PubSub
 
         private ISubscription<TPayload> CreateSubscription(ISubscriberReference<TPayload> actionReference, DispatchThreadType dispatchType, int threadId)
         {
-            ISubscription<TPayload> subscription;
             switch (dispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    subscription = new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
-                    break;
+                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
                 case DispatchThreadType.SpecificThread:
-                    subscription = new SpecificThreadPubSubSubscription<TPayload>(actionReference, threadId, _threadPool);
-                    break;
+                    return new SpecificThreadPubSubSubscription<TPayload>(actionReference, threadId, _threadPool);
                 case DispatchThreadType.ThreadpoolThread:
-                    subscription = new ThreadPoolThreadSubscription<TPayload>(_threadPool, actionReference);
-                    break;
+                    return new ThreadPoolThreadSubscription<TPayload>(_threadPool, actionReference);
                 case DispatchThreadType.Immediate:
-                    subscription = new ImmediatePubSubSubscription<TPayload>(actionReference);
-                    break;
+                    return new ImmediatePubSubSubscription<TPayload>(actionReference);
                 default:
-                    subscription = new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
-                    break;
+                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
             }
-            return subscription;
         }
     }
 }

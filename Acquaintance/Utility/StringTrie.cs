@@ -36,7 +36,7 @@ namespace Acquaintance.Utility
 
         public T GetOrInsert(string root, IEnumerable<string> path, Func<T> getValue)
         {
-            TrieNode node = _root;
+            var node = _root;
             if (!string.IsNullOrEmpty(root))
             {
                 if (root == "*")
@@ -56,7 +56,7 @@ namespace Acquaintance.Utility
 
         public T GetOrInsert(string root1, string root2, IEnumerable<string> path, Func<T> getValue)
         {
-            TrieNode node = _root;
+            var node = _root;
             if (!string.IsNullOrEmpty(root1))
             {
                 if (root1 == "*")
@@ -84,21 +84,21 @@ namespace Acquaintance.Utility
 
         public IEnumerable<T> Get(string root, string[] path)
         {
-            TrieNode node = _root;
+            var node = _root;
             if (!string.IsNullOrEmpty(root))
             {
                 bool ok = node.Children.TryGetValue(root, out node);
                 if (!ok)
                     return Enumerable.Empty<T>();
             }
-            List<TrieNode> foundNodes = new List<TrieNode>();
+            var foundNodes = new List<TrieNode>();
             GetInternal(path, 0, node, foundNodes, true);
             return foundNodes.Select(n => n.Value);
         }
 
         public IEnumerable<T> Get(string root1, string root2, string[] path)
         {
-            TrieNode node = _root;
+            var node = _root;
             if (!string.IsNullOrEmpty(root1))
             {
                 bool ok = node.Children.TryGetValue(root1, out node);
@@ -111,7 +111,7 @@ namespace Acquaintance.Utility
                 if (!ok)
                     return Enumerable.Empty<T>();
             }
-            List<TrieNode> foundNodes = new List<TrieNode>();
+            var foundNodes = new List<TrieNode>();
             GetInternal(path, 0, node, foundNodes, true);
             return foundNodes.Select(n => n.Value);
         }

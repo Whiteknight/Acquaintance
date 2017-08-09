@@ -40,17 +40,18 @@ namespace Acquaintance.RequestResponse
 
         public IListener<TRequest, TResponse> BuildListener()
         {
-            IListener<TRequest, TResponse> listener = null;
-            if (_routeBuilder != null)
-                listener = _routeBuilder.BuildListener();
-            else if (_funcReference != null)
-                listener = CreateListener(_funcReference, _dispatchType, _threadId, _timeoutMs);
-
-            if (listener == null)
-                throw new Exception("No function or routes supplied");
-
+            var listener = BuildListenerInternal();
             listener = WrapListener(listener, _filter, _maxRequests);
             return listener;
+        }
+
+        private IListener<TRequest, TResponse> BuildListenerInternal()
+        {
+            if (_routeBuilder != null)
+                return _routeBuilder.BuildListener();
+            if (_funcReference != null)
+                return CreateListener(_funcReference, _dispatchType, _threadId, _timeoutMs);
+            throw new Exception("No function or routes supplied");
         }
 
         public IDisposable WrapToken(IDisposable token)
@@ -178,21 +179,15 @@ namespace Acquaintance.RequestResponse
 
         private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
         {
-            IListener<TRequest, TResponse> listener;
             switch (dispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    listener = new AnyThreadListener<TRequest, TResponse>(reference, _threadPool, timeoutMs);
-                    break;
+                    return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool, timeoutMs);
                 case DispatchThreadType.SpecificThread:
-                    listener = new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
-                    break;
+                    return new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
                 default:
-                    listener = new ImmediateListener<TRequest, TResponse>(reference);
-                    break;
+                    return new ImmediateListener<TRequest, TResponse>(reference);
             }
-
-            return listener;
         }
 
         private IListener<TRequest, TResponse> WrapListener(IListener<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)

@@ -22,7 +22,7 @@ namespace Acquaintance.RequestResponse
 
             try
             {
-                IDispatchableRequest<TResponse> waiter = listener.Request(request);
+                var waiter = listener.Request(request);
                 if (listener.ShouldStopListening)
                     _listener = null;
 
@@ -50,9 +50,7 @@ namespace Acquaintance.RequestResponse
         public void Unsubscribe(Guid id)
         {
             if (id == _tokenId)
-            {
                 _listener = null;
-            }
         }
 
         public void Dispose()

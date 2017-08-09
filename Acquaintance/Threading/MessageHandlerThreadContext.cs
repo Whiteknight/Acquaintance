@@ -37,8 +37,7 @@ namespace Acquaintance.Threading
                 if (!timeoutMs.HasValue || timeoutMs.Value > 0)
                     return _queue.Take();
 
-                IThreadAction action;
-                bool hasValue = _queue.TryTake(out action, timeoutMs.Value);
+                bool hasValue = _queue.TryTake(out IThreadAction action, timeoutMs.Value);
                 if (!hasValue || action == null)
                     return null;
                 return action;

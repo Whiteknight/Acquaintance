@@ -50,15 +50,14 @@ namespace Acquaintance.ScatterGather
             if (listener == null)
                 throw new ArgumentNullException(nameof(listener));
 
-            Guid id = Guid.NewGuid();
+            var id = Guid.NewGuid();
             _participants.TryAdd(id, listener);
             return new SubscriptionToken(this, id);
         }
 
         public void Unsubscribe(Guid id)
         {
-            IParticipant<TRequest, TResponse> subscription;
-            _participants.TryRemove(id, out subscription);
+            _participants.TryRemove(id, out IParticipant<TRequest, TResponse> subscription);
         }
 
         public void Dispose()

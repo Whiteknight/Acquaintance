@@ -6,10 +6,11 @@ namespace Acquaintance.RequestResponse
     public class CircuitBreakerListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly IListener<TRequest, TResponse> _inner;
-        private int _failedRequests;
-        private DateTime _restartTime;
         private readonly int _breakMs;
         private readonly int _maxFailedRequests;
+
+        private int _failedRequests;
+        private DateTime _restartTime;        
 
         public CircuitBreakerListener(IListener<TRequest, TResponse> inner, int maxFailedRequests, int breakMs)
         {

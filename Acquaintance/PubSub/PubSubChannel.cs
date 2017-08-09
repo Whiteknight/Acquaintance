@@ -46,8 +46,7 @@ namespace Acquaintance.PubSub
 
         public void Unsubscribe(Guid id)
         {
-            ISubscription<TPayload> subscription;
-            _subscriptions.TryRemove(id, out subscription);
+            _subscriptions.TryRemove(id, out ISubscription<TPayload> subscription);
         }
 
         public void Dispose()

@@ -21,7 +21,7 @@ namespace Acquaintance.Testing
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             builder.Append("Publish of type ");
             builder.Append(typeof(TPayload).FullName);
             builder.AppendFormat(" on channel '{0}'", _channelName ?? string.Empty);
@@ -44,9 +44,7 @@ namespace Acquaintance.Testing
             IsMet = true;
 
             foreach (var action in _actions)
-            {
                 action(payload);
-            }
         }
 
         public PublishExpectation<TPayload> Callback(Action<TPayload> act)

@@ -10,8 +10,10 @@ namespace Acquaintance.Threading
 
         public MessageHandlerThread(IMessageHandlerThreadContext context, string name)
         {
-            _thread = new Thread(HandlerThreadFunc);
-            _thread.Name = name;
+            _thread = new Thread(HandlerThreadFunc)
+            {
+                Name = name
+            };
             _started = false;
             Context = context;
         }

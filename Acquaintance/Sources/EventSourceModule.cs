@@ -53,8 +53,7 @@ namespace Acquaintance.Sources
 
         private void RemoveThread(Guid id)
         {
-            IEventSourceThread thread;
-            _threads.TryRemove(id, out thread);
+            _threads.TryRemove(id, out IEventSourceThread thread);
             _messageBus.ThreadPool.UnregisterManagedThread(thread.ThreadId);
         }
 

@@ -20,6 +20,7 @@ namespace Acquaintance.ScatterGather
             _threadPool = threadPool;
             _timeoutMs = timeoutMs;
         }
+
         public Guid Id { get; set; }
         public bool ShouldStopParticipating => !_func.IsAlive;
 

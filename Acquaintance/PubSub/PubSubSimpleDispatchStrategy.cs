@@ -37,8 +37,7 @@ namespace Acquaintance.PubSub
             if (!_pubSubChannels.ContainsKey(key))
                 return Enumerable.Empty<IPubSubChannel<TPayload>>();
 
-            IPubSubChannel channel;
-            bool ok = _pubSubChannels.TryGetValue(key, out channel);
+            bool ok = _pubSubChannels.TryGetValue(key, out IPubSubChannel channel);
             if (!ok || channel == null)
                 return Enumerable.Empty<IPubSubChannel<TPayload>>();
 

@@ -23,7 +23,7 @@ namespace Acquaintance.Testing
 
         public override string ToString()
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             builder.Append("Scatter of type ");
             builder.Append(typeof(TRequest).FullName);
             builder.Append(" Gather of type ");

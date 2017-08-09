@@ -9,13 +9,7 @@ namespace Acquaintance
         public ILogger Logger { get; set; }
         public IDispatchStrategyFactory DispatchStrategy { get; set; }
 
-        public static MessageBusCreateParameters Default
-        {
-            get
-            {
-                return new MessageBusCreateParameters();
-            }
-        }
+        public static MessageBusCreateParameters Default => new MessageBusCreateParameters();
 
         public ILogger GetLogger()
         {

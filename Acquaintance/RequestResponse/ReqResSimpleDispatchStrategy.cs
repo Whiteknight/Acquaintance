@@ -14,10 +14,10 @@ namespace Acquaintance.RequestResponse
 
         public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name)
         {
-            string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
             {
-                IReqResChannel<TRequest, TResponse> newChannel = CreateChannel<TRequest, TResponse>();
+                var newChannel = CreateChannel<TRequest, TResponse>();
                 _reqResChannels.TryAdd(key, newChannel);
             }
             var channel = _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;
@@ -28,7 +28,7 @@ namespace Acquaintance.RequestResponse
 
         public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string name)
         {
-            string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
                 return null;
             return _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;

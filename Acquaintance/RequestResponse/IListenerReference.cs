@@ -60,8 +60,7 @@ namespace Acquaintance.RequestResponse
 
         public TResponse Invoke(Envelope<TRequest> request)
         {
-            Func<Envelope<TRequest>, TResponse> func;
-            if (_func.TryGetTarget(out func))
+            if (_func.TryGetTarget(out Func<Envelope<TRequest>, TResponse> func))
                 return func(request);
 
             IsAlive = false;
@@ -83,8 +82,7 @@ namespace Acquaintance.RequestResponse
 
         public TResponse Invoke(Envelope<TRequest> request)
         {
-            Func<TRequest, TResponse> func;
-            if (_func.TryGetTarget(out func))
+            if (_func.TryGetTarget(out Func<TRequest, TResponse> func))
                 return func(request.Payload);
 
             IsAlive = false;

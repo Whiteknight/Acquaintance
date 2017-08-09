@@ -11,7 +11,7 @@ namespace Acquaintance.PubSub
         public MaxEventsSubscription(ISubscription<TPayload> inner, int maxEvents)
         {
             if (inner == null)
-                throw new System.ArgumentNullException(nameof(inner));
+                throw new ArgumentNullException(nameof(inner));
 
             _inner = inner;
             _maxEvents = maxEvents;

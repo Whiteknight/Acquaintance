@@ -36,8 +36,7 @@ namespace Acquaintance.Threading
         public void Stop()
         {
             _tokenSource.Cancel();
-            bool ok = _thread.Join(TimeSpan.FromSeconds(5));
-            if (!ok)
+            if (!_thread.Join(TimeSpan.FromSeconds(5)))
                 _thread.Abort();
             _thread.Join();
         }

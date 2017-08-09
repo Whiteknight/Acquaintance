@@ -19,7 +19,7 @@ namespace Acquaintance.ScatterGather
             string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
             {
-                IScatterGatherChannel<TRequest, TResponse> newChannel = CreateChannel<TRequest, TResponse>();
+                var newChannel = CreateChannel<TRequest, TResponse>();
                 _reqResChannels.TryAdd(key, newChannel);
             }
             var channel = _reqResChannels[key] as IScatterGatherChannel<TRequest, TResponse>;
@@ -30,7 +30,7 @@ namespace Acquaintance.ScatterGather
 
         public IEnumerable<IScatterGatherChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name)
         {
-            string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
             if (!_reqResChannels.ContainsKey(key))
                 return Enumerable.Empty<IScatterGatherChannel<TRequest, TResponse>>();
             var channel = _reqResChannels[key] as IScatterGatherChannel<TRequest, TResponse>;

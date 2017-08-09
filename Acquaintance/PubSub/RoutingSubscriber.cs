@@ -40,8 +40,6 @@ namespace Acquaintance.PubSub
                 case RouterModeType.AllMatchingRoutes:
                     PublishAllMatching(message);
                     break;
-                default:
-                    break;
             }
         }
 

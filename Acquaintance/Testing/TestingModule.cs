@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Acquaintance.Testing
@@ -17,7 +16,7 @@ namespace Acquaintance.Testing
 
         public void VerifyAllExpectations()
         {
-            List<string> _messages = _expectations
+            var _messages = _expectations
                 .Where(expectation => !expectation.IsMet)
                 .Select(expectation => expectation.ToString())
                 .ToList();

@@ -42,8 +42,7 @@ namespace Acquaintance.ScatterGather
 
         public TResponse[] Invoke(TRequest request)
         {
-            Func<TRequest, IEnumerable<TResponse>> func;
-            if (_func.TryGetTarget(out func))
+            if (_func.TryGetTarget(out Func<TRequest, IEnumerable<TResponse>>  func))
             {
                 var response = func(request) ?? Enumerable.Empty<TResponse>();
                 return response.ToArray();

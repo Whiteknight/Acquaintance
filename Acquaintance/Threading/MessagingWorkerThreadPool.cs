@@ -21,6 +21,9 @@ namespace Acquaintance.Threading
         {
             if (maxQueuedMessages <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxQueuedMessages));
+            if (numFreeWorkers < 0)
+                throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
+
             _maxQueuedMessages = maxQueuedMessages;
             _threadPoolDispatcher = new ThreadPoolActionDispatcher();
             _freeWorkers = new List<MessageHandlerThread>();
@@ -28,8 +31,6 @@ namespace Acquaintance.Threading
             _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
             _registeredThreads = new ConcurrentDictionary<int, RegisteredManagedThread>();
 
-            if (numFreeWorkers < 0)
-                throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
             if (numFreeWorkers > 0)
             {
                 _freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages);
@@ -50,20 +51,15 @@ namespace Acquaintance.Threading
             var worker = new MessageHandlerThread(context, "AcquaintanceDW");
             worker.Start();
             bool ok = _dedicatedWorkers.TryAdd(worker.ThreadId, worker);
-            if (!ok)
-                return 0;
-            return worker.ThreadId;
+            return ok ? worker.ThreadId : 0;
         }
 
         public void StopDedicatedWorker(int threadId)
         {
-            MessageHandlerThread worker;
-            bool ok = _dedicatedWorkers.TryRemove(threadId, out worker);
-            if (ok)
-            {
-                worker.Stop();
-                worker.Dispose();
-            }
+            if (!_dedicatedWorkers.TryRemove(threadId, out MessageHandlerThread worker))
+                return;
+            worker.Stop();
+            worker.Dispose();
         }
 
         public IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate)
@@ -76,8 +72,7 @@ namespace Acquaintance.Threading
             if (_freeWorkers.Any(t => t.ThreadId == threadId))
                 return _freeWorkerContext;
 
-            MessageHandlerThread worker;
-            bool ok = _dedicatedWorkers.TryGetValue(threadId, out worker);
+            bool ok = _dedicatedWorkers.TryGetValue(threadId, out MessageHandlerThread worker);
             if (ok)
                 return worker.Context;
 
@@ -130,8 +125,7 @@ namespace Acquaintance.Threading
 
         public void UnregisterManagedThread(int threadId)
         {
-            RegisteredManagedThread registration;
-            _registeredThreads.TryRemove(threadId, out registration);
+            _registeredThreads.TryRemove(threadId, out RegisteredManagedThread registration);
         }
 
         private IMessageHandlerThreadContext CreateDetachedContext()

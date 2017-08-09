@@ -44,17 +44,19 @@ namespace Acquaintance.ScatterGather
             if (_useDedicatedThread)
                 _threadId = _threadPool.StartDedicatedWorker();
 
-            IParticipant<TRequest, TResponse> participant = null;
-            if (_routerBuilder != null)
-                participant = _routerBuilder.BuildParticipant();
-            else if (_funcReference != null)
-                participant = CreateParticipant(_funcReference, _dispatchType, _threadId, _timeoutMs);
-
-            if (participant == null)
-                throw new Exception("No actions defined");
+            var participant = BuildParticipantInternal();
 
             participant = WrapParticipant(participant, _filter, _maxRequests);
             return participant;
+        }
+
+        private IParticipant<TRequest, TResponse> BuildParticipantInternal()
+        {
+            if (_routerBuilder != null)
+                return _routerBuilder.BuildParticipant();
+            if (_funcReference != null)
+                return CreateParticipant(_funcReference, _dispatchType, _threadId, _timeoutMs);
+            throw new Exception("No actions defined");
         }
 
         public IDisposable WrapToken(IDisposable token)
