@@ -42,9 +42,7 @@ namespace Acquaintance.Modules
         public void Dispose()
         {
             foreach (var module in _modules.Values)
-            {
                 module.Dispose();
-            }
             _modules.Clear();
         }
 

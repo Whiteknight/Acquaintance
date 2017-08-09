@@ -26,12 +26,6 @@ namespace Acquaintance
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
-        public void Dispose()
-        {
-            foreach (var subscription in _subscriptions)
-                subscription.Dispose();
-        }
-
         public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
         {
             var token = _messageBus.Subscribe(channelName, subscription);
@@ -72,7 +66,19 @@ namespace Acquaintance
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)
         {
-            _messageBus.PublishEnvelope<TPayload>(envelope);
+            _messageBus.PublishEnvelope(envelope);
+        }
+
+        public void Clear()
+        {
+            foreach (var subscription in _subscriptions)
+                subscription.Dispose();
+            _subscriptions.Clear();
+        }
+
+        public void Dispose()
+        {
+            Clear();
         }
     }
 }
