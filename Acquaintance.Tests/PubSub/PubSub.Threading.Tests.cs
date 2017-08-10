@@ -83,7 +83,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
-            var id = target.ThreadPool.StartDedicatedWorker();
+            var id = target.ThreadPool.StartDedicatedWorker().ThreadId;
             try
             {
 
@@ -107,7 +107,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
-            var id = target.ThreadPool.StartDedicatedWorker();
+            var id = target.ThreadPool.StartDedicatedWorker().ThreadId;
             try
             {
                 target.ThreadPool.StopDedicatedWorker(id);

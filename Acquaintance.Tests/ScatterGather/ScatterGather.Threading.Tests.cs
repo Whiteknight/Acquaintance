@@ -91,7 +91,7 @@ namespace Acquaintance.Tests.ScatterGather
         public void ParticipateScatterGather_OnThread()
         {
             var target = new MessageBus();
-            int threadId = target.ThreadPool.StartDedicatedWorker();
+            int threadId = target.ThreadPool.StartDedicatedWorker().ThreadId;
             try
             {
                 var token = target.Participate<TestRequest, TestResponse>(builder => builder

@@ -3,7 +3,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
-using System.Collections.Generic;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -14,15 +14,15 @@ namespace Acquaintance
     public sealed class SubscriptionCollection : IPubSubBus, IReqResBus, IScatterGatherBus, IDisposable
     {
         private readonly IMessageBus _messageBus;
-        private readonly List<IDisposable> _subscriptions;
+        private readonly DisposableCollection _subscriptions;
 
         public SubscriptionCollection(IMessageBus messageBus)
         {
             _messageBus = messageBus;
-            _subscriptions = new List<IDisposable>();
+            _subscriptions = new DisposableCollection();
         }
 
-        public IThreadPool ThreadPool => _messageBus.ThreadPool;
+        public IThreadPool ThreadPool => new DisposableThreadPool(_messageBus.ThreadPool, _subscriptions);
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
@@ -71,14 +71,89 @@ namespace Acquaintance
 
         public void Clear()
         {
-            foreach (var subscription in _subscriptions)
-                subscription.Dispose();
-            _subscriptions.Clear();
+            _subscriptions.Dispose();
         }
 
         public void Dispose()
         {
-            Clear();
+            _subscriptions.Dispose();
+        }
+
+        private class DisposableThreadPool : IThreadPool
+        {
+            private readonly IThreadPool _inner;
+            private readonly DisposableCollection _tokens;
+
+            public DisposableThreadPool(IThreadPool inner, DisposableCollection tokens)
+            {
+                _inner = inner;
+                _tokens = tokens;
+            }
+
+            public void Dispose()
+            {
+            }
+
+            public int NumberOfRunningFreeWorkers => _inner.NumberOfRunningFreeWorkers;
+
+            public ThreadReport GetThreadReport()
+            {
+                return _inner.GetThreadReport();
+            }
+
+            public ThreadToken StartDedicatedWorker()
+            {
+                var token = _inner.StartDedicatedWorker();
+                _tokens.Add(token);
+                return token;
+            }
+
+            public void StopDedicatedWorker(int threadId)
+            {
+                _inner.StopDedicatedWorker(threadId);
+            }
+
+            public IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate)
+            {
+                return _inner.GetThreadDispatcher(threadId, allowAutoCreate);
+            }
+
+            public IActionDispatcher GetFreeWorkerThreadDispatcher()
+            {
+                return _inner.GetFreeWorkerThreadDispatcher();
+            }
+
+            public IActionDispatcher GetThreadPoolActionDispatcher()
+            {
+                return _inner.GetThreadPoolActionDispatcher();
+            }
+
+            public IActionDispatcher GetAnyThreadDispatcher()
+            {
+                return _inner.GetAnyThreadDispatcher();
+            }
+
+            public IActionDispatcher GetCurrentThreadDispatcher()
+            {
+                return _inner.GetCurrentThreadDispatcher();
+            }
+
+            public IMessageHandlerThreadContext GetCurrentThreadContext()
+            {
+                return _inner.GetCurrentThreadContext();
+            }
+
+            public IDisposable RegisterManagedThread(IThreadManager manager, int threadId, string purpose)
+            {
+                var token = _inner.RegisterManagedThread(manager, threadId, purpose);
+                _tokens.Add(token);
+                return token;
+            }
+
+            public void UnregisterManagedThread(int threadId)
+            {
+                _inner.UnregisterManagedThread(threadId);
+            }
         }
     }
 }

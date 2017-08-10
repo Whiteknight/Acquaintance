@@ -21,6 +21,13 @@ namespace Acquaintance.Utility
                 _disposables.Add(disposable);
         }
 
+        public void AddRange(IEnumerable<IDisposable> disposables)
+        {
+            if (disposables == null)
+                return;
+            _disposables.AddRange(disposables);
+        }
+
         public void Dispose()
         {
             var isDisposed = Interlocked.CompareExchange(ref _isDisposed, 1, 0);

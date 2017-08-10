@@ -42,7 +42,7 @@ namespace Acquaintance.ScatterGather
         public IParticipant<TRequest, TResponse> BuildParticipant()
         {
             if (_useDedicatedThread)
-                _threadId = _threadPool.StartDedicatedWorker();
+                _threadId = _threadPool.StartDedicatedWorker().ThreadId;
 
             var participant = BuildParticipantInternal();
 

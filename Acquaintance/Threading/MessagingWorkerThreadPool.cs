@@ -48,17 +48,20 @@ namespace Acquaintance.Threading
 
         public int NumberOfRunningFreeWorkers => _freeWorkers.Count;
 
-        public int StartDedicatedWorker()
+        public ThreadToken StartDedicatedWorker()
         {
             var context = new MessageHandlerThreadContext(_maxQueuedMessages, _log);
             var worker = new MessageHandlerThread(context, "AcquaintanceDW");
             worker.Start();
             bool ok = _dedicatedWorkers.TryAdd(worker.ThreadId, worker);
-            return ok ? worker.ThreadId : 0;
+            int threadId = ok ? worker.ThreadId : 0;
+            return new ThreadToken(this, threadId);
         }
 
         public void StopDedicatedWorker(int threadId)
         {
+            if (threadId <= 0)
+                return;
             if (!_dedicatedWorkers.TryRemove(threadId, out MessageHandlerThread worker))
                 return;
             worker.Stop();
@@ -116,10 +119,11 @@ namespace Acquaintance.Threading
             return GetThreadContext(currentThreadId, true);
         }
 
-        public void RegisterManagedThread(IThreadManager manager, int threadId, string purpose)
+        public IDisposable RegisterManagedThread(IThreadManager manager, int threadId, string purpose)
         {
             var registration = new RegisteredManagedThread(manager, threadId, purpose);
             _registeredThreads.TryAdd(threadId, registration);
+            return new ManagedThreadToken(this, threadId);
         }
 
         public void UnregisterManagedThread(int threadId)
@@ -159,6 +163,23 @@ namespace Acquaintance.Threading
             foreach (var context in _detachedContexts.Values)
                 context.Dispose();
             _detachedContexts.Clear();
+        }
+
+        private class ManagedThreadToken : IDisposable
+        {
+            private readonly IThreadPool _threadPool;
+            private readonly int _threadId;
+
+            public ManagedThreadToken(IThreadPool threadPool, int threadId)
+            {
+                _threadPool = threadPool;
+                _threadId = threadId;
+            }
+
+            public void Dispose()
+            {
+                _threadPool.UnregisterManagedThread(_threadId);
+            }
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Acquaintance.PubSub
         public ISubscription<TPayload> BuildSubscription()
         {
             if (_useDedicatedThread)
-                _threadId = _threadPool.StartDedicatedWorker();
+                _threadId = _threadPool.StartDedicatedWorker().ThreadId;
 
             var subscription = BuildSubscriptionInternal();
 

@@ -89,7 +89,7 @@ namespace Acquaintance.Tests.RequestResponse
         public void ListenRequestAndResponse_OnThread()
         {
             var target = new MessageBus();
-            int threadId = target.ThreadPool.StartDedicatedWorker();
+            int threadId = target.ThreadPool.StartDedicatedWorker().ThreadId;
             try
             {
                 target.Listen<int, int>(l => l

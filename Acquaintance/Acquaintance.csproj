@@ -184,6 +184,7 @@
     <Compile Include="Threading\SubscriptionWithDedicatedThreadToken.cs" />
     <Compile Include="Threading\ThreadPoolActionDispatcher.cs" />
     <Compile Include="Threading\ThreadReport.cs" />
+    <Compile Include="Threading\ThreadToken.cs" />
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />
     <Compile Include="Timers\TimerMessageBusExtensions.cs" />
