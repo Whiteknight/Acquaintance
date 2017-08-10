@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>Acquaintance</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>$title$</title>
     <authors>Andrew F. Whitworth</authors>
     <owners>$author$</owners>
@@ -10,7 +10,7 @@
     <projectUrl>https://whiteknight.github.io/Acquaintance/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Internal messaging for loosely-coupled applications</description>
-    <copyright>Copyright 2016</copyright>
+    <copyright>Copyright 2016-2017</copyright>
     <tags>Messaging Pub/Sub Request/Response Scatter/Gather</tags>
   </metadata>
   <files>
