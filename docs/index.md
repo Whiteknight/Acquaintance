@@ -17,7 +17,7 @@ Publish/Subscribe is a pattern where you have events of interest being generated
 
     // Create a subscription
     messageBus.Subscribe(s => s
-        .WithChannelName("test event")
+        .WithTopic("test event")
         .Invoke(e => Console.WriteLine(e.Message)));
     
     // Publish a message
@@ -29,15 +29,13 @@ Unlike the C# `event` mechanism, the message bus solves the chicken-and-egg prob
 
 Unlike simple callback delegates, Acquaintance will automatically dispatch your request onto a worker thread so it doesn't block other processing. 
 
-With Acquaintance it's easy to interact with other communications mechanisms be sending to and receiving from other communication channels such as ZeroMQ, RabbitMQ, NServiceBus or Kafka.
-
 ## Request/Response
 
 Request/Response is basically an abstracted method call or local RPC mechanism. One part of your code makes a request and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain references to the objects which produce that result.
 
     // Setup a Listener
     messageBus.Listen<MyRequest, MyResponse>(l => l
-        .WithChannelName("test")
+        .WithTopic("test")
         .Invoke(req => new MyResponse { 
             Message = "Hello " + req.Message"
         }));
@@ -52,11 +50,11 @@ Again, Acquaintance allows the channel to be constructed in any order and also a
 
 ## Scatter/Gather
 
-Scatter/Gather is very similar to Request/Response except the channel may have many listeners or participants, which may return several responses. These responses are all returned together.
+Scatter/Gather is very similar to Request/Response except the channel may have many listeners or *participants*, which may return several responses. These responses are all returned together.
 
     // Setup a Participant
     messageBus.Participate<MyRequest, MyResponse>(p => p
-        .WithChannelName("test")
+        .WithTopic("test")
         .Invoke(req => new[] { new MyResponse { 
             Message = "Hello " + req.Message"
         }}));
