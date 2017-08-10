@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Nets
 {
@@ -77,8 +78,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> TransformMany<TOut>(Func<TInput, IEnumerable<TOut>> handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            Assert.ArgumentNotNull(handler, nameof(handler));
 
             if (_action != null)
                 throw new Exception("Node already has a handler defined");
@@ -103,8 +103,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> Handle(Action<TInput> action)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            Assert.ArgumentNotNull(action, nameof(action));
             if (_action != null || _handler != null)
                 throw new Exception("Node already has a handler defined");
 
@@ -127,8 +126,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> Handle(ISubscriptionHandler<TInput> handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            Assert.ArgumentNotNull(handler, nameof(handler));
             if (_action != null || _handler != null)
                 throw new Exception("Node already has a handler defined");
             string outputChannelName = OutputChannelName(_key);
@@ -149,8 +147,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> ReadOutputFrom(string nodeName)
         {
-            if (string.IsNullOrEmpty(nodeName))
-                throw new ArgumentNullException(nameof(nodeName));
+            Assert.ArgumentNotNull(nodeName, nameof(nodeName));
             if (!string.IsNullOrEmpty(_channelName))
                 throw new Exception("Node can only read from a single input");
 
@@ -162,8 +159,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> OnCondition(Func<TInput, bool> predicate)
         {
-            if (predicate == null)
-                throw new ArgumentNullException(nameof(predicate));
+            Assert.ArgumentNotNull(predicate, nameof(predicate));
             if (_predicate != null)
                 throw new Exception("Node can only have a single predicate");
             _predicate = predicate;
@@ -177,8 +173,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> OnDedicatedThreads(int numThreads)
         {
-            if (numThreads <= 0)
-                throw new ArgumentOutOfRangeException(nameof(numThreads));
+            Assert.IsInRange(numThreads, nameof(numThreads), 1, 65535);
 
             _onDedicatedThreads = numThreads;
             return this;

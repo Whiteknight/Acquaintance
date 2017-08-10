@@ -1,4 +1,5 @@
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -10,10 +11,9 @@ namespace Acquaintance.PubSub
         // TODO: Ability to filter on Envelope metadata?
         public FilteredSubscription(ISubscription<TPayload> inner, Func<TPayload, bool> filter)
         {
-            if (inner == null)
-                throw new ArgumentNullException(nameof(inner));
-            if (filter == null)
-                throw new ArgumentNullException(nameof(filter));
+            Assert.ArgumentNotNull(inner, nameof(inner));
+            Assert.ArgumentNotNull(filter, nameof(filter));
+
             _inner = inner;
             _filter = filter;
         }

@@ -1,5 +1,6 @@
 using Acquaintance.PubSub;
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -15,10 +16,8 @@ namespace Acquaintance
         /// <returns>A token which represents the subscription. When disposed, the subscription is cancelled.</returns>
         public static IDisposable Eavesdrop<TRequest, TResponse>(this IMessageBus messageBus, Action<SubscriptionBuilder<Conversation<TRequest, TResponse>>> build)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
-            if (build == null)
-                throw new ArgumentNullException(nameof(build));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(build, nameof(build));
 
             var builder = new SubscriptionBuilder<Conversation<TRequest, TResponse>>(messageBus, messageBus.ThreadPool);
             build(builder);

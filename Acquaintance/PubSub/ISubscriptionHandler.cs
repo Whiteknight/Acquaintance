@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -20,8 +20,7 @@ namespace Acquaintance.PubSub
 
         public SubscriptionHandlerActionReference(ISubscriptionHandler<TPayload> handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            Assert.ArgumentNotNull(handler, nameof(handler));
             _handler = handler;
         }
 

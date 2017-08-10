@@ -9,6 +9,9 @@ namespace Acquaintance.PubSub
     {
         public IDisposable AutoSubscribe(IPubSubBus messageBus, object obj)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(obj, nameof(obj));
+
             var type = obj.GetType();
             var tokens = new DisposableCollection();
             foreach (var method in type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.InvokeMethod))

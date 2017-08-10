@@ -1,5 +1,6 @@
 ﻿using Acquaintance.Threading;
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.RequestResponse
 {
@@ -26,10 +27,8 @@ namespace Acquaintance.RequestResponse
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
-            if (threadPool == null)
-                throw new ArgumentNullException(nameof(threadPool));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(threadPool, nameof(threadPool));
 
             _messageBus = messageBus;
             _threadPool = threadPool;
@@ -56,8 +55,7 @@ namespace Acquaintance.RequestResponse
 
         public IDisposable WrapToken(IDisposable token)
         {
-            if (token == null)
-                throw new ArgumentNullException(nameof(token));
+            Assert.ArgumentNotNull(token, nameof(token));
             if (_useDedicatedThread)
                 return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
             return token;
@@ -77,18 +75,24 @@ namespace Acquaintance.RequestResponse
 
         public IThreadListenerBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> listener, bool useWeakReference = false)
         {
+            Assert.ArgumentNotNull(listener, nameof(listener));
+            ValidateDoesNotAlreadyHaveAction();
             _funcReference = CreateReference(listener, useWeakReference);
             return this;
         }
 
         public IThreadListenerBuilder<TRequest, TResponse> InvokeEnvelope(Func<Envelope<TRequest>, TResponse> listener, bool useWeakReference = false)
         {
+            Assert.ArgumentNotNull(listener, nameof(listener));
+            ValidateDoesNotAlreadyHaveAction();
             _funcReference = CreateReference(listener, useWeakReference);
             return this;
         }
 
         public IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
         {
+            Assert.ArgumentNotNull(build, nameof(build));
+            ValidateDoesNotAlreadyHaveAction();
             _routeBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
             build(_routeBuilder);
             return this;
@@ -96,6 +100,7 @@ namespace Acquaintance.RequestResponse
 
         public IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
         {
+            Assert.ArgumentNotNull(transform, nameof(transform));
             return Invoke(request =>
             {
                 var transformed = transform(request);
@@ -105,6 +110,7 @@ namespace Acquaintance.RequestResponse
 
         public IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
         {
+            Assert.ArgumentNotNull(transform, nameof(transform));
             return Invoke(request =>
             {
                 var response = _messageBus.Request<TRequest, TSource>(sourceChannelName, request);
@@ -114,12 +120,14 @@ namespace Acquaintance.RequestResponse
 
         public IDetailsListenerBuilder<TRequest, TResponse> Immediate()
         {
+            ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.Immediate;
             return this;
         }
 
         public IDetailsListenerBuilder<TRequest, TResponse> OnThread(int threadId)
         {
+            ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.SpecificThread;
             _threadId = threadId;
             return this;
@@ -127,18 +135,21 @@ namespace Acquaintance.RequestResponse
 
         public IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread()
         {
+            ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.AnyWorkerThread;
             return this;
         }
 
         public IDetailsListenerBuilder<TRequest, TResponse> OnThreadPool()
         {
+            ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.ThreadpoolThread;
             return this;
         }
 
         public IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread()
         {
+            ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.ThreadpoolThread;
             _useDedicatedThread = true;
             return this;
@@ -146,8 +157,7 @@ namespace Acquaintance.RequestResponse
 
         public IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
         {
-            if (timeoutMs <= 0)
-                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
+            Assert.IsInRange(timeoutMs, nameof(timeoutMs), 1, int.MaxValue);
             _timeoutMs = timeoutMs;
             return this;
         }
@@ -175,6 +185,20 @@ namespace Acquaintance.RequestResponse
         {
             _modify = modify;
             return this;
+        }
+
+        private void ValidateDoesNotAlreadyHaveDispatchType()
+        {
+            if (_dispatchType != DispatchThreadType.NoPreference)
+                throw new Exception($"Thread dispatch type {_dispatchType} has already been configured");
+        }
+
+        private void ValidateDoesNotAlreadyHaveAction()
+        {
+            if (_funcReference != null)
+                throw new Exception("Builder already has a defined action reference");
+            if (_routeBuilder != null)
+                throw new Exception("Builder is already configured for routing. Cannot add a new action");
         }
 
         private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)

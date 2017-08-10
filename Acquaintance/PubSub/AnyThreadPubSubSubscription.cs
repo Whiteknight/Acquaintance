@@ -1,5 +1,6 @@
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -10,12 +11,9 @@ namespace Acquaintance.PubSub
 
         public AnyThreadPubSubSubscription(ISubscriberReference<TPayload> action, IThreadPool threadPool)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-
-            if (threadPool == null)
-                throw new ArgumentNullException(nameof(threadPool));
-
+            Assert.ArgumentNotNull(action, nameof(action));
+            Assert.ArgumentNotNull(threadPool, nameof(threadPool));
+            
             _action = action;
             _threadPool = threadPool;
         }

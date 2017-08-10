@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -14,11 +15,8 @@ namespace Acquaintance.PubSub
 
         public RoutingSubscription(IPubSubBus messageBus, IEnumerable<EventRoute<TPayload>> routes, string defaultRouteOrNull, RouterModeType modeType)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
-
-            if (routes == null)
-                throw new ArgumentNullException(nameof(routes));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(routes, nameof(routes));
 
             // TODO: Try to detect circular references?
             _routes = routes.ToList();

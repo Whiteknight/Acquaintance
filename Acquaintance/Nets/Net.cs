@@ -1,4 +1,6 @@
-﻿namespace Acquaintance.Nets
+﻿using Acquaintance.Utility;
+
+namespace Acquaintance.Nets
 {
     /// <summary>
     /// MessageBus wrapper which represents a network of independent processing nodes
@@ -10,6 +12,7 @@
 
         public Net(IMessageBus messageBus)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             _messageBus = messageBus;
         }
 

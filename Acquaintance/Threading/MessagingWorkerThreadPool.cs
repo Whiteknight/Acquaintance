@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
@@ -21,10 +22,8 @@ namespace Acquaintance.Threading
 
         public MessagingWorkerThreadPool(ILogger log, int numFreeWorkers = 0, int maxQueuedMessages = 1000)
         {
-            if (maxQueuedMessages <= 0)
-                throw new ArgumentOutOfRangeException(nameof(maxQueuedMessages));
-            if (numFreeWorkers < 0)
-                throw new ArgumentOutOfRangeException(nameof(numFreeWorkers));
+            Assert.IsInRange(maxQueuedMessages, nameof(maxQueuedMessages), 0, int.MaxValue);
+            Assert.IsInRange(numFreeWorkers, nameof(numFreeWorkers), 0, 65535);
 
             _log = log;
             _maxQueuedMessages = maxQueuedMessages;

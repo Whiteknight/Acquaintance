@@ -14,12 +14,7 @@ namespace Acquaintance.PubSub
         {
             _pubSubChannels = new ConcurrentDictionary<string, IPubSubChannel>();
         }
-
-        private string GetPubSubKey(Type type, string name)
-        {
-            return $"Type={type.AssemblyQualifiedName}:Name={name ?? string.Empty}";
-        }
-
+        
         public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name, ILogger log)
         {
             string key = GetPubSubKey(typeof(TPayload), name);
@@ -54,6 +49,11 @@ namespace Acquaintance.PubSub
             foreach (var channel in _pubSubChannels.Values)
                 channel.Dispose();
             _pubSubChannels.Clear();
+        }
+
+        private static string GetPubSubKey(Type type, string name)
+        {
+            return $"Type={type.AssemblyQualifiedName}:Name={name ?? string.Empty}";
         }
     }
 }

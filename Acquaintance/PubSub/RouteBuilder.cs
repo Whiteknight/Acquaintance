@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Common;
 using System;
 using System.Collections.Generic;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -27,8 +28,7 @@ namespace Acquaintance.PubSub
 
         public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string channelName)
         {
-            if (predicate == null)
-                throw new ArgumentNullException(nameof(predicate));
+            Assert.ArgumentNotNull(predicate, nameof(predicate));
 
             _routes.Add(new EventRoute<TPayload>(channelName, predicate));
             return this;

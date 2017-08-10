@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -12,7 +13,7 @@ namespace Acquaintance.PubSub
 
         public PubSubChannel(ILogger log)
         {
-            _log = log;
+            _log = log ?? new SilentLogger();
             _subscriptions = new ConcurrentDictionary<Guid, ISubscription<TPayload>>();
             Id = Guid.NewGuid();
         }
@@ -42,8 +43,7 @@ namespace Acquaintance.PubSub
 
         public SubscriptionToken Subscribe(ISubscription<TPayload> subscription)
         {
-            if (subscription == null)
-                throw new ArgumentNullException(nameof(subscription));
+            Assert.ArgumentNotNull(subscription, nameof(subscription));
 
             var id = Guid.NewGuid();
             _subscriptions.TryAdd(id, subscription);

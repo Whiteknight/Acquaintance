@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -26,10 +27,9 @@ namespace Acquaintance.PubSub
 
         public PublishableMessage(string channelName, Type messageType, object message)
         {
-            if (messageType == null)
-                throw new ArgumentNullException(nameof(messageType));
-            if (!messageType.IsInstanceOfType(message))
-                throw new ArgumentException("message is not an instance of the provided type", nameof(messageType));
+            Assert.ArgumentNotNull(messageType, nameof(messageType));
+            Assert.IsInstanceOf(messageType, message, nameof(message));
+
             _channelName = channelName;
             _message = message;
             _messageType = messageType;
@@ -37,8 +37,7 @@ namespace Acquaintance.PubSub
 
         public void PublishTo(IPubSubBus messageBus)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
             messageBus.Publish(_channelName, _messageType, _message);
         }
@@ -57,8 +56,7 @@ namespace Acquaintance.PubSub
 
         public void PublishTo(IPubSubBus messageBus)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
             messageBus.Publish(_channelName, _payload);
         }

@@ -1,7 +1,6 @@
 using Acquaintance.Utility;
 using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Acquaintance.Logging;
 
 namespace Acquaintance.RequestResponse

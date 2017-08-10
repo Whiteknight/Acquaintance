@@ -1,5 +1,6 @@
 using System;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.RequestResponse
 {
@@ -40,8 +41,7 @@ namespace Acquaintance.RequestResponse
 
         public SubscriptionToken Listen(IListener<TRequest, TResponse> listener)
         {
-            if (listener == null)
-                throw new ArgumentNullException(nameof(listener));
+            Assert.ArgumentNotNull(listener, nameof(listener));
 
             var existing = System.Threading.Interlocked.CompareExchange(ref _listener, listener, null);
             if (existing != null)

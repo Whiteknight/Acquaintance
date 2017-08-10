@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -9,11 +10,8 @@ namespace Acquaintance.PubSub
 
         public ActivatedSubscriberReference(Func<TPayload, TService> createService, Action<TService, TPayload> handler)
         {
-            if (createService == null)
-                throw new ArgumentNullException(nameof(createService));
-
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            Assert.ArgumentNotNull(createService, nameof(createService));
+            Assert.ArgumentNotNull(handler, nameof(handler));
 
             _createService = createService;
             _handler = handler;

@@ -1,6 +1,7 @@
 using Acquaintance.Threading;
 using System;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {
@@ -13,8 +14,7 @@ namespace Acquaintance.ScatterGather
 
         public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, TRequest request, Guid participantId, int timeoutMs = 1000)
         {
-            if (timeoutMs <= 0)
-                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
+            Assert.IsInRange(timeoutMs, nameof(timeoutMs), 1, int.MaxValue);
             _func = func;
             _request = request;
             _timeoutMs = timeoutMs;

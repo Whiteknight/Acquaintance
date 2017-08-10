@@ -1,4 +1,5 @@
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -8,8 +9,7 @@ namespace Acquaintance.PubSub
 
         public ImmediatePubSubSubscription(ISubscriberReference<TPayload> action)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            Assert.ArgumentNotNull(action, nameof(action));
 
             _action = action;
         }

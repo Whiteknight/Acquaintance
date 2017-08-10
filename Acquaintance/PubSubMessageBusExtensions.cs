@@ -15,6 +15,7 @@ namespace Acquaintance
         /// <param name="payload">The event payload object to send to subscribers. This object should not be modified after publishing to avoid concurrency conflicts.</param>
         public static void Publish<TPayload>(this IPubSubBus messageBus, string channelName, TPayload payload)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var envelope = messageBus.EnvelopeFactory.Create(channelName, payload);
             messageBus.PublishEnvelope(envelope);
         }
@@ -28,8 +29,7 @@ namespace Acquaintance
         /// be modified after publishing, to prevent concurrency conflicts.</param>
         public static void Publish<TPayload>(this IPubSubBus messageBus, TPayload payload)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Publish(messageBus, string.Empty, payload);
         }
 
@@ -44,8 +44,7 @@ namespace Acquaintance
         /// <param name="payload">The payload object itself.</param>
         public static void Publish(this IPubSubBus messageBus, string channelName, Type payloadType, object payload)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
             var factoryMethod = messageBus.EnvelopeFactory.GetType()
                 .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
@@ -63,10 +62,8 @@ namespace Acquaintance
         /// <param name="message">The encapsulated message with all necessary publish details</param>
         public static void PublishMessage(this IPubSubBus messageBus, IPublishableMessage message)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(message, nameof(message));
             message.PublishTo(messageBus);
         }
 
@@ -79,10 +76,8 @@ namespace Acquaintance
         /// <returns>The subscription token which, when disposed, cancels the subscription.</returns>
         public static IDisposable Subscribe<TPayload>(this IPubSubBus messageBus, Action<IChannelSubscriptionBuilder<TPayload>> build)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
-            if (build == null)
-                throw new ArgumentNullException(nameof(build));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(build, nameof(build));
 
             var builder = new SubscriptionBuilder<TPayload>(messageBus, messageBus.ThreadPool);
             build(builder);
@@ -99,6 +94,11 @@ namespace Acquaintance
 
         public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(payloadType, nameof(payloadType));
+            Assert.ArgumentNotNull(target, nameof(target));
+            Assert.ArgumentNotNull(subscriber, nameof(subscriber));
+
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
             return method.Invoke(null, new[] { messageBus, topics, target, subscriber } ) as IDisposable;
@@ -126,9 +126,14 @@ namespace Acquaintance
 
         public static IDisposable SubscribeEnvelopeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(payloadType, nameof(payloadType));
+            Assert.ArgumentNotNull(target, nameof(target));
+            Assert.ArgumentNotNull(subscriber, nameof(subscriber));
+
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeEnvelopeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new object[] { messageBus, topics, target, subscriber }) as IDisposable;
+            return method.Invoke(null, new[] { messageBus, topics, target, subscriber }) as IDisposable;
         }
 
         private static IDisposable SubscribeEnvelopeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)

@@ -8,6 +8,7 @@ using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -55,8 +56,7 @@ namespace Acquaintance
 
         public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
         {
-            if (subscription == null)
-                throw new ArgumentNullException(nameof(subscription));
+            Assert.ArgumentNotNull(subscription, nameof(subscription));
 
             subscription.Id = Guid.NewGuid();
             var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(channelName, _logger);
@@ -154,8 +154,7 @@ namespace Acquaintance
 
         public IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener)
         {
-            if (listener == null)
-                throw new ArgumentNullException(nameof(listener));
+            Assert.ArgumentNotNull(listener, nameof(listener));
 
             listener.Id = Guid.NewGuid();
             var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName, _logger);
@@ -172,8 +171,7 @@ namespace Acquaintance
 
         public IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant)
         {
-            if (participant == null)
-                throw new ArgumentNullException(nameof(participant));
+            Assert.ArgumentNotNull(participant, nameof(participant));
 
             participant.Id = Guid.NewGuid();
             var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName, _logger);

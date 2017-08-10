@@ -1,6 +1,7 @@
 using Acquaintance.Sources;
 using System;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
@@ -14,10 +15,8 @@ namespace Acquaintance.Threading
 
         public EventSourceThread(IEventSource source, IEventSourceContext context)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
+            Assert.ArgumentNotNull(source, nameof(source));
+            Assert.ArgumentNotNull(context, nameof(context));
 
             _source = source;
             _context = context;

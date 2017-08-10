@@ -1,6 +1,7 @@
 ﻿using Acquaintance.RequestResponse;
 using System;
 using System.Linq;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -8,6 +9,8 @@ namespace Acquaintance
     {
         public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, string channelName, TRequest request)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+
             var envelope = messageBus.EnvelopeFactory.Create(channelName, request);
             return messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
         }
@@ -22,6 +25,7 @@ namespace Acquaintance
         /// <returns>A token representing the subscription which, when disposed, cancels the subscription</returns>
         public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, TRequest request)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             return messageBus.Request<TRequest, TResponse>(string.Empty, request);
         }
 
@@ -38,6 +42,7 @@ namespace Acquaintance
         /// <returns>The response object</returns>
         public static object Request(this IReqResBus messageBus, string channelName, Type requestType, object request)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
             if (requestInterface == null)
                 return null;
@@ -63,6 +68,7 @@ namespace Acquaintance
         /// <returns>A token representing the subscription whic, when disposed, cancels the subscription</returns>
         public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<IChannelListenerBuilder<TRequest, TResponse>> build)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var builder = new ListenerBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
             build(builder);
             var listener = builder.BuildListener();

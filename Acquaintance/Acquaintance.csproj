@@ -188,6 +188,7 @@
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />
     <Compile Include="Timers\TimerMessageBusExtensions.cs" />
+    <Compile Include="Utility\Assert.cs" />
     <Compile Include="Utility\DisposableCollection.cs" />
     <Compile Include="Utility\StringTrie.cs" />
   </ItemGroup>

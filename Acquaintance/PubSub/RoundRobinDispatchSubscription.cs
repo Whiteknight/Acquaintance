@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -13,10 +14,8 @@ namespace Acquaintance.PubSub
 
         public RoundRobinDispatchSubscription(IPubSubBus messageBus, IEnumerable<string> channels)
         {
-            if (channels == null)
-                throw new ArgumentNullException(nameof(channels));
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(channels, nameof(channels));
 
             _channels = channels.ToArray();
             if (_channels.Length == 0)

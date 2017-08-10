@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -26,13 +27,10 @@ namespace Acquaintance.PubSub
 
         public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(threadPool, nameof(threadPool));
 
-            if (threadPool == null)
-                throw new ArgumentNullException(nameof(threadPool));
-
-            _dispatchType = DispatchThreadType.AnyWorkerThread;
+            _dispatchType = DispatchThreadType.NoPreference;
             _threadPool = threadPool;
             _messageBus = messageBus;
         }
@@ -63,8 +61,8 @@ namespace Acquaintance.PubSub
 
         public IDisposable WrapToken(IDisposable token)
         {
-            if (token == null)
-                throw new ArgumentNullException(nameof(token));
+            Assert.ArgumentNotNull(token, nameof(token));
+
             if (_useDedicatedThread)
                 return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
             return token;
@@ -72,7 +70,7 @@ namespace Acquaintance.PubSub
 
         public IActionSubscriptionBuilder<TPayload> WithChannelName(string channelName)
         {
-            ChannelName = channelName;
+            ChannelName = channelName ?? string.Empty;
             return this;
         }
 
@@ -84,10 +82,9 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = false)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (_actionReference != null)
-                throw new Exception("Can only have a single action");
+            Assert.ArgumentNotNull(action, nameof(action));
+
+            ValidateDoesNotHaveAction();
             var reference = CreateActionReference(action, useWeakReferences);
             _actionReference = reference;
             return this;
@@ -95,10 +92,9 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> InvokeEnvelope(Action<Envelope<TPayload>> action, bool useWeakReferences = false)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
-            if (_actionReference != null)
-                throw new Exception("Can only have a single action");
+            Assert.ArgumentNotNull(action, nameof(action));
+
+            ValidateDoesNotHaveAction();
             var reference = CreateActionReference(action, useWeakReferences);
             _actionReference = reference;
             return this;
@@ -106,22 +102,19 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> Invoke(ISubscriptionHandler<TPayload> handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
-            if (_actionReference != null)
-                throw new Exception("Can only have a single action");
+            Assert.ArgumentNotNull(handler, nameof(handler));
+
+            ValidateDoesNotHaveAction();
             _actionReference = new SubscriptionHandlerActionReference<TPayload>(handler);
             return this;
         }
 
         public IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
-            if (createService == null)
-                throw new ArgumentNullException(nameof(createService));
-            if (_actionReference != null)
-                throw new Exception("Can only have a single action");
+            Assert.ArgumentNotNull(handler, nameof(handler));
+            Assert.ArgumentNotNull(createService, nameof(createService));
+
+            ValidateDoesNotHaveAction();
 
             _actionReference = new ActivatedSubscriberReference<TPayload, TService>(createService, handler);
             return this;
@@ -129,8 +122,7 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
         {
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
+            Assert.ArgumentNotNull(transform, nameof(transform));
 
             return Invoke(payload =>
             {
@@ -141,8 +133,10 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build)
         {
-            if (_routeBuilder != null)
-                throw new Exception("Routing is already setup");
+            Assert.ArgumentNotNull(build, nameof(build));
+
+            ValidateDoesNotHaveAction();
+
             _routeBuilder = new RouteBuilder<TPayload>(_messageBus);
             build(_routeBuilder);
             return this;
@@ -150,26 +144,32 @@ namespace Acquaintance.PubSub
 
         public IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels)
         {
-            if (_distributionList != null)
-                throw new Exception("Distribution list is already setup");
+            Assert.ArgumentNotNull(channels, nameof(channels));
+
+            ValidateDoesNotHaveAction();
+
             _distributionList = channels.ToList();
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> OnWorkerThread()
         {
+            ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.AnyWorkerThread;
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> Immediate()
         {
+            ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.Immediate;
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> OnThread(int threadId)
         {
+            Assert.IsInRange(threadId, nameof(threadId), 0, 65355);
+            ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.SpecificThread;
             _threadId = threadId;
             return this;
@@ -183,6 +183,7 @@ namespace Acquaintance.PubSub
 
         public IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread()
         {
+            ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.SpecificThread;
             _useDedicatedThread = true;
             return this;
@@ -191,20 +192,54 @@ namespace Acquaintance.PubSub
         // TODO: Should we have an option where the Filter predicate takes an Envelope<TPayload>?
         public IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
         {
-            _filter = filter;
+            if (filter == null)
+                return this;
+            if (_filter == null)
+                _filter = filter;
+            else
+            {
+                var oldFilter = _filter;
+                _filter = p => oldFilter(p) && filter(p);
+            }
+
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> MaximumEvents(int maxEvents)
         {
+            Assert.IsInRange(maxEvents, nameof(maxEvents), 0, int.MaxValue);
+
             _maxEvents = maxEvents;
             return this;
         }
 
         public IDetailsSubscriptionBuilder<TPayload> ModifySubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap)
         {
-            _wrap = wrap;
+            Assert.ArgumentNotNull(wrap, nameof(wrap));
+            if (_wrap == null)
+                _wrap = wrap;
+            else
+            {
+                var oldWrap = _wrap;
+                _wrap = s => wrap(oldWrap(s));
+            }
             return this;
+        }
+
+        private void ValidateDoesNotHaveAction()
+        {
+            if (_actionReference != null)
+                throw new Exception("Builder already has a defined action");
+            if (_routeBuilder != null)
+                throw new Exception("Builder has already setup for routing. A new action may not be defined");
+            if (_distributionList != null && _distributionList.Any())
+                throw new Exception("Builder already has a distribution list setup. A new action may not be defined");
+        }
+
+        private void ValidateDoesNotHaveDispatchType()
+        {
+            if (_dispatchType != DispatchThreadType.NoPreference)
+                throw new Exception($"Builder is already setup to use dispatch type {_dispatchType}");
         }
 
         private ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> subscription)
@@ -236,6 +271,8 @@ namespace Acquaintance.PubSub
         {
             switch (dispatchType)
             {
+                case DispatchThreadType.NoPreference:
+                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
                 case DispatchThreadType.AnyWorkerThread:
                     return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
                 case DispatchThreadType.SpecificThread:

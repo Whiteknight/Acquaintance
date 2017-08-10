@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
@@ -10,8 +11,7 @@ namespace Acquaintance.PubSub
 
         public MaxEventsSubscription(ISubscription<TPayload> inner, int maxEvents)
         {
-            if (inner == null)
-                throw new ArgumentNullException(nameof(inner));
+            Assert.ArgumentNotNull(inner, nameof(inner));
 
             _inner = inner;
             _maxEvents = maxEvents;

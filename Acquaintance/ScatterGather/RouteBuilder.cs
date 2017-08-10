@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Common;
 using System;
 using System.Collections.Generic;
+using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {
@@ -25,8 +26,7 @@ namespace Acquaintance.ScatterGather
 
         public RouteBuilder<TRequest, TResponse> When(Func<TRequest, bool> predicate, string channelName)
         {
-            if (predicate == null)
-                throw new ArgumentNullException(nameof(predicate));
+            Assert.ArgumentNotNull(predicate, nameof(predicate));
 
             _routes.Add(new EventRoute<TRequest>(channelName, predicate));
             return this;
