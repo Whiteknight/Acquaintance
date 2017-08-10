@@ -6,14 +6,14 @@ namespace Acquaintance.Testing
 {
     public class PublishExpectation<TPayload> : IExpectation
     {
-        private readonly string _channelName;
+        private readonly string _topic;
         private readonly string _description;
         private readonly Func<TPayload, bool> _filter;
         private readonly List<Action<TPayload>> _actions;
 
-        public PublishExpectation(string channelName, string description, Func<TPayload, bool> filter)
+        public PublishExpectation(string topic, string description, Func<TPayload, bool> filter)
         {
-            _channelName = channelName;
+            _topic = topic;
             _description = description;
             _filter = filter;
             _actions = new List<Action<TPayload>>();
@@ -24,7 +24,7 @@ namespace Acquaintance.Testing
             var builder = new StringBuilder();
             builder.Append("Publish of type ");
             builder.Append(typeof(TPayload).FullName);
-            builder.AppendFormat(" on channel '{0}'", _channelName ?? string.Empty);
+            builder.AppendFormat(" on topic '{0}'", _topic ?? string.Empty);
             if (!string.IsNullOrEmpty(_description))
             {
                 builder.Append(": ");

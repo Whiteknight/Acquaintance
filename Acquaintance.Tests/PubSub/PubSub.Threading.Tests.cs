@@ -24,7 +24,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
@@ -42,7 +42,7 @@ namespace Acquaintance.Tests.PubSub
             try
             {
                 target.Subscribe<TestPubSubEvent>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
                     .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
@@ -63,7 +63,7 @@ namespace Acquaintance.Tests.PubSub
             try
             {
                 var token = target.Subscribe<TestPubSubEvent>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
                     .OnDedicatedThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
@@ -88,7 +88,7 @@ namespace Acquaintance.Tests.PubSub
             {
 
                 target.Subscribe<TestPubSubEvent>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
                     .OnThread(id));
                 target.Publish("Test", new TestPubSubEvent("Test"));
@@ -112,7 +112,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 target.ThreadPool.StopDedicatedWorker(id);
                 target.Subscribe<TestPubSubEvent>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
                     .OnThread(id));
                 target.Publish("Test", new TestPubSubEvent("Test"));
@@ -132,7 +132,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             bool ok = false;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => ok = true)
                 .OnThread(Thread.CurrentThread.ManagedThreadId));
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
@@ -152,7 +152,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var resetEvent = new AutoResetEvent(false);
                 target.Subscribe<TestPubSubEvent>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
                     .OnWorkerThread());
                 target.Publish("Test", new TestPubSubEvent("Test"));
@@ -170,7 +170,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => resetEvent.Set())
                 .OnThreadPool());
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));

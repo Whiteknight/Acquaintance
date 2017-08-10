@@ -20,7 +20,7 @@ namespace Acquaintance.Nets
         private Action<TInput> _action;
         private ISubscriptionHandler<TInput> _handler;
         private Func<TInput, bool> _predicate;
-        private string _channelName;
+        private string _topic;
         private int _onDedicatedThreads;
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents
@@ -28,8 +28,7 @@ namespace Acquaintance.Nets
 
         public NodeBuilder(string key, IMessageBus messageBus, bool readErrors)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             _messageBus = messageBus;
             _readErrors = readErrors;
 
@@ -42,9 +41,9 @@ namespace Acquaintance.Nets
                 throw new Exception("No action provided");
 
             if (_onDedicatedThreads == 0)
-                SubscribeSingleWorker(_channelName, false);
+                SubscribeSingleWorker(_topic, false);
             else if (_onDedicatedThreads == 1)
-                SubscribeSingleWorker(_channelName, true);
+                SubscribeSingleWorker(_topic, true);
             else
                 SubscribeRoutedGroup();
         }
@@ -57,19 +56,19 @@ namespace Acquaintance.Nets
             if (_action != null)
                 throw new Exception("Node already has a handler defined");
 
-            string outputChannelName = OutputChannelName(_key);
-            string errorChannelName = ErrorChannelName(_key);
+            string outputTopic = OutputTopic(_key);
+            string errorTopic = ErrorTopic(_key);
             _action = m =>
             {
                 try
                 {
                     var result = transform(m);
-                    var envelope = _messageBus.EnvelopeFactory.Create(outputChannelName, result);
+                    var envelope = _messageBus.EnvelopeFactory.Create(outputTopic, result);
                     _messageBus.PublishEnvelope(envelope);
                 }
                 catch (Exception e)
                 {
-                    var envelope = _messageBus.EnvelopeFactory.Create(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                    var envelope = _messageBus.EnvelopeFactory.Create(errorTopic, new NodeErrorMessage<TInput>(_key, m, e));
                     _messageBus.PublishEnvelope(envelope);
                 }
             };
@@ -83,19 +82,19 @@ namespace Acquaintance.Nets
             if (_action != null)
                 throw new Exception("Node already has a handler defined");
 
-            string outputChannelName = OutputChannelName(_key);
-            string errorChannelName = ErrorChannelName(_key);
+            string outputTopic = OutputTopic(_key);
+            string errorTopic = ErrorTopic(_key);
             _action = m =>
             {
                 try
                 {
                     var results = handler(m);
                     foreach (var r in results)
-                        _messageBus.Publish(outputChannelName, r);
+                        _messageBus.Publish(outputTopic, r);
                 }
                 catch (Exception e)
                 {
-                    _messageBus.Publish(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                    _messageBus.Publish(errorTopic, new NodeErrorMessage<TInput>(_key, m, e));
                 }
             };
             return this;
@@ -107,18 +106,18 @@ namespace Acquaintance.Nets
             if (_action != null || _handler != null)
                 throw new Exception("Node already has a handler defined");
 
-            string outputChannelName = OutputChannelName(_key);
-            string errorChannelName = ErrorChannelName(_key);
+            string outputTopic = OutputTopic(_key);
+            string errorTopic = ErrorTopic(_key);
             _action = m =>
             {
                 try
                 {
                     action(m);
-                    _messageBus.Publish(outputChannelName, m);
+                    _messageBus.Publish(outputTopic, m);
                 }
                 catch (Exception e)
                 {
-                    _messageBus.Publish(errorChannelName, new NodeErrorMessage<TInput>(_key, m, e));
+                    _messageBus.Publish(errorTopic, new NodeErrorMessage<TInput>(_key, m, e));
                 }
             };
             return this;
@@ -129,31 +128,30 @@ namespace Acquaintance.Nets
             Assert.ArgumentNotNull(handler, nameof(handler));
             if (_action != null || _handler != null)
                 throw new Exception("Node already has a handler defined");
-            string outputChannelName = OutputChannelName(_key);
-            string errorChannelName = ErrorChannelName(_key);
-            _handler = new NodeRepublishSubscriptionHandler<TInput>(handler, _messageBus, _key, outputChannelName, errorChannelName);
+            string outputTopic = OutputTopic(_key);
+            string errorTopic = ErrorTopic(_key);
+            _handler = new NodeRepublishSubscriptionHandler<TInput>(handler, _messageBus, _key, outputTopic, errorTopic);
             return this;
         }
 
         public NodeBuilder<TInput> ReadInput()
         {
-            if (!string.IsNullOrEmpty(_channelName))
+            if (!string.IsNullOrEmpty(_topic))
                 throw new Exception("Node can only read from a single input");
             if (_readErrors)
                 throw new Exception("Cannot read errors from Net input");
-            _channelName = Net.NetworkInputChannelName;
+            _topic = Net.NetworkInputTopic;
             return this;
         }
 
         public NodeBuilder<TInput> ReadOutputFrom(string nodeName)
         {
             Assert.ArgumentNotNull(nodeName, nameof(nodeName));
-            if (!string.IsNullOrEmpty(_channelName))
+            if (!string.IsNullOrEmpty(_topic))
                 throw new Exception("Node can only read from a single input");
 
             string key = nodeName.ToLowerInvariant();
-            string channelName = _readErrors ? ErrorChannelName(key) : OutputChannelName(key);
-            _channelName = channelName;
+            _topic = _readErrors ? ErrorTopic(key) : OutputTopic(key);
             return this;
         }
 
@@ -179,33 +177,33 @@ namespace Acquaintance.Nets
             return this;
         }
 
-        private static string OutputChannelName(string key)
+        private static string OutputTopic(string key)
         {
             return "OutputFrom_" + key;
         }
 
-        private static string ErrorChannelName(string key)
+        private static string ErrorTopic(string key)
         {
             return "ErrorFrom_" + key;
         }
 
         private void SubscribeRoutedGroup()
         {
-            var routerOutputChannel = "Router_" + _key + "_";
-            var workerChannels = Enumerable.Range(1, _onDedicatedThreads).Select(i => routerOutputChannel + i).ToArray();
+            var routerOutputTopic = "Router_" + _key + "_";
+            var workerTopics = Enumerable.Range(1, _onDedicatedThreads).Select(i => routerOutputTopic + i).ToArray();
             _messageBus.Subscribe<TInput>(b => b
-                .WithChannelName(_channelName)
-                .Distribute(workerChannels)
+                .WithTopic(_topic)
+                .Distribute(workerTopics)
                 .Immediate());
             for (int i = 0; i < _onDedicatedThreads; i++)
-                SubscribeSingleWorker(workerChannels[i], true);
+                SubscribeSingleWorker(workerTopics[i], true);
         }
 
-        private void SubscribeSingleWorker(string channelName, bool useDedicatedThread)
+        private void SubscribeSingleWorker(string topic, bool useDedicatedThread)
         {
             _messageBus.Subscribe<TInput>(b1 =>
             {
-                var b2 = string.IsNullOrEmpty(channelName) ? b1.OnDefaultChannel() : b1.WithChannelName(channelName);
+                var b2 = string.IsNullOrEmpty(topic) ? b1.WithDefaultTopic() : b1.WithTopic(topic);
 
                 var b3 = _handler == null ? b2.Invoke(_action) : b2.Invoke(_handler);
 

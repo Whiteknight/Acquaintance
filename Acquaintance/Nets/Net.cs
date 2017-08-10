@@ -7,7 +7,8 @@ namespace Acquaintance.Nets
     /// </summary>
     public class Net
     {
-        public const string NetworkInputChannelName = "NetworkInput";
+        public const string NetworkInputTopic = "NetworkInput";
+
         private readonly IMessageBus _messageBus;
 
         public Net(IMessageBus messageBus)
@@ -18,7 +19,7 @@ namespace Acquaintance.Nets
 
         public void Inject<T>(T payload)
         {
-            _messageBus.Publish<T>(NetworkInputChannelName, payload);
+            _messageBus.Publish<T>(NetworkInputTopic, payload);
         }
 
         // TODO: Method to Validate the net. Keep a list of all channels written to and read from.

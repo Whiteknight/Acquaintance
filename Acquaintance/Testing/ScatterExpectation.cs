@@ -7,15 +7,15 @@ namespace Acquaintance.Testing
 {
     public class ScatterExpectation<TRequest, TResponse> : IExpectation
     {
-        private readonly string _channelName;
+        private readonly string _topic;
         private readonly string _description;
         private readonly Func<TRequest, bool> _filter;
         private Func<TRequest, IEnumerable<TResponse>> _getResponse;
         private readonly List<Action<TRequest, IEnumerable<TResponse>>> _actions;
 
-        public ScatterExpectation(string channelName, string description, Func<TRequest, bool> filter)
+        public ScatterExpectation(string topic, string description, Func<TRequest, bool> filter)
         {
-            _channelName = channelName;
+            _topic = topic;
             _description = description;
             _filter = filter;
             _actions = new List<Action<TRequest, IEnumerable<TResponse>>>();
@@ -28,7 +28,7 @@ namespace Acquaintance.Testing
             builder.Append(typeof(TRequest).FullName);
             builder.Append(" Gather of type ");
             builder.Append(typeof(TResponse).FullName);
-            builder.AppendFormat(" on channel '{0}'", _channelName ?? string.Empty);
+            builder.AppendFormat(" on topic '{0}'", _topic ?? string.Empty);
             if (!string.IsNullOrEmpty(_description))
             {
                 builder.Append(": ");

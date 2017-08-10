@@ -22,10 +22,10 @@ namespace Acquaintance
         /// Subscribe to pub/sub events for the given type, on the given channel name.
         /// </summary>
         /// <typeparam name="TPayload">The type of event payload to subscribe to</typeparam>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <param name="subscription">The subscription object to receive the events</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription);
+        IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription);
 
         void PublishEnvelope<TPayload>(Envelope<TPayload> envelope);
     }
@@ -46,10 +46,10 @@ namespace Acquaintance
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <param name="listener">The listener to receive the request and provide a response</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener);
+        IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener);
 
         /// <summary>
         /// Eavesdrop on request/response and scatter/gather conversations, and receive events when
@@ -57,10 +57,10 @@ namespace Acquaintance
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <param name="subscriber">The subscriber object to receive eavesdrop events</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Eavesdrop<TRequest, TResponse>(string channelName, ISubscription<Conversation<TRequest, TResponse>> subscriber);
+        IDisposable Eavesdrop<TRequest, TResponse>(string topic, ISubscription<Conversation<TRequest, TResponse>> subscriber);
     }
 
     public interface IScatterGatherBus : IBusBase
@@ -70,20 +70,20 @@ namespace Acquaintance
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <param name="request">The request object</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request);
+        IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request);
 
         /// <summary>
         /// Listen for incoming scatters and provide responses
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <param name="participant">The participant which receives the request and provides responses.</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant);
+        IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant);
 
         // TODO: An Eavesdrop variant for scatter/gather?
     }

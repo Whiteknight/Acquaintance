@@ -4,7 +4,7 @@ using Acquaintance.Utility;
 namespace Acquaintance.PubSub
 {
     /// <summary>
-    /// IPublishableMessage encapsulates a publish event with channel and payload into a single
+    /// IPublishableMessage encapsulates a publish event with topic and payload into a single
     /// object, and apply it to the message bus later.
     /// </summary>
     public interface IPublishableMessage
@@ -14,23 +14,23 @@ namespace Acquaintance.PubSub
 
     public class PublishableMessage : IPublishableMessage
     {
-        private readonly string _channelName;
+        private readonly string _topic;
         private readonly object _message;
         private readonly Type _messageType;
 
-        public PublishableMessage(string channelName, object message)
+        public PublishableMessage(string topic, object message)
         {
-            _channelName = channelName;
+            _topic = topic;
             _message = message;
             _messageType = message.GetType();
         }
 
-        public PublishableMessage(string channelName, Type messageType, object message)
+        public PublishableMessage(string topic, Type messageType, object message)
         {
             Assert.ArgumentNotNull(messageType, nameof(messageType));
             Assert.IsInstanceOf(messageType, message, nameof(message));
 
-            _channelName = channelName;
+            _topic = topic;
             _message = message;
             _messageType = messageType;
         }
@@ -39,18 +39,18 @@ namespace Acquaintance.PubSub
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
-            messageBus.Publish(_channelName, _messageType, _message);
+            messageBus.Publish(_topic, _messageType, _message);
         }
     }
 
     public class PublishableMessage<TPayload> : IPublishableMessage
     {
-        private readonly string _channelName;
+        private readonly string _topic;
         private readonly TPayload _payload;
 
-        public PublishableMessage(string channelName, TPayload payload)
+        public PublishableMessage(string topic, TPayload payload)
         {
-            _channelName = channelName;
+            _topic = topic;
             _payload = payload;
         }
 
@@ -58,7 +58,7 @@ namespace Acquaintance.PubSub
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
-            messageBus.Publish(_channelName, _payload);
+            messageBus.Publish(_topic, _payload);
         }
     }
 }

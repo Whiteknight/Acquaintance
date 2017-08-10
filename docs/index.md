@@ -27,13 +27,13 @@ Publish/Subscribe is a pattern where you have events of interest being generated
     
 Unlike the C# `event` mechanism, the message bus solves the chicken-and-egg problem by allowing the event producer and the event consumers to be created in any order, at any time. 
 
-Unlike callback delegates, Acquaintance will automatically dispatch your request onto a worker thread so it doesn't block other processing.
+Unlike simple callback delegates, Acquaintance will automatically dispatch your request onto a worker thread so it doesn't block other processing. 
 
 With Acquaintance it's easy to interact with other communications mechanisms be sending to and receiving from other communication channels such as ZeroMQ, RabbitMQ, NServiceBus or Kafka.
 
 ## Request/Response
 
-Request/Response is basically an abstracted method call or local RPC mechanism. One part of your code makes a request, and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain references to the objects which produce that result.
+Request/Response is basically an abstracted method call or local RPC mechanism. One part of your code makes a request and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain references to the objects which produce that result.
 
     // Setup a Listener
     messageBus.Listen<MyRequest, MyResponse>(l => l

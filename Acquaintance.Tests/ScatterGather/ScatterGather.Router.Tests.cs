@@ -12,11 +12,11 @@ namespace Acquaintance.Tests.ScatterGather
         public void ScatterRouter_Publish()
         {
             var target = new MessageBus();
-            target.Participate<int, int>(l => l.WithChannelName("Evens").Invoke(e => e * 10));
-            target.Participate<int, int>(l => l.WithChannelName("Odds").Invoke(e => e * 100));
+            target.Participate<int, int>(l => l.WithTopic("Evens").Invoke(e => e * 10));
+            target.Participate<int, int>(l => l.WithTopic("Odds").Invoke(e => e * 100));
 
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e % 2 == 0, "Evens")
                     .When(e => e % 2 == 1, "Odds")));
@@ -32,11 +32,11 @@ namespace Acquaintance.Tests.ScatterGather
         public void ScatterRouter_DefaultRoute()
         {
             var target = new MessageBus();
-            target.Participate<int, int>(l => l.WithChannelName("Evens").Invoke(e => e * 10));
-            target.Participate<int, int>(l => l.WithChannelName("Odds").Invoke(e => e * 100));
+            target.Participate<int, int>(l => l.WithTopic("Evens").Invoke(e => e * 10));
+            target.Participate<int, int>(l => l.WithTopic("Odds").Invoke(e => e * 100));
 
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e % 2 == 0, "Evens")
                     .Else("Odds")));
@@ -52,12 +52,12 @@ namespace Acquaintance.Tests.ScatterGather
         public void ScatterRouter_AllMatching()
         {
             var target = new MessageBus();
-            target.Participate<int, int>(l => l.WithChannelName("Evens").Invoke(e => e * 10));
-            target.Participate<int, int>(l => l.WithChannelName("Odds").Invoke(e => e * 100));
-            target.Participate<int, int>(l => l.WithChannelName("All").Invoke(e => e * 1000));
+            target.Participate<int, int>(l => l.WithTopic("Evens").Invoke(e => e * 10));
+            target.Participate<int, int>(l => l.WithTopic("Odds").Invoke(e => e * 100));
+            target.Participate<int, int>(l => l.WithTopic("All").Invoke(e => e * 1000));
 
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .WithMode(RouterModeType.AllMatchingRoutes)
                     .When(e => e % 2 == 0, "Evens")

@@ -16,7 +16,7 @@ namespace Acquaintance.Timers
 
             return messageBus.Subscribe<MessageTimerEvent>(builder =>
             {
-                var b2 = builder.WithChannelName(MessageTimerEvent.EventName);
+                var b2 = builder.WithTopic(MessageTimerEvent.EventName);
                 build(b2);
                 var b3 = b2 as IDetailsSubscriptionBuilder<MessageTimerEvent>;
                 b3.WithFilter(t => t.Id % multiple == 0);

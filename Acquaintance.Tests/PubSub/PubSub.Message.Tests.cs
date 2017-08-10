@@ -13,7 +13,7 @@ namespace Acquaintance.Tests.PubSub
             var bus = new MessageBus();
             int result = 0;
             bus.Subscribe<int>(b => b
-                .WithChannelName("test")
+                .WithTopic("test")
                 .Invoke(i => result = i)
                 .Immediate());
             var target = new PublishableMessage<int>("test", 5);
@@ -27,7 +27,7 @@ namespace Acquaintance.Tests.PubSub
             var bus = new MessageBus();
             int result = 0;
             bus.Subscribe<int>(b => b
-                .WithChannelName("test")
+                .WithTopic("test")
                 .Invoke(i => result = i)
                 .Immediate());
             var target = new PublishableMessage("test", 5);
@@ -41,7 +41,7 @@ namespace Acquaintance.Tests.PubSub
             var bus = new MessageBus();
             int result = 0;
             bus.Subscribe<int>(b => b
-                .WithChannelName("test")
+                .WithTopic("test")
                 .Invoke(i => result = i)
                 .Immediate());
             var target = new PublishableMessage("test", typeof(int), 5);

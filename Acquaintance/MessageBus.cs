@@ -46,21 +46,21 @@ namespace Acquaintance
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {
-            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(message.Channel))
+            foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(message.Topic))
             {
-                _logger.Debug("Publishing message Type={0} ChannelName={1} to channel Id={2}", typeof(TPayload).FullName, message.Channel, channel.Id);
+                _logger.Debug("Publishing message Type={0} Topic={1} to channel Id={2}", typeof(TPayload).FullName, message.Topic, channel.Id);
                 channel.Publish(message);
             }
             // TODO: Interceptors here so we can send messages to plugins or to federated instances
         }
 
-        public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
         {
             Assert.ArgumentNotNull(subscription, nameof(subscription));
 
             subscription.Id = Guid.NewGuid();
-            var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(channelName, _logger);
-            _logger.Debug("Adding subscription {0} of type Type={1} ChannelName={2} to channel Id={3}", subscription.Id, typeof(TPayload).FullName, channelName, channel.Id);
+            var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(topic, _logger);
+            _logger.Debug("Adding subscription {0} of type Type={1} Topic={2} to channel Id={3}", subscription.Id, typeof(TPayload).FullName, topic, channel.Id);
             return channel.Subscribe(subscription);
         }
 
@@ -71,11 +71,11 @@ namespace Acquaintance
 
         private CompleteResponse<TResponse> RequestInternal<TRequest, TResponse>(Envelope<TRequest> request, IReqResChannelDispatchStrategy strategy)
         {
-            var channel = strategy.GetExistingChannel<TRequest, TResponse>(request.Channel);
+            var channel = strategy.GetExistingChannel<TRequest, TResponse>(request.Topic);
             if (channel == null)
                 return new CompleteResponse<TResponse>(default(TResponse), null);
 
-            _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Channel, channel.Id);
+            _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Topic, channel.Id);
             var waiter = channel.Request(request);
 
             CompleteResponse<TResponse> response;
@@ -86,14 +86,14 @@ namespace Acquaintance
                 response = new CompleteResponse<TResponse>(default(TResponse), null, false);
             waiter.Dispose();
 
-            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(request.Channel).ToList();
+            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(request.Topic).ToList();
             if (eavesdropChannels.Any())
             {
                 var conversation = new Conversation<TRequest, TResponse>(request.Payload, new List<TResponse> { response.Response });
-                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Channel, conversation.Responses.Count);
+                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} Topic={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Topic, conversation.Responses.Count);
                 foreach (var eavesdropChannel in eavesdropChannels)
                 {
-                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Channel, channel.Id);
+                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} Topic={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Topic, channel.Id);
                     var envelope = EnvelopeFactory.Create(null, conversation);
                     eavesdropChannel.Publish(envelope);
                 }
@@ -102,19 +102,19 @@ namespace Acquaintance
             return response;
         }
 
-        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string channelName, TRequest request)
+        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
         {
-            return ScatterInternal<TRequest, TResponse>(channelName, request, _scatterGatherStrategy);
+            return ScatterInternal<TRequest, TResponse>(topic, request, _scatterGatherStrategy);
         }
 
-        private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string name, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
+        private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string topic, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
         {
             var waiters = new List<IDispatchableScatter<TResponse>>();
             // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
             // the next channel
-            foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(name))
+            foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(topic))
             {
-                _logger.Debug("Requesting RequestType={0} ResponseType={1} ChannelName={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+                _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
                 waiters.AddRange(channel.Scatter(request));
             }
 
@@ -136,14 +136,14 @@ namespace Acquaintance
 
             var response = new GatheredResponse<TResponse>(responses);
 
-            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(name).ToList();
+            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(topic).ToList();
             if (eavesdropChannels.Any())
             {
                 var conversation = new Conversation<TRequest, TResponse>(request, rawResponses);
-                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, name, conversation.Responses.Count);
+                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} Topic={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, conversation.Responses.Count);
                 foreach (var channel in eavesdropChannels)
                 {
-                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, name, channel.Id);
+                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} Topic={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
                     var envelope = EnvelopeFactory.Create(null, conversation);
                     channel.Publish(envelope);
                 }
@@ -152,30 +152,30 @@ namespace Acquaintance
             return response;
         }
 
-        public IDisposable Listen<TRequest, TResponse>(string channelName, IListener<TRequest, TResponse> listener)
+        public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
         {
             Assert.ArgumentNotNull(listener, nameof(listener));
 
             listener.Id = Guid.NewGuid();
-            var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName, _logger);
-            _logger.Debug("Listener {0} RequestType={1} ResponseType={2} ChannelName={3} to channel Id={4}", listener.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
+            var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(topic, _logger);
+            _logger.Debug("Listener {0} RequestType={1} ResponseType={2} Topic={3} to channel Id={4}", listener.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
             return channel.Listen(listener);
         }
 
-        public IDisposable Eavesdrop<TRequest, TResponse>(string channelName, ISubscription<Conversation<TRequest, TResponse>> subscription)
+        public IDisposable Eavesdrop<TRequest, TResponse>(string topic, ISubscription<Conversation<TRequest, TResponse>> subscription)
         {
-            var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(channelName, _logger);
-            _logger.Debug("Eavesdrop on RequestType={0} ResponseType={1} ChannelName={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
+            var channel = _eavesdropStrategy.GetChannelForSubscription<Conversation<TRequest, TResponse>>(topic, _logger);
+            _logger.Debug("Eavesdrop on RequestType={0} ResponseType={1} Topic={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
             return channel.Subscribe(subscription);
         }
 
-        public IDisposable Participate<TRequest, TResponse>(string channelName, IParticipant<TRequest, TResponse> participant)
+        public IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant)
         {
             Assert.ArgumentNotNull(participant, nameof(participant));
 
             participant.Id = Guid.NewGuid();
-            var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(channelName, _logger);
-            _logger.Debug("Participant {0} on RequestType={1} ResponseType={2} ChannelName={3}, on channel Id={4}", participant.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, channelName, channel.Id);
+            var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(topic, _logger);
+            _logger.Debug("Participant {0} on RequestType={1} ResponseType={2} Topic={3}, on channel Id={4}", participant.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
             return channel.Participate(participant);
         }
 

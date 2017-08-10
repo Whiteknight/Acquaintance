@@ -12,10 +12,10 @@ namespace Acquaintance.Common
             _id = startId;
         }
 
-        public Envelope<TPayload> Create<TPayload>(string channel, TPayload payload, IReadOnlyDictionary<string, string> metadata = null)
+        public Envelope<TPayload> Create<TPayload>(string topic, TPayload payload, IReadOnlyDictionary<string, string> metadata = null)
         {
             long id = Interlocked.Increment(ref _id);
-            var envelope = new Envelope<TPayload>(id, channel, payload);
+            var envelope = new Envelope<TPayload>(id, topic, payload);
             if (metadata != null)
             {
                 foreach (var kvp in metadata)

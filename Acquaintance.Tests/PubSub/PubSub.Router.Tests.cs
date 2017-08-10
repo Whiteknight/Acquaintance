@@ -25,20 +25,20 @@ namespace Acquaintance.Tests.PubSub
             int all = 0;
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => evens += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Odds")
+                .WithTopic("Odds")
                 .Invoke(e => odds += e.Number)
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e.Number % 2 == 0, "Evens")
                     .When(e => e.Number % 2 == 1, "Odds")));
@@ -62,16 +62,16 @@ namespace Acquaintance.Tests.PubSub
             int all = 0;
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Default")
+                .WithTopic("Default")
                 .Invoke(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => evens += e.Number)
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e.Number % 2 == 0, "Evens")));
 
@@ -93,16 +93,16 @@ namespace Acquaintance.Tests.PubSub
             int all = 0;
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Default")
+                .WithTopic("Default")
                 .Invoke(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => evens += e.Number)
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e.Number % 2 == 0, "Evens")
                     .Else("Default")));
@@ -126,20 +126,20 @@ namespace Acquaintance.Tests.PubSub
             int all = 0;
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("All")
+                .WithTopic("All")
                 .Invoke(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => evens += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Odds")
+                .WithTopic("Odds")
                 .Invoke(e => odds += e.Number)
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .Mode(Common.RouterModeType.AllMatchingRoutes)
                     .When(e => e.Number % 2 == 0, "Evens")
@@ -165,16 +165,16 @@ namespace Acquaintance.Tests.PubSub
             int all = 0;
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("All")
+                .WithTopic("All")
                 .Invoke(e => all += e.Number)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => evens += e.Number)
                 .Immediate());
 
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .Mode(Common.RouterModeType.FirstMatchingRoute)
                     .When(e => e.Number % 2 == 0, "Evens")

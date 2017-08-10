@@ -12,7 +12,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             int x = 0;
             target.Subscribe<int>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => x += e)
                 .Immediate()
                 .MaximumEvents(3));

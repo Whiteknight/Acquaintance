@@ -34,7 +34,7 @@ namespace Acquaintance.Tests.Sources
             int sum = 0;
             IDisposable token = null;
             var messageBus = new MessageBus();
-            messageBus.Subscribe<int>(b => b.OnDefaultChannel().Invoke(i => sum += i));
+            messageBus.Subscribe<int>(b => b.WithDefaultTopic().Invoke(i => sum += i));
             var resetEvent = new ManualResetEvent(false);
             var target = new TestEventSource1(resetEvent);
 
@@ -86,7 +86,7 @@ namespace Acquaintance.Tests.Sources
             int sum = 0;
             IDisposable token = null;
             var messageBus = new MessageBus();
-            messageBus.Subscribe<int>(b => b.OnDefaultChannel().Invoke(i => sum += i));
+            messageBus.Subscribe<int>(b => b.WithDefaultTopic().Invoke(i => sum += i));
             var resetEvent = new ManualResetEvent(false);
             var target = new TestEventSource2(resetEvent);
 

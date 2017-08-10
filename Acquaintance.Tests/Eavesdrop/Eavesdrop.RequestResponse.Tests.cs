@@ -24,11 +24,11 @@ namespace Acquaintance.Tests.Eavesdrop
             var target = new MessageBus();
             string eavesdropped = null;
             target.Listen<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" })
                 .Immediate());
             target.Eavesdrop<TestRequest, TestResponse>(s => s
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
                 .Immediate());
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });

@@ -7,7 +7,7 @@ using Acquaintance.Utility;
 namespace Acquaintance.PubSub
 {
     public class SubscriptionBuilder<TPayload> :
-        IChannelSubscriptionBuilder<TPayload>,
+        ITopicSubscriptionBuilder<TPayload>,
         IActionSubscriptionBuilder<TPayload>,
         IThreadSubscriptionBuilder<TPayload>,
         IDetailsSubscriptionBuilder<TPayload>
@@ -35,7 +35,7 @@ namespace Acquaintance.PubSub
             _messageBus = messageBus;
         }
 
-        public string ChannelName { get; private set; }
+        public string Topic { get; private set; }
 
         public ISubscription<TPayload> BuildSubscription()
         {
@@ -68,15 +68,15 @@ namespace Acquaintance.PubSub
             return token;
         }
 
-        public IActionSubscriptionBuilder<TPayload> WithChannelName(string channelName)
+        public IActionSubscriptionBuilder<TPayload> WithTopic(string topic)
         {
-            ChannelName = channelName ?? string.Empty;
+            Topic = topic ?? string.Empty;
             return this;
         }
 
-        public IActionSubscriptionBuilder<TPayload> OnDefaultChannel()
+        public IActionSubscriptionBuilder<TPayload> WithDefaultTopic()
         {
-            ChannelName = string.Empty;
+            Topic = string.Empty;
             return this;
         }
 
@@ -120,14 +120,14 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null)
+        public IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newTopic = null)
         {
             Assert.ArgumentNotNull(transform, nameof(transform));
 
             return Invoke(payload =>
             {
                 var transformed = transform(payload);
-                _messageBus.Publish(newChannelName, transformed);
+                _messageBus.Publish(newTopic, transformed);
             });
         }
 
@@ -142,13 +142,13 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels)
+        public IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> topics)
         {
-            Assert.ArgumentNotNull(channels, nameof(channels));
+            Assert.ArgumentNotNull(topics, nameof(topics));
 
             ValidateDoesNotHaveAction();
 
-            _distributionList = channels.ToList();
+            _distributionList = topics.ToList();
             return this;
         }
 

@@ -32,11 +32,11 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<OutputEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => text = e.Text + "Output")
                 .Immediate());
             target.Subscribe<InputEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .TransformTo(input => new OutputEvent(input.Text + "Translated"), "Test")
                 .Immediate()
             );

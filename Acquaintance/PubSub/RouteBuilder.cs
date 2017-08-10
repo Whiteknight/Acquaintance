@@ -26,11 +26,11 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string channelName)
+        public RouteBuilder<TPayload> When(Func<TPayload, bool> predicate, string topic)
         {
             Assert.ArgumentNotNull(predicate, nameof(predicate));
 
-            _routes.Add(new EventRoute<TPayload>(channelName, predicate));
+            _routes.Add(new EventRoute<TPayload>(topic, predicate));
             return this;
         }
 

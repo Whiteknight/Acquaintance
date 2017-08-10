@@ -15,9 +15,9 @@ namespace Acquaintance.PubSub
             _pubSubChannels = new ConcurrentDictionary<string, IPubSubChannel>();
         }
         
-        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name, ILogger log)
+        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string topic, ILogger log)
         {
-            string key = GetPubSubKey(typeof(TPayload), name);
+            string key = GetPubSubKey(typeof(TPayload), topic);
 
             var channel = _pubSubChannels.GetOrAdd(key, k => new PubSubChannel<TPayload>(log));
             var typedChannel = channel as IPubSubChannel<TPayload>;
@@ -27,9 +27,9 @@ namespace Acquaintance.PubSub
             return typedChannel;
         }
 
-        public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name)
+        public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string topic)
         {
-            string key = GetPubSubKey(typeof(TPayload), name);
+            string key = GetPubSubKey(typeof(TPayload), topic);
             if (!_pubSubChannels.ContainsKey(key))
                 return Enumerable.Empty<IPubSubChannel<TPayload>>();
 

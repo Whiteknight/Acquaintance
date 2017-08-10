@@ -24,36 +24,36 @@ namespace Acquaintance.Testing
                 throw new ExpectationFailedException(_messages);
         }
 
-        public PublishExpectation<TPayload> ExpectPublish<TPayload>(string name, Func<TPayload, bool> filter, string description)
+        public PublishExpectation<TPayload> ExpectPublish<TPayload>(string topic, Func<TPayload, bool> filter, string description)
         {
-            var expectation = new PublishExpectation<TPayload>(name, description, filter);
+            var expectation = new PublishExpectation<TPayload>(topic, description, filter);
             _expectations.Add(expectation);
             _subscriptions.Subscribe<TPayload>(builder => builder
-                .WithChannelName(name)
+                .WithTopic(topic)
                 .Invoke(p => expectation.TryReceive(p))
                 .Immediate()
                 .WithFilter(filter));
             return expectation;
         }
 
-        public RequestExpectation<TRequest, TResponse> ExpectRequest<TRequest, TResponse>(string name, Func<TRequest, bool> filter, string description)
+        public RequestExpectation<TRequest, TResponse> ExpectRequest<TRequest, TResponse>(string topic, Func<TRequest, bool> filter, string description)
         {
-            var expectation = new RequestExpectation<TRequest, TResponse>(name, description, filter);
+            var expectation = new RequestExpectation<TRequest, TResponse>(topic, description, filter);
             _expectations.Add(expectation);
             _subscriptions.Listen<TRequest, TResponse>(l => l
-                .WithChannelName(name)
+                .WithTopic(topic)
                 .Invoke(r => expectation.TryHandle(r))
                 .Immediate()
                 .WithFilter(filter));
             return expectation;
         }
 
-        public ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(string name, Func<TRequest, bool> filter, string description)
+        public ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(string topic, Func<TRequest, bool> filter, string description)
         {
-            var expectation = new ScatterExpectation<TRequest, TResponse>(name, description, filter);
+            var expectation = new ScatterExpectation<TRequest, TResponse>(topic, description, filter);
             _expectations.Add(expectation);
             _subscriptions.Participate<TRequest, TResponse>(p => p
-                .WithChannelName(name)
+                .WithTopic(topic)
                 .Invoke(r => expectation.TryHandle(r))
                 .Immediate()
                 .WithFilter(filter));

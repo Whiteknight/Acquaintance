@@ -10,12 +10,12 @@ namespace Acquaintance
             return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
         }
 
-        public static IDisposable Participate<TRequest, TResponse>(this IScatterGatherBus messageBus, Action<IChannelParticipantBuilder<TRequest, TResponse>> build)
+        public static IDisposable Participate<TRequest, TResponse>(this IScatterGatherBus messageBus, Action<ITopicParticipantBuilder<TRequest, TResponse>> build)
         {
             var builder = new ParticipantBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
             build(builder);
             var participant = builder.BuildParticipant();
-            var token = messageBus.Participate(builder.ChannelName, participant);
+            var token = messageBus.Participate(builder.Topic, participant);
             return builder.WrapToken(token);
         }
     }

@@ -31,7 +31,7 @@ namespace Acquaintance.Tests.ScatterGather
             try
             {
                 target.Participate<TestRequest, TestResponse>(l => l
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
                     .OnWorkerThread()
                     .WithTimeout(2000));
@@ -52,7 +52,7 @@ namespace Acquaintance.Tests.ScatterGather
             try
             {
                 var token = target.Participate<TestRequest, TestResponse>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
                     .OnDedicatedThread());
                 var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
@@ -73,7 +73,7 @@ namespace Acquaintance.Tests.ScatterGather
             try
             {
                 var token = target.Participate<TestRequest, TestResponse>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
                     .OnThreadPool());
                 var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
@@ -95,7 +95,7 @@ namespace Acquaintance.Tests.ScatterGather
             try
             {
                 var token = target.Participate<TestRequest, TestResponse>(builder => builder
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
                     .OnThread(threadId));
                 var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });

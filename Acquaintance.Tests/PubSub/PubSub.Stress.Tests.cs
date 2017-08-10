@@ -23,7 +23,7 @@ namespace Acquaintance.Tests.PubSub
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubStressEvent>(s => s
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e =>
                 {
                     int c = Interlocked.Increment(ref count);
@@ -49,7 +49,7 @@ namespace Acquaintance.Tests.PubSub
             int count = 0;
             var resetEvent = new ManualResetEvent(false);
             target.Subscribe<TestPubSubStressEvent>(s => s
-                .WithChannelName("Test.XYZ")
+                .WithTopic("Test.XYZ")
                 .Invoke(e =>
                 {
                     int c = Interlocked.Increment(ref count);

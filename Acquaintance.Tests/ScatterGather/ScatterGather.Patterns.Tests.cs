@@ -24,11 +24,11 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
 
-            target.Participate<TestRequest, TestResponse>(l => l.OnDefaultChannel().Invoke(r => new TestResponse { Text = r.Text + "A" }));
-            target.Participate<TestRequest, TestResponse>(l => l.OnDefaultChannel().Invoke(r => new TestResponse { Text = r.Text + "B" }));
-            target.Participate<TestRequest, TestResponse>(l => l.OnDefaultChannel().Invoke(r => new TestResponse { Text = r.Text + "C" }));
-            target.Participate<TestRequest, TestResponse>(l => l.OnDefaultChannel().Invoke(r => new TestResponse { Text = r.Text + "D" }));
-            target.Participate<TestRequest, TestResponse>(l => l.OnDefaultChannel().Invoke(r => new TestResponse { Text = r.Text + "E" }));
+            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "A" }));
+            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "B" }));
+            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "C" }));
+            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "D" }));
+            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "E" }));
 
             var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" });
 

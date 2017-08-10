@@ -24,11 +24,11 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
-        public RouteBuilder<TRequest, TResponse> When(Func<TRequest, bool> predicate, string channelName)
+        public RouteBuilder<TRequest, TResponse> When(Func<TRequest, bool> predicate, string topic)
         {
             Assert.ArgumentNotNull(predicate, nameof(predicate));
 
-            _routes.Add(new EventRoute<TRequest>(channelName, predicate));
+            _routes.Add(new EventRoute<TRequest>(topic, predicate));
             return this;
         }
 

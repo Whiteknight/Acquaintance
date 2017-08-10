@@ -13,9 +13,9 @@ namespace Acquaintance.RequestResponse
             _reqResChannels = new ConcurrentDictionary<string, IReqResChannel>();
         }
 
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string topic, ILogger log)
         {
-            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_reqResChannels.ContainsKey(key))
             {
                 var newChannel = CreateChannel<TRequest, TResponse>(log);
@@ -27,9 +27,9 @@ namespace Acquaintance.RequestResponse
             return channel;
         }
 
-        public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string topic)
         {
-            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_reqResChannels.ContainsKey(key))
                 return null;
             return _reqResChannels[key] as IReqResChannel<TRequest, TResponse>;

@@ -33,14 +33,14 @@ namespace Acquaintance.RequestResponse
             {
                 if (_defaultRouteOrNull != null)
                 {
-                    request = request.RedirectToChannel(_defaultRouteOrNull);
+                    request = request.RedirectToTopic(_defaultRouteOrNull);
                     var response1 = _messageBus.RequestEnvelope<TRequest, TResponse>(request);
                     return new ImmediateResponse<TResponse>(Id, response1);
                 }
                 return new ImmediateResponse<TResponse>(Id, default(TResponse));
             }
 
-            request = request.RedirectToChannel(route.ChannelName);
+            request = request.RedirectToTopic(route.Topic);
             var response = _messageBus.RequestEnvelope<TRequest, TResponse>(request);
             return new ImmediateResponse<TResponse>(Id, response);
         }

@@ -8,20 +8,20 @@ namespace Acquaintance.ScatterGather
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IChannelParticipantBuilder<TRequest, TResponse>
+    public interface ITopicParticipantBuilder<TRequest, TResponse>
     {
         /// <summary>
         /// Specify a channel name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IActionParticipantBuilder<TRequest, TResponse> WithChannelName(string name);
+        IActionParticipantBuilder<TRequest, TResponse> WithTopic(string name);
 
         /// <summary>
         /// Use the default (empty) channel
         /// </summary>
         /// <returns></returns>
-        IActionParticipantBuilder<TRequest, TResponse> OnDefaultChannel();
+        IActionParticipantBuilder<TRequest, TResponse> WithDefaultTopic();
     }
 
     /// <summary>

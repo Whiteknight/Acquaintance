@@ -7,20 +7,20 @@ namespace Acquaintance.RequestResponse
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IChannelListenerBuilder<TRequest, TResponse>
+    public interface ITopicListenerBuilder<TRequest, TResponse>
     {
         /// <summary>
         /// Listen on the specific channel
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        IActionListenerBuilder<TRequest, TResponse> WithChannelName(string name);
+        IActionListenerBuilder<TRequest, TResponse> WithTopic(string name);
 
         /// <summary>
         /// Listen on the default channel
         /// </summary>
         /// <returns></returns>
-        IActionListenerBuilder<TRequest, TResponse> OnDefaultChannel();
+        IActionListenerBuilder<TRequest, TResponse> WithDefaultTopic();
     }
 
     /// <summary>
@@ -52,19 +52,19 @@ namespace Acquaintance.RequestResponse
         /// Transform the request payload to a new object type and forward it to a new channel
         /// </summary>
         /// <typeparam name="TTransformed"></typeparam>
-        /// <param name="sourceChannelName"></param>
+        /// <param name="sourceTopic"></param>
         /// <param name="transform"></param>
         /// <returns></returns>
-        IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform);
+        IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceTopic, Func<TRequest, TTransformed> transform);
 
         /// <summary>
         /// Transform the response payload from the source type of the expected response type
         /// </summary>
         /// <typeparam name="TSource"></typeparam>
-        /// <param name="sourceChannelName"></param>
+        /// <param name="sourceTopic"></param>
         /// <param name="transform"></param>
         /// <returns></returns>
-        IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
+        IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceTopic, Func<TSource, TResponse> transform);
     }
 
     /// <summary>

@@ -6,20 +6,20 @@ namespace Acquaintance
     {
         private IDictionary<string, string> _metadata;
 
-        public Envelope(long id, string channel, TPayload payload)
+        public Envelope(long id, string topic, TPayload payload)
         {
             Id = id;
-            Channel = channel;
+            Topic = topic;
             Payload = payload;
         }
 
-        public string Channel { get; }
+        public string Topic { get; }
         public TPayload Payload { get; }
         public long Id { get; }
 
-        public Envelope<TPayload> RedirectToChannel(string channelName)
+        public Envelope<TPayload> RedirectToTopic(string topic)
         {
-            var envelope = new Envelope<TPayload>(Id, channelName, Payload);
+            var envelope = new Envelope<TPayload>(Id, topic, Payload);
             if (_metadata != null)
                 envelope._metadata = new Dictionary<string, string>(_metadata);
             return envelope;

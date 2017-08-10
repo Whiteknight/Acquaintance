@@ -23,7 +23,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
@@ -39,16 +39,16 @@ namespace Acquaintance.Tests.PubSub
             });
             int count = 0;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("1.X.c")
+                .WithTopic("1.X.c")
                 .Invoke(e => count += 1)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(
                 builder => builder
-                .WithChannelName("1.Y.c")
+                .WithTopic("1.Y.c")
                 .Invoke(e => count += 10)
                 .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("1.Y.d")
+                .WithTopic("1.Y.d")
                 .Invoke(e => count += 100)
                 .Immediate());
             target.Publish("1.*.c", new TestPubSubEvent("Test2"));
@@ -61,7 +61,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => text = e.Text)
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
@@ -77,19 +77,19 @@ namespace Acquaintance.Tests.PubSub
 
             var target = new MessageBus();
             target.Subscribe<int>(builder => builder
-                .WithChannelName("a")
+                .WithTopic("a")
                 .Invoke(x => a += x)
                 .Immediate());
             target.Subscribe<int>(builder => builder
-                .WithChannelName("b")
+                .WithTopic("b")
                 .Invoke(x => b += x)
                 .Immediate());
             target.Subscribe<int>(builder => builder
-                .WithChannelName("c")
+                .WithTopic("c")
                 .Invoke(x => c += x)
                 .Immediate());
             target.Subscribe<int>(builder => builder
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Distribute(new[] { "a", "b", "c" }));
 
             target.Publish(1);
@@ -118,7 +118,7 @@ namespace Acquaintance.Tests.PubSub
             var handler = new TestHandler();
             var target = new MessageBus();
             target.Subscribe<int>(b => b
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(handler)
                 .Immediate());
 
@@ -145,7 +145,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             int result = 0;
             target.Subscribe<int>(b => b
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .ActivateAndInvoke(i => new TestService(), (service, i) => result = service.Multiply(i))
                 .Immediate());
 
@@ -159,7 +159,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             int x = 0;
             target.Subscribe<int>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => x += e)
                 .Immediate()
                 .ModifySubscription(s => new MaxEventsSubscription<int>(s, 3)));
@@ -174,7 +174,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .InvokeEnvelope(e => text = e.Payload.Text)
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));

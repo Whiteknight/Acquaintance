@@ -8,17 +8,17 @@ namespace Acquaintance.PubSub
 {
     public class RoundRobinDispatchSubscription<TPayload> : ISubscription<TPayload>
     {
-        private readonly string[] _channels;
+        private readonly string[] _topics;
         private int _idx;
         private readonly IPubSubBus _messageBus;
 
-        public RoundRobinDispatchSubscription(IPubSubBus messageBus, IEnumerable<string> channels)
+        public RoundRobinDispatchSubscription(IPubSubBus messageBus, IEnumerable<string> topics)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            Assert.ArgumentNotNull(channels, nameof(channels));
+            Assert.ArgumentNotNull(topics, nameof(topics));
 
-            _channels = channels.ToArray();
-            if (_channels.Length == 0)
+            _topics = topics.ToArray();
+            if (_topics.Length == 0)
                 throw new Exception("No channel names provided");
             _idx = 0;
             _messageBus = messageBus;
@@ -30,10 +30,10 @@ namespace Acquaintance.PubSub
         public void Publish(Envelope<TPayload> message)
         {
             int idx = Interlocked.Increment(ref _idx);
-            idx = idx % _channels.Length;
+            idx = idx % _topics.Length;
 
-            string channel = _channels[idx];
-            message = message.RedirectToChannel(channel);
+            string topic = _topics[idx];
+            message = message.RedirectToTopic(topic);
             _messageBus.PublishEnvelope(message);
         }
     }

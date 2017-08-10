@@ -6,8 +6,8 @@ namespace Acquaintance.ScatterGather
 {
     public interface IScatterGatherChannelDispatchStrategy : IDisposable
     {
-        IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log);
+        IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string topic, ILogger log);
 
-        IEnumerable<IScatterGatherChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name);
+        IEnumerable<IScatterGatherChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string topic);
     }
 }

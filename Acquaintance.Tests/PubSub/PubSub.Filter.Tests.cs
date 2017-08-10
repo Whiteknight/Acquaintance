@@ -22,7 +22,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => text = e.Text)
                 .Immediate()
                 .WithFilter(e => e.Text == "Test2"));
@@ -38,7 +38,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             string text = null;
             target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => text = e.Text)
                 .Immediate()
                 .WithFilter(e => e.Text == "Test2"));

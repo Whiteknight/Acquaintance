@@ -46,14 +46,14 @@ namespace Acquaintance.PubSub
             var route = _routes.FirstOrDefault(r => r.Predicate(message.Payload));
             if (route != null)
             {
-                message = message.RedirectToChannel(route.ChannelName);
+                message = message.RedirectToTopic(route.Topic);
                 _messageBus.PublishEnvelope(message);
                 return;
             }
 
             if (_defaultRouteOrNull != null)
             {
-                message = message.RedirectToChannel(_defaultRouteOrNull);
+                message = message.RedirectToTopic(_defaultRouteOrNull);
                 _messageBus.PublishEnvelope(message);
             }
         }
@@ -64,13 +64,13 @@ namespace Acquaintance.PubSub
             foreach (var route in _routes.Where(r => r.Predicate(message.Payload)))
             {
                 hasMatch = true;
-                var newMessage = message.RedirectToChannel(route.ChannelName);
+                var newMessage = message.RedirectToTopic(route.Topic);
                 _messageBus.PublishEnvelope(newMessage);
             }
 
             if (!hasMatch && _defaultRouteOrNull != null)
             {
-                var newMessage = message.RedirectToChannel(_defaultRouteOrNull);
+                var newMessage = message.RedirectToTopic(_defaultRouteOrNull);
                 _messageBus.PublishEnvelope(newMessage);
             }
         }

@@ -11,14 +11,14 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<int, int>(l => l
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => e * 10));
             target.Listen<int, int>(l => l
-                .WithChannelName("Odds")
+                .WithTopic("Odds")
                 .Invoke(e => e * 100));
 
             target.Listen<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e % 2 == 0, "Evens")
                     .When(e => e % 2 == 1, "Odds")));
@@ -35,14 +35,14 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<int, int>(l => l
-                .WithChannelName("Evens")
+                .WithTopic("Evens")
                 .Invoke(e => e * 10));
             target.Listen<int, int>(l => l
-                .WithChannelName("Odds")
+                .WithTopic("Odds")
                 .Invoke(e => e * 100));
 
             target.Listen<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Route(r => r
                     .When(e => e % 2 == 0, "Evens")
                     .Else("Odds")));

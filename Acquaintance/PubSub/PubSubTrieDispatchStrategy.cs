@@ -15,19 +15,19 @@ namespace Acquaintance.PubSub
             _channels = new StringTrie<IPubSubChannel>();
         }
 
-        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name, ILogger log)
+        public IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string topic, ILogger log)
         {
-            name = name ?? string.Empty;
-            var channel = _channels.GetOrInsert(typeof(TPayload).FullName, name.Split('.'), () => new PubSubChannel<TPayload>(log)) as IPubSubChannel<TPayload>;
+            topic = topic ?? string.Empty;
+            var channel = _channels.GetOrInsert(typeof(TPayload).FullName, topic.Split('.'), () => new PubSubChannel<TPayload>(log)) as IPubSubChannel<TPayload>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");
             return channel;
         }
 
-        public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name)
+        public IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string topic)
         {
-            name = name ?? string.Empty;
-            return _channels.Get(typeof(TPayload).FullName, name.Split('.')).OfType<IPubSubChannel<TPayload>>();
+            topic = topic ?? string.Empty;
+            return _channels.Get(typeof(TPayload).FullName, topic.Split('.')).OfType<IPubSubChannel<TPayload>>();
         }
 
         public void Dispose()

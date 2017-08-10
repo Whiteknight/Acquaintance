@@ -24,7 +24,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
@@ -36,7 +36,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .InvokeEnvelope(req => new TestResponse { Text = req.Payload.Text + "Responded" }));
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
@@ -48,7 +48,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }, true));
 
             var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
@@ -61,7 +61,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             var token = target.Listen<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(req => 1));
 
             target.Request<int, int>(1).Should().Be(1);
@@ -74,7 +74,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Request("Test", typeof(TestRequest), new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
@@ -92,11 +92,11 @@ namespace Acquaintance.Tests.RequestResponse
             Action act = () =>
             {
                 target.Listen<GenericRequest<string>, GenericResponse<string>>(l => l
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(req => new GenericResponse<string>())
                     .Immediate());
                 target.Listen<GenericRequest<int>, GenericResponse<int>>(l => l
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(req => new GenericResponse<int>())
                     .Immediate());
             };
@@ -122,7 +122,7 @@ namespace Acquaintance.Tests.RequestResponse
                 DispatchStrategy = new TrieDispatchStrategyFactory()
             });
             target.Listen<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test.A")
+                .WithTopic("Test.A")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Request<TestRequest, TestResponse>("Test.*", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
@@ -134,7 +134,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<int, int>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => e + 5)
                 .Immediate()
                 .ModifyListener(x => new MaxRequestsListener<int, int>(x, 3)));

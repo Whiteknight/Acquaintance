@@ -6,8 +6,8 @@ namespace Acquaintance.PubSub
 {
     public interface IPubSubChannelDispatchStrategy : IDisposable
     {
-        IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string name, ILogger log);
+        IPubSubChannel<TPayload> GetChannelForSubscription<TPayload>(string topic, ILogger log);
 
-        IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string name);
+        IEnumerable<IPubSubChannel<TPayload>> GetExistingChannels<TPayload>(string topic);
     }
 }

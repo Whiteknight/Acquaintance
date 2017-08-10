@@ -23,7 +23,7 @@ namespace Acquaintance
             build(builder);
             var subscription = builder.BuildSubscription();
 
-            var token = messageBus.Eavesdrop(builder.ChannelName, subscription);
+            var token = messageBus.Eavesdrop(builder.Topic, subscription);
             return builder.WrapToken(token);
         }
     }

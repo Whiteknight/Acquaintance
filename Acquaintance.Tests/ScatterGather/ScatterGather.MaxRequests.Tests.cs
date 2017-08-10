@@ -23,7 +23,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(req => 1)
                 .Immediate()
                 .MaximumRequests(2));

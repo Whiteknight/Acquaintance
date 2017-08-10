@@ -11,7 +11,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(e => e * 10)
                 .Immediate()
                 .WithFilter(e => e % 2 == 0));

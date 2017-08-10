@@ -25,7 +25,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
@@ -38,7 +38,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }, true));
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
@@ -51,7 +51,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<TestRequest, TestResponse>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
 
             var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "Request" });
@@ -71,10 +71,10 @@ namespace Acquaintance.Tests.ScatterGather
             Action act = () =>
             {
                 target.Participate<GenericRequest<string>, GenericResponse<string>>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new GenericResponse<string>()));
                 target.Participate<GenericRequest<int>, GenericResponse<int>>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new GenericResponse<int>()));
             };
             act.ShouldNotThrow();
@@ -98,9 +98,9 @@ namespace Acquaintance.Tests.ScatterGather
             {
                 DispatchStrategy = new TrieDispatchStrategyFactory()
             });
-            target.Participate<int, int>(l => l.WithChannelName("Test.A").Invoke(req => 1));
-            target.Participate<int, int>(l => l.WithChannelName("Test.B").Invoke(req => 2));
-            target.Participate<int, int>(l => l.WithChannelName("Test.C").Invoke(req => 3));
+            target.Participate<int, int>(l => l.WithTopic("Test.A").Invoke(req => 1));
+            target.Participate<int, int>(l => l.WithTopic("Test.B").Invoke(req => 2));
+            target.Participate<int, int>(l => l.WithTopic("Test.C").Invoke(req => 3));
             var response = target.Scatter<int, int>("Test.*", 0).ToArray();
             response.Should().BeEquivalentTo(1, 2, 3);
         }
@@ -109,10 +109,10 @@ namespace Acquaintance.Tests.ScatterGather
         public void Participate_ParticipantBuilder_TransformRequestTo()
         {
             var target = new MessageBus();
-            target.Participate<string, int>(l => l.OnDefaultChannel().Invoke(s => s.Length));
-            target.Participate<string, int>(l => l.OnDefaultChannel().Invoke(s => s.Length * 2));
+            target.Participate<string, int>(l => l.WithDefaultTopic().Invoke(s => s.Length));
+            target.Participate<string, int>(l => l.WithDefaultTopic().Invoke(s => s.Length * 2));
 
-            target.Participate<int, int>(l => l.OnDefaultChannel().TransformRequestTo<string>(null, i => i.ToString()));
+            target.Participate<int, int>(l => l.WithDefaultTopic().TransformRequestTo<string>(null, i => i.ToString()));
 
             var results = target.Scatter<int, int>(100);
             results.Should().Contain(3);
@@ -123,10 +123,10 @@ namespace Acquaintance.Tests.ScatterGather
         public void Participate_ParticipantBuilder_TransformResponseFrom()
         {
             var target = new MessageBus();
-            target.Participate<int, string>(l => l.OnDefaultChannel().Invoke(s => s.ToString()));
-            target.Participate<int, string>(l => l.OnDefaultChannel().Invoke(s => s.ToString() + "A"));
+            target.Participate<int, string>(l => l.WithDefaultTopic().Invoke(s => s.ToString()));
+            target.Participate<int, string>(l => l.WithDefaultTopic().Invoke(s => s.ToString() + "A"));
 
-            target.Participate<int, int>(l => l.OnDefaultChannel().TransformResponseFrom<string>(null, i => i.Length));
+            target.Participate<int, int>(l => l.WithDefaultTopic().TransformResponseFrom<string>(null, i => i.Length));
 
             var results = target.Scatter<int, int>(100);
             results.Should().Contain(3);
@@ -138,7 +138,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
                 .OnWorkerThread());
 
@@ -153,7 +153,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
                 .Immediate());
 
@@ -167,7 +167,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(req => 1)
                 .Immediate()
                 .ModifyParticipant(p => new MaxRequestsParticipant<int, int>(p, 2)));

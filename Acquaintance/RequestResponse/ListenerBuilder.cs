@@ -5,7 +5,7 @@ using Acquaintance.Utility;
 namespace Acquaintance.RequestResponse
 {
     public class ListenerBuilder<TRequest, TResponse> :
-        IChannelListenerBuilder<TRequest, TResponse>,
+        ITopicListenerBuilder<TRequest, TResponse>,
         IActionListenerBuilder<TRequest, TResponse>,
         IThreadListenerBuilder<TRequest, TResponse>,
         IDetailsListenerBuilder<TRequest, TResponse>
@@ -35,7 +35,7 @@ namespace Acquaintance.RequestResponse
             _timeoutMs = 5000;
         }
 
-        public string ChannelName { get; private set; }
+        public string Topic { get; private set; }
 
         public IListener<TRequest, TResponse> BuildListener()
         {
@@ -61,15 +61,15 @@ namespace Acquaintance.RequestResponse
             return token;
         }
 
-        public IActionListenerBuilder<TRequest, TResponse> WithChannelName(string name)
+        public IActionListenerBuilder<TRequest, TResponse> WithTopic(string name)
         {
-            ChannelName = name;
+            Topic = name;
             return this;
         }
 
-        public IActionListenerBuilder<TRequest, TResponse> OnDefaultChannel()
+        public IActionListenerBuilder<TRequest, TResponse> WithDefaultTopic()
         {
-            ChannelName = string.Empty;
+            Topic = string.Empty;
             return this;
         }
 
@@ -98,22 +98,22 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
+        public IThreadListenerBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceTopic, Func<TRequest, TTransformed> transform)
         {
             Assert.ArgumentNotNull(transform, nameof(transform));
             return Invoke(request =>
             {
                 var transformed = transform(request);
-                return _messageBus.Request<TTransformed, TResponse>(sourceChannelName, transformed);
+                return _messageBus.Request<TTransformed, TResponse>(sourceTopic, transformed);
             });
         }
 
-        public IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
+        public IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceTopic, Func<TSource, TResponse> transform)
         {
             Assert.ArgumentNotNull(transform, nameof(transform));
             return Invoke(request =>
             {
-                var response = _messageBus.Request<TRequest, TSource>(sourceChannelName, request);
+                var response = _messageBus.Request<TRequest, TSource>(sourceTopic, request);
                 return transform(response);
             });
         }

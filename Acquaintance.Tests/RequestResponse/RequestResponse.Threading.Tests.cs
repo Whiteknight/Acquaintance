@@ -29,7 +29,7 @@ namespace Acquaintance.Tests.RequestResponse
             try
             {
                 target.Listen<TestRequest, TestResponse>(l => l
-                    .WithChannelName("Test")
+                    .WithTopic("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
                     .OnWorkerThread()
                     .WithTimeout(2000));
@@ -50,7 +50,7 @@ namespace Acquaintance.Tests.RequestResponse
             try
             {
                 target.Listen<int, int>(l => l
-                    .OnDefaultChannel()
+                    .WithDefaultTopic()
                     .Invoke(req => req * 5)
                     .OnDedicatedThread()
                     .WithTimeout(2000));
@@ -71,7 +71,7 @@ namespace Acquaintance.Tests.RequestResponse
             try
             {
                 target.Listen<int, int>(l => l
-                    .OnDefaultChannel()
+                    .WithDefaultTopic()
                     .Invoke(req => req * 5)
                     .OnThreadPool()
                     .WithTimeout(2000));
@@ -93,7 +93,7 @@ namespace Acquaintance.Tests.RequestResponse
             try
             {
                 target.Listen<int, int>(l => l
-                    .OnDefaultChannel()
+                    .WithDefaultTopic()
                     .Invoke(req => req * 5)
                     .OnThread(threadId)
                     .WithTimeout(2000));

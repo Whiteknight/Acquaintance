@@ -54,7 +54,7 @@ namespace Acquaintance.ScatterGather
                 }
                 return new ImmediateGather<TResponse>(Id, null);
             }
-            var response = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
+            var response = _messageBus.Scatter<TRequest, TResponse>(route.Topic, request);
             return new ImmediateGather<TResponse>(Id, response.ToArray());
         }
 
@@ -63,7 +63,7 @@ namespace Acquaintance.ScatterGather
             var allResponses = Enumerable.Empty<TResponse>();
             foreach (var route in _routes.Where(r => r.Predicate(request)))
             {
-                var responses = _messageBus.Scatter<TRequest, TResponse>(route.ChannelName, request);
+                var responses = _messageBus.Scatter<TRequest, TResponse>(route.Topic, request);
                 allResponses = allResponses.Concat(responses.AsEnumerable());
             }
             return new ImmediateGather<TResponse>(Id, allResponses.ToArray());

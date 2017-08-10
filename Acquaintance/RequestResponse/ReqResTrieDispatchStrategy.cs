@@ -14,19 +14,19 @@ namespace Acquaintance.RequestResponse
             _channels = new StringTrie<IReqResChannel>();
         }
 
-        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
+        public IReqResChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string topic, ILogger log)
         {
-            name = name ?? string.Empty;
-            var channel = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'), () => CreateChannel<TRequest, TResponse>(log)) as IReqResChannel<TRequest, TResponse>;
+            topic = topic ?? string.Empty;
+            var channel = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'), () => CreateChannel<TRequest, TResponse>(log)) as IReqResChannel<TRequest, TResponse>;
             if (channel == null)
                 throw new Exception("Channel has incorrect type");
             return channel;
         }
 
-        public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string name)
+        public IReqResChannel<TRequest, TResponse> GetExistingChannel<TRequest, TResponse>(string topic)
         {
-            name = name ?? string.Empty;
-            return _channels.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, name.Split('.'))
+            topic = topic ?? string.Empty;
+            return _channels.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'))
                 .OfType<IReqResChannel<TRequest, TResponse>>()
                 .FirstOrDefault();
         }

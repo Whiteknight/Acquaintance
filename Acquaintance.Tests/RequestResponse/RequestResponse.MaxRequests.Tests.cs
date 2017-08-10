@@ -12,7 +12,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus();
             target.Listen<int, int>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(e => e + 5)
                 .Immediate()
                 .MaximumRequests(3));

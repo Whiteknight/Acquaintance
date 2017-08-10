@@ -14,7 +14,7 @@ namespace Acquaintance.Tests.RequestResponse
             int requests = 0;
             var target = new MessageBus();
             target.Listen<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(i =>
                 {
                     requests++;

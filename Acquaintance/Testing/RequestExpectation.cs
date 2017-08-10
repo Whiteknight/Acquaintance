@@ -6,16 +6,16 @@ namespace Acquaintance.Testing
 {
     public class RequestExpectation<TRequest, TResponse> : IExpectation
     {
-        private readonly string _channelName;
+        private readonly string _topic;
         private readonly string _description;
         private readonly Func<TRequest, bool> _filter;
         private readonly List<Action<TRequest, TResponse>> _actions;
 
         private Func<TRequest, TResponse> _getResponse;
 
-        public RequestExpectation(string channelName, string description, Func<TRequest, bool> filter)
+        public RequestExpectation(string topic, string description, Func<TRequest, bool> filter)
         {
-            _channelName = channelName;
+            _topic = topic;
             _description = description;
             _filter = filter;
             _actions = new List<Action<TRequest, TResponse>>();
@@ -28,7 +28,7 @@ namespace Acquaintance.Testing
             builder.Append(typeof(TRequest).FullName);
             builder.Append(" Response of type ");
             builder.Append(typeof(TResponse).FullName);
-            builder.AppendFormat(" on channel '{0}'", _channelName ?? string.Empty);
+            builder.AppendFormat(" on topic '{0}'", _topic ?? string.Empty);
             if (!string.IsNullOrEmpty(_description))
             {
                 builder.Append(": ");

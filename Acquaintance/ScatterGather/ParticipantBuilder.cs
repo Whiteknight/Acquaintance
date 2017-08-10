@@ -7,7 +7,7 @@ using Acquaintance.Utility;
 namespace Acquaintance.ScatterGather
 {
     public class ParticipantBuilder<TRequest, TResponse> :
-        IChannelParticipantBuilder<TRequest, TResponse>,
+        ITopicParticipantBuilder<TRequest, TResponse>,
         IActionParticipantBuilder<TRequest, TResponse>,
         IThreadParticipantBuilder<TRequest, TResponse>,
         IDetailsParticipantBuilder<TRequest, TResponse>
@@ -36,7 +36,7 @@ namespace Acquaintance.ScatterGather
             _timeoutMs = 5000;
         }
 
-        public string ChannelName { get; private set; }
+        public string Topic { get; private set; }
 
         public IParticipant<TRequest, TResponse> BuildParticipant()
         {
@@ -67,15 +67,15 @@ namespace Acquaintance.ScatterGather
             return token;
         }
 
-        public IActionParticipantBuilder<TRequest, TResponse> WithChannelName(string name)
+        public IActionParticipantBuilder<TRequest, TResponse> WithTopic(string name)
         {
-            ChannelName = name;
+            Topic = name;
             return this;
         }
 
-        public IActionParticipantBuilder<TRequest, TResponse> OnDefaultChannel()
+        public IActionParticipantBuilder<TRequest, TResponse> WithDefaultTopic()
         {
-            ChannelName = string.Empty;
+            Topic = string.Empty;
             return this;
         }
 

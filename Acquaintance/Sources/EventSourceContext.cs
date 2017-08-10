@@ -1,6 +1,7 @@
 ﻿using Acquaintance.PubSub;
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Sources
 {
@@ -10,8 +11,7 @@ namespace Acquaintance.Sources
 
         public EventSourceContext(IPubSubBus messageBus)
         {
-            if (messageBus == null)
-                throw new ArgumentNullException(nameof(messageBus));
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             _messageBus = messageBus;
         }
 
@@ -28,10 +28,10 @@ namespace Acquaintance.Sources
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)
         {
-            _messageBus.PublishEnvelope<TPayload>(envelope);
+            _messageBus.PublishEnvelope(envelope);
         }
 
-        public IDisposable Subscribe<TPayload>(string channelName, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
         {
             return null;
         }

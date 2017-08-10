@@ -7,11 +7,11 @@ namespace Acquaintance
 {
     public static class ReqResMessageBusExtensions
     {
-        public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, string channelName, TRequest request)
+        public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, string topic, TRequest request)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
-            var envelope = messageBus.EnvelopeFactory.Create(channelName, request);
+            var envelope = messageBus.EnvelopeFactory.Create(topic, request);
             return messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
         }
 
@@ -36,11 +36,11 @@ namespace Acquaintance
         /// the necessary type inferences.
         /// </summary>
         /// <param name="messageBus">The message bus</param>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <param name="requestType">The runtime type of the request</param>
         /// <param name="request">The request object</param>
         /// <returns>The response object</returns>
-        public static object Request(this IReqResBus messageBus, string channelName, Type requestType, object request)
+        public static object Request(this IReqResBus messageBus, string topic, Type requestType, object request)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
@@ -50,7 +50,7 @@ namespace Acquaintance
             var factoryMethod = messageBus.EnvelopeFactory.GetType()
                 .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
                 .MakeGenericMethod(requestType);
-            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { channelName, request, null });
+            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { topic, request, null });
 
             var responseType = requestInterface.GetGenericArguments().Single();
 
@@ -66,13 +66,13 @@ namespace Acquaintance
         /// <param name="messageBus">The message bus</param>
         /// <param name="build">The lambda function to build the listener</param>
         /// <returns>A token representing the subscription whic, when disposed, cancels the subscription</returns>
-        public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<IChannelListenerBuilder<TRequest, TResponse>> build)
+        public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<ITopicListenerBuilder<TRequest, TResponse>> build)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var builder = new ListenerBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
             build(builder);
             var listener = builder.BuildListener();
-            var token = messageBus.Listen(builder.ChannelName, listener);
+            var token = messageBus.Listen(builder.Topic, listener);
             return builder.WrapToken(token);
         }
     }

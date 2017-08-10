@@ -15,9 +15,9 @@ namespace Acquaintance.ScatterGather
             _reqResChannels = new ConcurrentDictionary<string, IScatterGatherChannel>();
         }
 
-        public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string name, ILogger log)
+        public IScatterGatherChannel<TRequest, TResponse> GetChannelForSubscription<TRequest, TResponse>(string topic, ILogger log)
         {
-            string key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            string key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_reqResChannels.ContainsKey(key))
             {
                 var newChannel = CreateChannel<TRequest, TResponse>(log);
@@ -29,9 +29,9 @@ namespace Acquaintance.ScatterGather
             return channel;
         }
 
-        public IEnumerable<IScatterGatherChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string name)
+        public IEnumerable<IScatterGatherChannel<TRequest, TResponse>> GetExistingChannels<TRequest, TResponse>(string topic)
         {
-            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), name);
+            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_reqResChannels.ContainsKey(key))
                 return Enumerable.Empty<IScatterGatherChannel<TRequest, TResponse>>();
             var channel = _reqResChannels[key] as IScatterGatherChannel<TRequest, TResponse>;

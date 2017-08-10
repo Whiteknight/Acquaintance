@@ -25,10 +25,10 @@ namespace Acquaintance.Tests.Eavesdrop
             string eavesdropped = null;
 
             target.Participate<TestRequest, TestResponse>(l => l
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             target.Eavesdrop<TestRequest, TestResponse>(s => s
-                .WithChannelName("Test")
+                .WithTopic("Test")
                 .Invoke(conv => eavesdropped = conv.Responses.Select(r => r.Text).FirstOrDefault())
                 .Immediate());
             var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });

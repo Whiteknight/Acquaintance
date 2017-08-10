@@ -3,20 +3,20 @@ using System.Collections.Generic;
 
 namespace Acquaintance.PubSub
 {
-    public interface IChannelSubscriptionBuilder<TPayload>
+    public interface ITopicSubscriptionBuilder<TPayload>
     {
         /// <summary>
         /// Use the given channel name
         /// </summary>
-        /// <param name="channelName">The name of the channel</param>
+        /// <param name="topic">The name of the channel</param>
         /// <returns>The builder</returns>
-        IActionSubscriptionBuilder<TPayload> WithChannelName(string channelName);
+        IActionSubscriptionBuilder<TPayload> WithTopic(string topic);
 
         /// <summary>
         /// Use the default channel
         /// </summary>
         /// <returns>The builder</returns>
-        IActionSubscriptionBuilder<TPayload> OnDefaultChannel();
+        IActionSubscriptionBuilder<TPayload> WithDefaultTopic();
     }
 
     public interface IActionSubscriptionBuilder<TPayload>
@@ -52,9 +52,9 @@ namespace Acquaintance.PubSub
         /// </summary>
         /// <typeparam name="TOutput">The type to transform the payload to</typeparam>
         /// <param name="transform">The callback to transform the data from the input to the output type</param>
-        /// <param name="newChannelName">The new channel name to publish the transformed message to</param>
+        /// <param name="newTopic">The new channel name to publish the transformed message to</param>
         /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newChannelName = null);
+        IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newTopic = null);
 
         /// <summary>
         /// Route the message to a new channel based on rules
@@ -66,9 +66,9 @@ namespace Acquaintance.PubSub
         /// <summary>
         /// Distrubute the message to one of several channels using a round-robin dispatching scheme
         /// </summary>
-        /// <param name="channels">A list of new channels to dispatch to</param>
+        /// <param name="topics">A list of new channels to dispatch to</param>
         /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> channels);
+        IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> topics);
     }
 
     public interface IThreadSubscriptionBuilder<TPayload>

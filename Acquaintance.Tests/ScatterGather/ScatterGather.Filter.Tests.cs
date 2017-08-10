@@ -11,12 +11,12 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(e => e * 10)
                 .Immediate()
                 .WithFilter(i => i % 2 == 0));
             target.Participate<int, int>(l => l
-                .OnDefaultChannel()
+                .WithDefaultTopic()
                 .Invoke(e => e * 100)
                 .Immediate()
                 .WithFilter(i => i % 2 == 1));
