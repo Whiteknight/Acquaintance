@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {
@@ -19,9 +20,8 @@ namespace Acquaintance.ScatterGather
 
         public Guid Id { get; }
 
-        public IEnumerable<IDispatchableScatter<TResponse>> Scatter(TRequest request)
+        public void Scatter(TRequest request, ScatterRequest<TResponse> scatter)
         {
-            var waiters = new List<IDispatchableScatter<TResponse>>();
             var toRemove = new List<Guid>();
             foreach (var kvp in _participants)
             {
@@ -31,12 +31,10 @@ namespace Acquaintance.ScatterGather
                     if (!participant.CanHandle(request))
                         continue;
 
-                    // TODO: We should order these so worker thread requests are dispatched first, followed by
-                    // immediate requests.
-                    var responseWaiter = participant.Scatter(request);
+                    scatter.AddParticipant(participant.Id);
+                    participant.Scatter(request, scatter);
                     if (participant.ShouldStopParticipating)
                         toRemove.Add(kvp.Key);
-                    waiters.Add(responseWaiter);
                 }
                 catch (Exception e)
                 {
@@ -45,13 +43,11 @@ namespace Acquaintance.ScatterGather
             }
             foreach (var id in toRemove)
                 Unsubscribe(id);
-            return waiters;
         }
 
         public SubscriptionToken Participate(IParticipant<TRequest, TResponse> listener)
         {
-            if (listener == null)
-                throw new ArgumentNullException(nameof(listener));
+            Assert.ArgumentNotNull(listener, nameof(listener));
 
             var id = Guid.NewGuid();
             _participants.TryAdd(id, listener);

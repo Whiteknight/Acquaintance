@@ -2,7 +2,6 @@ using Acquaintance.RequestResponse;
 using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
-using System.Linq;
 using System.Threading;
 
 namespace Acquaintance.Tests.ScatterGather
@@ -57,7 +56,7 @@ namespace Acquaintance.Tests.ScatterGather
                     .OnDedicatedThread());
                 var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
 
-                results.First().Text.Should().NotBeNullOrEmpty();
+                results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
             }
             finally
@@ -78,7 +77,7 @@ namespace Acquaintance.Tests.ScatterGather
                     .OnThreadPool());
                 var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
 
-                results.First().Text.Should().NotBeNullOrEmpty();
+                results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
             }
             finally
@@ -100,7 +99,7 @@ namespace Acquaintance.Tests.ScatterGather
                     .OnThread(threadId));
                 var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
 
-                results.First().Text.Should().NotBeNullOrEmpty();
+                results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
             }
             finally

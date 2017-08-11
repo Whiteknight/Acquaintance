@@ -106,7 +106,6 @@
     <Compile Include="ScatterGather\AnyThreadParticipant.cs" />
     <Compile Include="ScatterGather\DispatchableScatter.cs" />
     <Compile Include="ScatterGather\FilteredParticipant.cs" />
-    <Compile Include="ScatterGather\ImmediateGather.cs" />
     <Compile Include="ScatterGather\ImmediateParticipant.cs" />
     <Compile Include="ScatterGather\IParticipant.cs" />
     <Compile Include="ScatterGather\IParticipantBuilder.cs" />
@@ -121,8 +120,6 @@
     <Compile Include="PubSub\PubSubSimpleDispatchStrategy.cs" />
     <Compile Include="PubSubMessageBusExtensions.cs" />
     <Compile Include="PubSub\SubscriptionBuilder.cs" />
-    <Compile Include="ScatterGather\GatheredResponse.cs" />
-    <Compile Include="ScatterGather\IGatheredResponse.cs" />
     <Compile Include="IChannel.cs" />
     <Compile Include="IMessageBus.cs" />
     <Compile Include="MessageBus.cs" />
@@ -132,11 +129,10 @@
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
-    <Compile Include="ScatterGather\RouteBuilder.cs" />
     <Compile Include="ScatterGather\ScatterGatherSimpleDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherTrieDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherChannel.cs" />
-    <Compile Include="ScatterGather\ScatterRouter.cs" />
+    <Compile Include="ScatterGather\ScatterRequest.cs" />
     <Compile Include="ScatterGatherMessageBusExtensions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />

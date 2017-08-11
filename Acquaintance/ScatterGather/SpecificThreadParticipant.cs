@@ -8,14 +8,12 @@ namespace Acquaintance.ScatterGather
         private readonly IParticipantReference<TRequest, TResponse> _func;
         private readonly int _threadId;
         private readonly IThreadPool _threadPool;
-        private readonly int _timeoutMs;
 
-        public SpecificThreadParticipant(IParticipantReference<TRequest, TResponse> func, int threadId, IThreadPool threadPool, int timeoutMs)
+        public SpecificThreadParticipant(IParticipantReference<TRequest, TResponse> func, int threadId, IThreadPool threadPool)
         {
             _func = func;
             _threadId = threadId;
             _threadPool = threadPool;
-            _timeoutMs = timeoutMs;
         }
 
         public Guid Id { get; set; }
@@ -26,15 +24,17 @@ namespace Acquaintance.ScatterGather
             return _func.IsAlive;
         }
 
-        public IDispatchableScatter<TResponse> Scatter(TRequest request)
+        public void Scatter(TRequest request, ScatterRequest<TResponse> scatter)
         {
             var thread = _threadPool.GetThreadDispatcher(_threadId, false);
             if (thread == null)
-                return new ImmediateGather<TResponse>(Id, null);
+            {
+                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request, scatter);
+                return;
+            }
 
-            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, _timeoutMs);
+            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, scatter);
             thread.DispatchAction(responseWaiter);
-            return responseWaiter;
         }
     }
 }

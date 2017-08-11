@@ -102,54 +102,16 @@ namespace Acquaintance
             return response;
         }
 
-        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
+        public ScatterRequest<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
         {
-            return ScatterInternal<TRequest, TResponse>(topic, request, _scatterGatherStrategy);
-        }
-
-        private IGatheredResponse<TResponse> ScatterInternal<TRequest, TResponse>(string topic, TRequest request, IScatterGatherChannelDispatchStrategy strategy)
-        {
-            var waiters = new List<IDispatchableScatter<TResponse>>();
-            // TODO: Keep track of how much time is spent on each channel, and subtract that from the time available to
-            // the next channel
-            foreach (var channel in strategy.GetExistingChannels<TRequest, TResponse>(topic))
+            var scatter = new ScatterRequest<TResponse>();
+            foreach (var channel in _scatterGatherStrategy.GetExistingChannels<TRequest, TResponse>(topic))
             {
                 _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
-                waiters.AddRange(channel.Scatter(request));
+                channel.Scatter(request, scatter);
             }
 
-            var responses = new List<CompleteGather<TResponse>>();
-            var rawResponses = new List<TResponse>();
-            foreach (var waiter in waiters)
-            {
-                bool complete = waiter.WaitForResponse();
-                if (complete)
-                {
-                    responses.Add(new CompleteGather<TResponse>(waiter.Responses, waiter.ErrorInformation));
-                    rawResponses.AddRange(waiter.Responses);
-                }
-                else
-                    responses.Add(new CompleteGather<TResponse>(null, null, false));
-
-                waiter.Dispose();
-            }
-
-            var response = new GatheredResponse<TResponse>(responses);
-
-            var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(topic).ToList();
-            if (eavesdropChannels.Any())
-            {
-                var conversation = new Conversation<TRequest, TResponse>(request, rawResponses);
-                _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} Topic={2}, with {3} responses", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, conversation.Responses.Count);
-                foreach (var channel in eavesdropChannels)
-                {
-                    _logger.Debug("Eavesdropping on RequestType={0} ResponseType={1} Topic={2}, on channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
-                    var envelope = EnvelopeFactory.Create(null, conversation);
-                    channel.Publish(envelope);
-                }
-            }
-
-            return response;
+            return scatter;
         }
 
         public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)

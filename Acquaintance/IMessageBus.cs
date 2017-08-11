@@ -73,7 +73,7 @@ namespace Acquaintance
         /// <param name="topic">The name of the channel</param>
         /// <param name="request">The request object</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request);
+        ScatterRequest<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request);
 
         /// <summary>
         /// Listen for incoming scatters and provide responses

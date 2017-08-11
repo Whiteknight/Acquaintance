@@ -25,22 +25,32 @@ namespace Acquaintance.ScatterGather
             return _func.IsAlive;
         }
 
-        public IDispatchableScatter<TResponse> Scatter(TRequest request)
+        public void Scatter(TRequest request, ScatterRequest<TResponse> scatter)
         {
-            try
-            {
-                var value = _func.Invoke(request);
-                return new ImmediateGather<TResponse>(Id, value);
-            }
-            catch (Exception e)
-            {
-                return ImmediateGather<TResponse>.Error(Id, e);
-            }
+            GetResponses(Id, _func, request, scatter);
         }
 
         public static IParticipant<TRequest, TResponse> Create(Func<TRequest, IEnumerable<TResponse>> func)
         {
             return new ImmediateParticipant<TRequest, TResponse>(new StrongParticipantReference<TRequest, TResponse>(func));
+        }
+
+        public static void GetResponses(Guid id, IParticipantReference<TRequest, TResponse> func, TRequest request,  ScatterRequest<TResponse> scatter)
+        {
+            try
+            {
+                var responses = func.Invoke(request);
+                foreach (var response in responses)
+                    scatter.AddResponse(id, response);
+            }
+            catch (Exception e)
+            {
+                scatter.AddError(id, e);
+            }
+            finally
+            {
+                scatter.MarkParticipantComplete(id);
+            }
         }
     }
 }

@@ -32,9 +32,9 @@ namespace Acquaintance.ScatterGather
             return _inner.CanHandle(request) || _filter(request);
         }
 
-        public IDispatchableScatter<TResponse> Scatter(TRequest request)
+        public void Scatter(TRequest request, ScatterRequest<TResponse> scatter)
         {
-            return _inner.Scatter(request);
+            _inner.Scatter(request, scatter);
         }
     }
 }

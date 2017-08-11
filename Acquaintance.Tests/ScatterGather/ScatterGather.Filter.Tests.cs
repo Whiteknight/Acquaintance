@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Linq;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace Acquaintance.Tests.ScatterGather
@@ -21,11 +22,11 @@ namespace Acquaintance.Tests.ScatterGather
                 .Immediate()
                 .WithFilter(i => i % 2 == 1));
 
-            target.Scatter<int, int>(1).Should().Contain(100);
-            target.Scatter<int, int>(2).Should().Contain(20);
-            target.Scatter<int, int>(3).Should().Contain(300);
-            target.Scatter<int, int>(4).Should().Contain(40);
-            target.Scatter<int, int>(5).Should().Contain(500);
+            target.Scatter<int, int>(1).GetResponses(2).Select(r => r.Response).Should().Contain(100);
+            target.Scatter<int, int>(2).GetResponses(2).Select(r => r.Response).Should().Contain(20);
+            target.Scatter<int, int>(3).GetResponses(2).Select(r => r.Response).Should().Contain(300);
+            target.Scatter<int, int>(4).GetResponses(2).Select(r => r.Response).Should().Contain(40);
+            target.Scatter<int, int>(5).GetResponses(2).Select(r => r.Response).Should().Contain(500);
         }
     }
 }

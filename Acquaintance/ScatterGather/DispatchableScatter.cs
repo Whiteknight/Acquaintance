@@ -1,59 +1,40 @@
 using Acquaintance.Threading;
 using System;
-using System.Threading;
-using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {
-    public class DispatchableScatter<TRequest, TResponse> : IThreadAction, IDispatchableScatter<TResponse>
+    public class DispatchableScatter<TRequest, TResponse> : IThreadAction, IDispatchableScatter
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;
         private readonly TRequest _request;
-        private readonly int _timeoutMs;
-        private readonly ManualResetEvent _resetEvent;
+        private readonly ScatterRequest<TResponse> _scatter;
 
-        public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, TRequest request, Guid participantId, int timeoutMs = 1000)
+        public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, TRequest request, Guid participantId, ScatterRequest<TResponse> scatter)
         {
-            Assert.IsInRange(timeoutMs, nameof(timeoutMs), 1, int.MaxValue);
             _func = func;
             _request = request;
-            _timeoutMs = timeoutMs;
-            _resetEvent = new ManualResetEvent(false);
-            Responses = new TResponse[0];
+            _scatter = scatter;
             ParticipantId = participantId;
         }
 
-        public TResponse[] Responses { get; private set; }
-        public bool Success { get; private set; }
-        public Exception ErrorInformation { get; private set; }
         public Guid ParticipantId { get; }
 
         public void Execute()
         {
             try
             {
-                Responses = _func.Invoke(_request);
-                Success = true;
+                var responses = _func.Invoke(_request);
+                foreach (var response in responses)
+                    _scatter.AddResponse(ParticipantId, response);
             }
             catch (Exception e)
             {
-                Success = false;
-                ErrorInformation = e;
+                _scatter.AddError(ParticipantId, e);
             }
             finally
             {
-                _resetEvent.Set();
+                _scatter.MarkParticipantComplete(ParticipantId);
             }
-        }
-
-        public bool WaitForResponse()
-        {
-            return _resetEvent.WaitOne(_timeoutMs);
-        }
-
-        public void Dispose()
-        {
-            _resetEvent.Dispose();
         }
     }
 }

@@ -59,7 +59,7 @@ namespace Acquaintance
             return _messageBus.RequestEnvelope<TRequest, TResponse>(request);
         }
 
-        public IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
+        public ScatterRequest<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
         {
             return _messageBus.Scatter<TRequest, TResponse>(topic, request);
         }

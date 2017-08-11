@@ -46,31 +46,6 @@ namespace Acquaintance.ScatterGather
         /// <param name="useWeakReference"></param>
         /// <returns></returns>
         IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false);
-
-        /// <summary>
-        /// Specify routing rules 
-        /// </summary>
-        /// <param name="build"></param>
-        /// <returns></returns>
-        IThreadParticipantBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build);
-
-        /// <summary>
-        /// Transform the request payload to a new type, and re-scatter
-        /// </summary>
-        /// <typeparam name="TTransformed"></typeparam>
-        /// <param name="sourceChannelName"></param>
-        /// <param name="transform"></param>
-        /// <returns></returns>
-        IThreadParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform);
-
-        /// <summary>
-        /// Transform the response value into a new and return it.
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <param name="sourceChannelName"></param>
-        /// <param name="transform"></param>
-        /// <returns></returns>
-        IThreadParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform);
     }
 
     /// <summary>

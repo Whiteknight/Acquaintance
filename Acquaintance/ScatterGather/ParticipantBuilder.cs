@@ -1,7 +1,6 @@
 ﻿using Acquaintance.Threading;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
@@ -13,15 +12,12 @@ namespace Acquaintance.ScatterGather
         IDetailsParticipantBuilder<TRequest, TResponse>
     {
         private readonly IThreadPool _threadPool;
-        private readonly IScatterGatherBus _messageBus;
 
         private DispatchThreadType _dispatchType;
         private int _threadId;
-        private int _timeoutMs;
         private IParticipantReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private RouteBuilder<TRequest, TResponse> _routerBuilder;
         private bool _useDedicatedThread;
         private Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> _modify;
 
@@ -30,10 +26,8 @@ namespace Acquaintance.ScatterGather
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(threadPool, nameof(threadPool));
 
-            _messageBus = messageBus;
             _threadPool = threadPool;
             _dispatchType = DispatchThreadType.NoPreference;
-            _timeoutMs = 5000;
         }
 
         public string Topic { get; private set; }
@@ -51,10 +45,8 @@ namespace Acquaintance.ScatterGather
 
         private IParticipant<TRequest, TResponse> BuildParticipantInternal()
         {
-            if (_routerBuilder != null)
-                return _routerBuilder.BuildParticipant();
             if (_funcReference != null)
-                return CreateParticipant(_funcReference, _dispatchType, _threadId, _timeoutMs);
+                return CreateParticipant(_funcReference, _dispatchType, _threadId);
             throw new Exception("No actions defined");
         }
 
@@ -95,35 +87,6 @@ namespace Acquaintance.ScatterGather
             var reference = CreateReference(participant, useWeakReference);
             _funcReference = reference;
             return this;
-        }
-
-        public IThreadParticipantBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
-        {
-            Assert.ArgumentNotNull(build, nameof(build));
-            ValidateDoesNotAlreadyHaveAction();
-            _routerBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
-            build(_routerBuilder);
-            return this;
-        }
-
-        public IThreadParticipantBuilder<TRequest, TResponse> TransformRequestTo<TTransformed>(string sourceChannelName, Func<TRequest, TTransformed> transform)
-        {
-            Assert.ArgumentNotNull(transform, nameof(transform));
-            return Invoke(request =>
-            {
-                var transformed = transform(request);
-                return _messageBus.Scatter<TTransformed, TResponse>(sourceChannelName, transformed);
-            });
-        }
-
-        public IThreadParticipantBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceChannelName, Func<TSource, TResponse> transform)
-        {
-            Assert.ArgumentNotNull(transform, nameof(transform));
-            return Invoke(request =>
-            {
-                var responses = _messageBus.Scatter<TRequest, TSource>(sourceChannelName, request);
-                return responses.Select(transform);
-            });
         }
 
         public IDetailsParticipantBuilder<TRequest, TResponse> Immediate()
@@ -167,7 +130,6 @@ namespace Acquaintance.ScatterGather
         public IDetailsParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
         {
             Assert.IsInRange(timeoutMs, nameof(timeoutMs), 1, int.MaxValue);
-            _timeoutMs = timeoutMs;
             return this;
         }
 
@@ -193,8 +155,6 @@ namespace Acquaintance.ScatterGather
         {
             if (_funcReference != null)
                 throw new Exception("Builder already has an action defined");
-            if (_routerBuilder != null)
-                throw new Exception("Builder is already setup to use routing. May not define a new action.");
         }
 
         private void ValidateDoesNotReadyHaveDispatchType()
@@ -203,14 +163,14 @@ namespace Acquaintance.ScatterGather
                 throw new Exception($"Builder is already configured to use Dispatch Type {_dispatchType}");
         }
 
-        private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
+        private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId)
         {
             switch (dispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool, timeoutMs);
+                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool);
                 case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
+                    return new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _threadPool);
                 default:
                     return new ImmediateParticipant<TRequest, TResponse>(reference);
             }

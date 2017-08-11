@@ -62,7 +62,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Eavesdrop\Eavesdrop.RequestResponse.Tests.cs" />
-    <Compile Include="Eavesdrop\Eavesdrop.ScatterGather.Tests.cs" />
     <Compile Include="PubSub\PubSub.AutoSubscribe.Tests.cs" />
     <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
@@ -87,7 +86,6 @@
     <Compile Include="RequestResponse\RequestResponseTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PubSub\PubSubTests.cs" />
-    <Compile Include="ScatterGather\ScatterGather.Router.Tests.cs" />
     <Compile Include="Testing\ExpectPublishTests.cs" />
     <Compile Include="Testing\ExpectRequestTests.cs" />
     <Compile Include="Testing\ExpectScatterTests.cs" />

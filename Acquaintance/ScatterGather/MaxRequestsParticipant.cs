@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {
@@ -10,6 +11,7 @@ namespace Acquaintance.ScatterGather
 
         public MaxRequestsParticipant(IParticipant<TRequest, TResponse> inner, int maxRequests)
         {
+            Assert.IsInRange(maxRequests, nameof(maxRequests), 1, int.MaxValue);
             _inner = inner;
             _maxRequests = maxRequests;
         }
@@ -27,17 +29,16 @@ namespace Acquaintance.ScatterGather
             return _maxRequests > 0 || _inner.CanHandle(request);
         }
 
-        public IDispatchableScatter<TResponse> Scatter(TRequest request)
+        public void Scatter(TRequest request, ScatterRequest<TResponse> scatter)
         {
             if (ShouldStopParticipating)
-                return new ImmediateGather<TResponse>(Id, null);
+                return;
+
+            _inner.Scatter(request, scatter);
 
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
-            if (maxRequests >= 0)
-                return _inner.Scatter(request);
-
-            ShouldStopParticipating = true;
-            return new ImmediateGather<TResponse>(Id, null);
+            if (maxRequests <= 0)
+                ShouldStopParticipating = true;
         }
     }
 }

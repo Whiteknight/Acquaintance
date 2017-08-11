@@ -5,7 +5,7 @@ namespace Acquaintance
 {
     public static class ScatterGatherMessageBusExtensions
     {
-        public static IGatheredResponse<TResponse> Scatter<TRequest, TResponse>(this IScatterGatherBus messageBus, TRequest request)
+        public static ScatterRequest<TResponse> Scatter<TRequest, TResponse>(this IScatterGatherBus messageBus, TRequest request)
         {
             return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
         }

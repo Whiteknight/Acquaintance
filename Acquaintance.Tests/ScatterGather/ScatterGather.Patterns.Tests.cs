@@ -18,7 +18,6 @@ namespace Acquaintance.Tests.ScatterGather
             public string Text { get; set; }
         }
 
-
         [Test]
         public void ParticipateScatterGather_MapReduce()
         {
@@ -30,9 +29,12 @@ namespace Acquaintance.Tests.ScatterGather
             target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "D" }));
             target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "E" }));
 
-            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" });
+            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" })
+                .GetResponses(5)
+                .Select(r => r.Response.Text)
+                .OrderBy(s=> s);
 
-            var reduced = string.Join("", response.Responses.Select(r => r.Responses[0].Text).OrderBy(s => s));
+            var reduced = string.Join("", response);
             reduced.Should().Be("xAxBxCxDxE");
         }
     }
