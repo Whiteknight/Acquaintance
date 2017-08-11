@@ -75,5 +75,17 @@ namespace Acquaintance
             var token = messageBus.Listen(builder.Topic, listener);
             return builder.WrapToken(token);
         }
+
+        /// <summary>
+        /// Get a typed request channel to simplify request/response calls
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <typeparam name="TResponse"></typeparam>
+        /// <param name="messageBus"></param>
+        /// <returns></returns>
+        public static RequestChannelProxy<TRequest, TResponse> GetRequestChannel<TRequest, TResponse>(this IReqResBus messageBus)
+        {
+            return new RequestChannelProxy<TRequest, TResponse>(messageBus);
+        }
     }
 }

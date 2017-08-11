@@ -73,6 +73,7 @@
     <Compile Include="PubSub\SubscriptionScanner.cs" />
     <Compile Include="RequestResponse\CircuitBreakerListener.cs" />
     <Compile Include="RequestResponse\IListenerBuilder.cs" />
+    <Compile Include="RequestResponse\RequestChannelProxy.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
+    <Compile Include="ScatterGather\ScatterChannelProxy.cs" />
     <Compile Include="ScatterGather\ScatterGatherSimpleDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherTrieDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherChannel.cs" />

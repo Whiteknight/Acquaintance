@@ -18,5 +18,10 @@ namespace Acquaintance
             var token = messageBus.Participate(builder.Topic, participant);
             return builder.WrapToken(token);
         }
+
+        public static ScatterChannelProxy<TRequest, TResponse> GetScatterChannel<TRequest, TResponse>(this IScatterGatherBus messageBus)
+        {
+            return new ScatterChannelProxy<TRequest, TResponse>(messageBus);
+        }
     }
 }

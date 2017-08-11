@@ -70,10 +70,12 @@
     <Compile Include="RequestResponse\RequestResponse.Filter.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.MaxRequests.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.CircuitBreaker.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Proxy.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Threading.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Transform.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.MaxRequests.Tests.cs" />
+    <Compile Include="ScatterGather\ScatterGather.Proxy.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Threading.Tests.cs" />
     <Compile Include="Sources\SourceModuleTests.cs" />
     <Compile Include="Timers\MessageTimerTests.cs" />

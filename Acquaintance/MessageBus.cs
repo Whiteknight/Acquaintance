@@ -78,12 +78,8 @@ namespace Acquaintance
             _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, request.Topic, channel.Id);
             var waiter = channel.Request(request);
 
-            CompleteResponse<TResponse> response;
             bool complete = waiter.WaitForResponse();
-            if (complete)
-                response = new CompleteResponse<TResponse>(waiter.Response, waiter.ErrorInformation);
-            else
-                response = new CompleteResponse<TResponse>(default(TResponse), null, false);
+            var response = new CompleteResponse<TResponse>(waiter.Response, waiter.ErrorInformation, complete); 
             waiter.Dispose();
 
             var eavesdropChannels = _eavesdropStrategy.GetExistingChannels<Conversation<TRequest, TResponse>>(request.Topic).ToList();
