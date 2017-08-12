@@ -50,7 +50,7 @@ Again, Acquaintance allows the channel to be constructed in any order and also a
 
 ## Scatter/Gather
 
-Scatter/Gather is very similar to Request/Response except the channel may have many listeners or *participants*, which may return several responses. These responses are all returned together.
+Scatter/Gather is conceptually similar to Request/Response except the channel may have many listeners or *participants*. Each participant may return zero or many responses. Internally and in terms of API the two are significantly different, however. Because scatter/gather requests must wait on an unknown number of participants providing an unknown number of responses, waiting and timeouts can become an issue. For best performance, when you do scatter/gather make sure you know how many responses you'd like to receive and how long are you willing to wait to get them.
 
     // Setup a Participant
     messageBus.Participate<MyRequest, MyResponse>(p => p
@@ -60,11 +60,26 @@ Scatter/Gather is very similar to Request/Response except the channel may have m
         }}));
     
     // Scatter the request message to all participants
-    var response = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
+    var scatter = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
         Message = "World"
     });
-    foreach (var message in response.Responses)
-        Console.WriteLine(response);
+
+    // Read responses one at a time, until complete
+    while(true)
+    {
+        var response = scatter.GetNextResponse();
+        if (response == null)
+        {
+            if (scatter.IsComplete())
+                break;
+            continue;
+        }
+        Console.WriteLine(response.Response.Message);
+    }
+
+    // Read up to 5 responses:
+    foreach (var response in scatter.GetResponses(5))
+        Console.WriteLine(response.Response.Message);
 
 Scatter/Gather can be used to implement a Map/Reduce system or it can be used in cases where multiple bids need to be accepted or multiple values need to be gathered and compared. 
 
