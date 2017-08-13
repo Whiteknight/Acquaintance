@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\CircuitBreaker.cs" />
     <Compile Include="Common\CompleteResponse.cs" />
     <Compile Include="Common\EnvelopeFactory.cs" />
     <Compile Include="Common\RouterModeType.cs" />
