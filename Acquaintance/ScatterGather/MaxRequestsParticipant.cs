@@ -34,10 +34,16 @@ namespace Acquaintance.ScatterGather
             if (ShouldStopParticipating)
                 return;
 
+            var maxRequests = Interlocked.Decrement(ref _maxRequests);
+            if (maxRequests < 0)
+            {
+                ShouldStopParticipating = true;
+                return;
+            }
+
             _inner.Scatter(request, scatter);
 
-            var maxRequests = Interlocked.Decrement(ref _maxRequests);
-            if (maxRequests <= 0)
+            if (maxRequests == 0)
                 ShouldStopParticipating = true;
         }
     }

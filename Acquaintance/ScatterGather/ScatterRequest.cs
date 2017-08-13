@@ -110,22 +110,19 @@ namespace Acquaintance.ScatterGather
         public void AddResponse(Guid participantId, TResponse response)
         {
             _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
+            _activeParticipants.TryRemove(participantId, out bool whatever);
         }
 
         public void AddError(Guid participantId, Exception error)
         {
             _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
+            _activeParticipants.TryRemove(participantId, out bool whatever);
         }
 
         public void AddParticipant(Guid participantId)
         {
             _neverHadParticipants = false;
             _activeParticipants.TryAdd(participantId, true);
-        }
-
-        public void MarkParticipantComplete(Guid participantId)
-        {
-            _activeParticipants.TryRemove(participantId, out bool whatever);
         }
 
         public bool IsComplete()

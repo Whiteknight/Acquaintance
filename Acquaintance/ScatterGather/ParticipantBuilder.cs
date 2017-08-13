@@ -1,6 +1,5 @@
 ﻿using Acquaintance.Threading;
 using System;
-using System.Collections.Generic;
 using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
@@ -75,16 +74,7 @@ namespace Acquaintance.ScatterGather
         {
             Assert.ArgumentNotNull(participant, nameof(participant));
             ValidateDoesNotAlreadyHaveAction();
-            var reference = CreateReference(r => new[] { participant(r) }, useWeakReference);
-            _funcReference = reference;
-            return this;
-        }
-
-        public IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false)
-        {
-            Assert.ArgumentNotNull(participant, nameof(participant));
-            ValidateDoesNotAlreadyHaveAction();
-            var reference = CreateReference(participant, useWeakReference);
+            var reference = CreateReference(participant , useWeakReference);
             _funcReference = reference;
             return this;
         }
@@ -187,7 +177,7 @@ namespace Acquaintance.ScatterGather
             return participant;
         }
 
-        private IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference)
+        private IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, TResponse> participant, bool useWeakReference)
         {
             if (useWeakReference)
                 return new WeakParticipantReference<TRequest, TResponse>(participant);

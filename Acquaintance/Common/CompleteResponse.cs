@@ -23,26 +23,4 @@ namespace Acquaintance.Common
                 throw ErrorInformation;
         }
     }
-
-    public class CompleteGather<T>
-    {
-        public CompleteGather(T[] responses, Exception errorInformation, bool completed = true)
-        {
-            Responses = responses;
-            ErrorInformation = errorInformation;
-            Completed = completed;
-            Success = errorInformation == null;
-        }
-
-        public T[] Responses { get; private set; }
-        public bool Success { get; private set; }
-        public Exception ErrorInformation { get; }
-        public bool Completed { get; set; }
-
-        public void ThrowExceptionIfPresent()
-        {
-            if (ErrorInformation != null)
-                throw ErrorInformation;
-        }
-    }
 }

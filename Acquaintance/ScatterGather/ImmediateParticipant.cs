@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Acquaintance.ScatterGather
 {
@@ -30,7 +29,7 @@ namespace Acquaintance.ScatterGather
             GetResponses(Id, _func, request, scatter);
         }
 
-        public static IParticipant<TRequest, TResponse> Create(Func<TRequest, IEnumerable<TResponse>> func)
+        public static IParticipant<TRequest, TResponse> Create(Func<TRequest, TResponse> func)
         {
             return new ImmediateParticipant<TRequest, TResponse>(new StrongParticipantReference<TRequest, TResponse>(func));
         }
@@ -39,17 +38,12 @@ namespace Acquaintance.ScatterGather
         {
             try
             {
-                var responses = func.Invoke(request);
-                foreach (var response in responses)
-                    scatter.AddResponse(id, response);
+                var response = func.Invoke(request);
+                scatter.AddResponse(id, response);
             }
             catch (Exception e)
             {
                 scatter.AddError(id, e);
-            }
-            finally
-            {
-                scatter.MarkParticipantComplete(id);
             }
         }
     }

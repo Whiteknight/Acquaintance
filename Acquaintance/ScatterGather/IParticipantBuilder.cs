@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Acquaintance.ScatterGather
 {
@@ -38,14 +37,6 @@ namespace Acquaintance.ScatterGather
         /// <param name="useWeakReference"></param>
         /// <returns></returns>
         IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> participant, bool useWeakReference = false);
-
-        /// <summary>
-        /// Invoke a function and return the responses
-        /// </summary>
-        /// <param name="participant"></param>
-        /// <param name="useWeakReference"></param>
-        /// <returns></returns>
-        IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, IEnumerable<TResponse>> participant, bool useWeakReference = false);
     }
 
     /// <summary>

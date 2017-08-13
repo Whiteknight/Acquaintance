@@ -23,17 +23,12 @@ namespace Acquaintance.ScatterGather
         {
             try
             {
-                var responses = _func.Invoke(_request);
-                foreach (var response in responses)
-                    _scatter.AddResponse(ParticipantId, response);
+                var response = _func.Invoke(_request);
+                _scatter.AddResponse(ParticipantId, response);
             }
             catch (Exception e)
             {
                 _scatter.AddError(ParticipantId, e);
-            }
-            finally
-            {
-                _scatter.MarkParticipantComplete(ParticipantId);
             }
         }
     }
