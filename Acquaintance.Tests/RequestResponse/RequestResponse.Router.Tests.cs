@@ -23,11 +23,11 @@ namespace Acquaintance.Tests.RequestResponse
                     .When(e => e % 2 == 0, "Evens")
                     .When(e => e % 2 == 1, "Odds")));
 
-            target.Request<int, int>(1).Should().Be(100);
-            target.Request<int, int>(2).Should().Be(20);
-            target.Request<int, int>(3).Should().Be(300);
-            target.Request<int, int>(4).Should().Be(40);
-            target.Request<int, int>(5).Should().Be(500);
+            target.RequestWait<int, int>(1).Should().Be(100);
+            target.RequestWait<int, int>(2).Should().Be(20);
+            target.RequestWait<int, int>(3).Should().Be(300);
+            target.RequestWait<int, int>(4).Should().Be(40);
+            target.RequestWait<int, int>(5).Should().Be(500);
         }
 
         [Test]
@@ -47,11 +47,11 @@ namespace Acquaintance.Tests.RequestResponse
                     .When(e => e % 2 == 0, "Evens")
                     .Else("Odds")));
 
-            target.Request<int, int>(1).Should().Be(100);
-            target.Request<int, int>(2).Should().Be(20);
-            target.Request<int, int>(3).Should().Be(300);
-            target.Request<int, int>(4).Should().Be(40);
-            target.Request<int, int>(5).Should().Be(500);
+            target.RequestWait<int, int>(1).Should().Be(100);
+            target.RequestWait<int, int>(2).Should().Be(20);
+            target.RequestWait<int, int>(3).Should().Be(300);
+            target.RequestWait<int, int>(4).Should().Be(40);
+            target.RequestWait<int, int>(5).Should().Be(500);
         }
     }
 }

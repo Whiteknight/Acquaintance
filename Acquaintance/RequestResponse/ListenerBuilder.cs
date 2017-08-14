@@ -15,14 +15,11 @@ namespace Acquaintance.RequestResponse
 
         private DispatchThreadType _dispatchType;
         private int _threadId;
-        private int _timeoutMs;
         private IListenerReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
         private RouteBuilder<TRequest, TResponse> _routeBuilder;
         private bool _useDedicatedThread;
-        private int _maxAttempts;
-        private int _breakMs;
         private Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> _modify;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
@@ -32,7 +29,6 @@ namespace Acquaintance.RequestResponse
 
             _messageBus = messageBus;
             _threadPool = threadPool;
-            _timeoutMs = 5000;
         }
 
         public string Topic { get; private set; }
@@ -49,7 +45,7 @@ namespace Acquaintance.RequestResponse
             if (_routeBuilder != null)
                 return _routeBuilder.BuildListener();
             if (_funcReference != null)
-                return CreateListener(_funcReference, _dispatchType, _threadId, _timeoutMs);
+                return CreateListener(_funcReference, _dispatchType, _threadId);
             throw new Exception("No function or routes supplied");
         }
 
@@ -104,7 +100,10 @@ namespace Acquaintance.RequestResponse
             return Invoke(request =>
             {
                 var transformed = transform(request);
-                return _messageBus.Request<TTransformed, TResponse>(sourceTopic, transformed);
+                var waiter = _messageBus.Request<TTransformed, TResponse>(sourceTopic, transformed);
+                waiter.WaitForResponse();
+                waiter.ThrowExceptionIfError();
+                return waiter.GetResponse();
             });
         }
 
@@ -114,7 +113,10 @@ namespace Acquaintance.RequestResponse
             return Invoke(request =>
             {
                 var response = _messageBus.Request<TRequest, TSource>(sourceTopic, request);
-                return transform(response);
+                response.WaitForResponse();
+                response.ThrowExceptionIfError();
+                var payload = response.GetResponse();
+                return transform(payload);
             });
         }
 
@@ -155,13 +157,6 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
-        {
-            Assert.IsInRange(timeoutMs, nameof(timeoutMs), 1, int.MaxValue);
-            _timeoutMs = timeoutMs;
-            return this;
-        }
-
         public IDetailsListenerBuilder<TRequest, TResponse> MaximumRequests(int maxRequests)
         {
             _maxRequests = maxRequests;
@@ -171,13 +166,6 @@ namespace Acquaintance.RequestResponse
         public IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
         {
             _filter = filter;
-            return this;
-        }
-
-        public IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxAttempts, int breakMs)
-        {
-            _maxAttempts = maxAttempts;
-            _breakMs = breakMs;
             return this;
         }
 
@@ -201,14 +189,14 @@ namespace Acquaintance.RequestResponse
                 throw new Exception("Builder is already configured for routing. Cannot add a new action");
         }
 
-        private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, int timeoutMs)
+        private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId)
         {
             switch (dispatchType)
             {
                 case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool, timeoutMs);
+                    return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool);
                 case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool, timeoutMs);
+                    return new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool);
                 default:
                     return new ImmediateListener<TRequest, TResponse>(reference);
             }
@@ -216,8 +204,6 @@ namespace Acquaintance.RequestResponse
 
         private IListener<TRequest, TResponse> WrapListener(IListener<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
         {
-            if (_maxAttempts > 0 && _breakMs > 0)
-                listener = new CircuitBreakerListener<TRequest, TResponse>(listener, _maxAttempts, _breakMs);
             if (filter != null)
                 listener = new FilteredListener<TRequest, TResponse>(listener, filter);
             if (maxRequests > 0)

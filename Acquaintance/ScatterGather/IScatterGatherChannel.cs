@@ -4,7 +4,7 @@ namespace Acquaintance.ScatterGather
 {
     public interface IScatterGatherChannel<TRequest, TResponse> : IScatterGatherChannel
     {
-        void Scatter(TRequest request, ScatterRequest<TResponse> scatter);
+        void Scatter(TRequest request, Scatter<TResponse> scatter);
         SubscriptionToken Participate(IParticipant<TRequest, TResponse> participant);
     }
 

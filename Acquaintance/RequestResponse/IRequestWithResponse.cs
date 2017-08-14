@@ -6,7 +6,7 @@ namespace Acquaintance.RequestResponse
     /// with the correct response type will be selected.
     /// </summary>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IRequest<TResponse>
+    public interface IRequestWithResponse<TResponse>
     {
     }
 }

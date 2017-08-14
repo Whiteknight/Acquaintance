@@ -19,7 +19,7 @@ namespace Acquaintance.Tests.RequestResponse
             var responses = new List<int>();
             for (int i = 0; i < 5; i++)
             {
-                var response = target.Request<int, int>("Test", i);
+                var response = target.RequestWait<int, int>("Test", i);
                 responses.Add(response);
             }
 

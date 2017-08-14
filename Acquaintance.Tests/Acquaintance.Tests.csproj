@@ -61,7 +61,6 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="Eavesdrop\Eavesdrop.RequestResponse.Tests.cs" />
     <Compile Include="PubSub\PubSub.AutoSubscribe.Tests.cs" />
     <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
@@ -103,6 +102,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <Compile Include="ScatterGather\ScatterGather.Patterns.Tests.cs" />
+    <Compile Include="RequestResponse\RequestResponse.Task.Tests.cs" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

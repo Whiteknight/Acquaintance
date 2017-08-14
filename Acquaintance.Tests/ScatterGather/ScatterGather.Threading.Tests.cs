@@ -14,7 +14,7 @@ namespace Acquaintance.Tests.ScatterGather
             public string Text { get; set; }
         }
 
-        private class TestRequest : IRequest<TestResponse>
+        private class TestRequestWithResponse : IRequestWithResponse<TestResponse>
         {
             public string Text { get; set; }
         }
@@ -29,12 +29,12 @@ namespace Acquaintance.Tests.ScatterGather
 
             try
             {
-                target.Participate<TestRequest, TestResponse>(l => l
+                target.Participate<TestRequestWithResponse, TestResponse>(l => l
                     .WithTopic("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
                     .OnWorkerThread()
                     .WithTimeout(2000));
-                var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+                var response = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
 
                 response.Should().NotBeNull();
             }
@@ -50,11 +50,11 @@ namespace Acquaintance.Tests.ScatterGather
             var target = new MessageBus();
             try
             {
-                var token = target.Participate<TestRequest, TestResponse>(builder => builder
+                var token = target.Participate<TestRequestWithResponse, TestResponse>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
                     .OnDedicatedThread());
-                var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
+                var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
                 results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
@@ -71,11 +71,11 @@ namespace Acquaintance.Tests.ScatterGather
             var target = new MessageBus();
             try
             {
-                var token = target.Participate<TestRequest, TestResponse>(builder => builder
+                var token = target.Participate<TestRequestWithResponse, TestResponse>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
                     .OnThreadPool());
-                var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
+                var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
                 results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
@@ -93,11 +93,11 @@ namespace Acquaintance.Tests.ScatterGather
             int threadId = target.ThreadPool.StartDedicatedWorker().ThreadId;
             try
             {
-                var token = target.Participate<TestRequest, TestResponse>(builder => builder
+                var token = target.Participate<TestRequestWithResponse, TestResponse>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
                     .OnThread(threadId));
-                var results = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Test" });
+                var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
                 results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();

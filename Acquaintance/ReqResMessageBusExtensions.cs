@@ -1,18 +1,24 @@
 ﻿using Acquaintance.RequestResponse;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Acquaintance.Utility;
 
 namespace Acquaintance
 {
     public static class ReqResMessageBusExtensions
     {
-        public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, string topic, TRequest request)
+        public static IRequest<TResponse> Request<TRequest, TResponse>(this IReqResBus messageBus, string topic, TRequest requestPayload)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
-            var envelope = messageBus.EnvelopeFactory.Create(topic, request);
+            var envelope = messageBus.EnvelopeFactory.Create(topic, requestPayload);
             return messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
+        }
+
+        public static TResponse RequestWait<TRequest, TResponse>(this IReqResBus messageBus, string topic, TRequest requestPayload)
+        {
+            return Request<TRequest, TResponse>(messageBus, topic, requestPayload).GetResponseOrWait();
         }
 
         /// <summary>
@@ -21,18 +27,35 @@ namespace Acquaintance
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
         /// <param name="messageBus">The message bus</param>
-        /// <param name="request">The request object, which represents the input arguments to the RPC</param>
+        /// <param name="requestPayload">The request object, which represents the input arguments to the RPC</param>
         /// <returns>A token representing the subscription which, when disposed, cancels the subscription</returns>
-        public static TResponse Request<TRequest, TResponse>(this IReqResBus messageBus, TRequest request)
+        public static IRequest<TResponse> Request<TRequest, TResponse>(this IReqResBus messageBus, TRequest requestPayload)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            return messageBus.Request<TRequest, TResponse>(string.Empty, request);
+            return messageBus.Request<TRequest, TResponse>(string.Empty, requestPayload);
+        }
+
+        public static TResponse RequestWait<TRequest, TResponse>(this IReqResBus messageBus, TRequest requestPayload)
+        {
+            return Request<TRequest, TResponse>(messageBus, requestPayload).GetResponseOrWait();
+        }
+
+        public static Task<TResponse> RequestAsync<TRequest, TResponse>(this IReqResBus messageBus, string topic, TRequest requestPayload)
+        {
+            var request = Request<TRequest, TResponse>(messageBus, topic, requestPayload);
+            return request.ToTask();
+        }
+
+        public static Task<TResponse> RequestAsync<TRequest, TResponse>(this IReqResBus messageBus, TRequest requestPayload)
+        {
+            var request = Request<TRequest, TResponse>(messageBus, requestPayload);
+            return request.ToTask();
         }
 
         /// <summary>
         /// Make a request for cases where the type of request is not known until runtime. The bus
         /// attempts to infer the response type from metadata, and performs the request if possible.
-        /// The request type must inherit from <see cref="IRequest{TResponse}"/> in order to make
+        /// The request type must inherit from <see cref="IRequestWithResponse{TResponse}"/> in order to make
         /// the necessary type inferences.
         /// </summary>
         /// <param name="messageBus">The message bus</param>
@@ -43,7 +66,7 @@ namespace Acquaintance
         public static object Request(this IReqResBus messageBus, string topic, Type requestType, object request)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequest<>));
+            var requestInterface = requestType.GetInterfaces().FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestWithResponse<>));
             if (requestInterface == null)
                 return null;
 
@@ -55,7 +78,10 @@ namespace Acquaintance
             var responseType = requestInterface.GetGenericArguments().Single();
 
             var method = messageBus.GetType().GetMethod(nameof(messageBus.RequestEnvelope)).MakeGenericMethod(requestType, responseType);
-            return method.Invoke(messageBus, new[] { envelope });
+            var waiter = (Request)method.Invoke(messageBus, new[] { envelope });
+            waiter.WaitForResponse();
+            waiter.ThrowExceptionIfError();
+            return waiter.GetResponseObject();
         }
 
         /// <summary>

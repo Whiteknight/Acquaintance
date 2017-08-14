@@ -24,7 +24,7 @@ namespace Acquaintance.ScatterGather
             return _func.IsAlive;
         }
 
-        public void Scatter(TRequest request, ScatterRequest<TResponse> scatter)
+        public void Scatter(TRequest request, Scatter<TResponse> scatter)
         {
             GetResponses(Id, _func, request, scatter);
         }
@@ -34,7 +34,7 @@ namespace Acquaintance.ScatterGather
             return new ImmediateParticipant<TRequest, TResponse>(new StrongParticipantReference<TRequest, TResponse>(func));
         }
 
-        public static void GetResponses(Guid id, IParticipantReference<TRequest, TResponse> func, TRequest request,  ScatterRequest<TResponse> scatter)
+        public static void GetResponses(Guid id, IParticipantReference<TRequest, TResponse> func, TRequest request,  Scatter<TResponse> scatter)
         {
             try
             {

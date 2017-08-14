@@ -14,7 +14,7 @@ namespace Acquaintance.Tests.RequestResponse
             public string Text { get; set; }
         }
 
-        private class TestRequest : IRequest<TestResponse>
+        private class TestRequestWithResponse : IRequestWithResponse<TestResponse>
         {
             public string Text { get; set; }
         }
@@ -28,12 +28,11 @@ namespace Acquaintance.Tests.RequestResponse
             });
             try
             {
-                target.Listen<TestRequest, TestResponse>(l => l
+                target.Listen<TestRequestWithResponse, TestResponse>(l => l
                     .WithTopic("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
-                    .OnWorkerThread()
-                    .WithTimeout(2000));
-                var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+                    .OnWorkerThread());
+                var response = target.Request<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
 
                 response.Should().NotBeNull();
             }
@@ -52,9 +51,8 @@ namespace Acquaintance.Tests.RequestResponse
                 target.Listen<int, int>(l => l
                     .WithDefaultTopic()
                     .Invoke(req => req * 5)
-                    .OnDedicatedThread()
-                    .WithTimeout(2000));
-                var response = target.Request<int, int>(1);
+                    .OnDedicatedThread());
+                var response = target.RequestWait<int, int>(1);
 
                 response.Should().Be(5);
             }
@@ -73,9 +71,8 @@ namespace Acquaintance.Tests.RequestResponse
                 target.Listen<int, int>(l => l
                     .WithDefaultTopic()
                     .Invoke(req => req * 5)
-                    .OnThreadPool()
-                    .WithTimeout(2000));
-                var response = target.Request<int, int>(1);
+                    .OnThreadPool());
+                var response = target.RequestWait<int, int>(1);
 
                 response.Should().Be(5);
             }
@@ -95,9 +92,8 @@ namespace Acquaintance.Tests.RequestResponse
                 target.Listen<int, int>(l => l
                     .WithDefaultTopic()
                     .Invoke(req => req * 5)
-                    .OnThread(threadId)
-                    .WithTimeout(2000));
-                var response = target.Request<int, int>(1);
+                    .OnThread(threadId));
+                var response = target.RequestWait<int, int>(1);
 
                 response.Should().Be(5);
             }

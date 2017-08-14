@@ -22,11 +22,11 @@ namespace Acquaintance.Tests.ScatterGather
                 .Immediate()
                 .WithFilter(i => i % 2 == 1));
 
-            target.Scatter<int, int>(1).GetResponses(2).Select(r => r.Response).Should().Contain(100);
-            target.Scatter<int, int>(2).GetResponses(2).Select(r => r.Response).Should().Contain(20);
-            target.Scatter<int, int>(3).GetResponses(2).Select(r => r.Response).Should().Contain(300);
-            target.Scatter<int, int>(4).GetResponses(2).Select(r => r.Response).Should().Contain(40);
-            target.Scatter<int, int>(5).GetResponses(2).Select(r => r.Response).Should().Contain(500);
+            target.Scatter<int, int>(1).GatherResponses(2).Select(r => r.Response).Should().Contain(100);
+            target.Scatter<int, int>(2).GatherResponses(2).Select(r => r.Response).Should().Contain(20);
+            target.Scatter<int, int>(3).GatherResponses(2).Select(r => r.Response).Should().Contain(300);
+            target.Scatter<int, int>(4).GatherResponses(2).Select(r => r.Response).Should().Contain(40);
+            target.Scatter<int, int>(5).GatherResponses(2).Select(r => r.Response).Should().Contain(500);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Acquaintance.Tests.ScatterGather
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
             var response = channel.Scatter("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
-            var responses = response.GetResponses(1);
+            var responses = response.GatherResponses(1);
             responses[0].Response.Text.Should().Be("RequestResponded");
         }
     }

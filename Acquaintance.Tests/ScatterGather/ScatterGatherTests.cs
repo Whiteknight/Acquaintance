@@ -15,7 +15,7 @@ namespace Acquaintance.Tests.ScatterGather
             public string Text { get; set; }
         }
 
-        private class TestRequest : IRequest<TestResponse>
+        private class TestRequestWithResponse : IRequestWithResponse<TestResponse>
         {
             public string Text { get; set; }
         }
@@ -24,12 +24,12 @@ namespace Acquaintance.Tests.ScatterGather
         public void ParticipateScatterGather()
         {
             var target = new MessageBus();
-            target.Participate<TestRequest, TestResponse>(l => l
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
-            var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            var response = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
-            var responses = response.GetResponses();
+            var responses = response.GatherResponses();
             responses.Should().HaveCount(1);
             responses[0].Response.Text.Should().Be("RequestResponded");
         }
@@ -38,12 +38,12 @@ namespace Acquaintance.Tests.ScatterGather
         public void ParticipateScatterGather_WeakReference()
         {
             var target = new MessageBus();
-            target.Participate<TestRequest, TestResponse>(l => l
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }, true));
-            var response = target.Scatter<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            var response = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
-            var responses = response.GetResponses();
+            var responses = response.GatherResponses();
             responses.Should().HaveCount(1);
             responses[0].Response.Text.Should().Be("RequestResponded");
         }
@@ -52,11 +52,11 @@ namespace Acquaintance.Tests.ScatterGather
         public void ParticipateScatterGather_OnDefaultChannel()
         {
             var target = new MessageBus();
-            target.Participate<TestRequest, TestResponse>(l => l
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l
                 .WithDefaultTopic()
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
 
-            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "Request" }).GetResponses(1);
+            var response = target.Scatter<TestRequestWithResponse, TestResponse>(new TestRequestWithResponse { Text = "Request" }).GatherResponses(1);
             response.Should().HaveCount(1);
             response[0].Response.Text.Should().Be("RequestResponded");
         }
@@ -85,8 +85,8 @@ namespace Acquaintance.Tests.ScatterGather
         public void Participate_SecondListener()
         {
             var target = new MessageBus();
-            var listener1 = ImmediateParticipant<TestRequest, TestResponse>.Create(req => null);
-            var listener2 = ImmediateParticipant<TestRequest, TestResponse>.Create(req => null);
+            var listener1 = ImmediateParticipant<TestRequestWithResponse, TestResponse>.Create(req => null);
+            var listener2 = ImmediateParticipant<TestRequestWithResponse, TestResponse>.Create(req => null);
             target.Participate("test", listener1);
             Action act = () => target.Participate("test", listener2);
             act.ShouldNotThrow<Exception>();
@@ -102,7 +102,7 @@ namespace Acquaintance.Tests.ScatterGather
             target.Participate<int, int>(l => l.WithTopic("Test.A").Invoke(req => 1));
             target.Participate<int, int>(l => l.WithTopic("Test.B").Invoke(req => 2));
             target.Participate<int, int>(l => l.WithTopic("Test.C").Invoke(req => 3));
-            var response = target.Scatter<int, int>("Test.*", 0).GetResponses(3).Select(r => r.Response).ToArray();
+            var response = target.Scatter<int, int>("Test.*", 0).GatherResponses(3).Select(r => r.Response).ToArray();
             response.Should().BeEquivalentTo(1, 2, 3);
         }
 

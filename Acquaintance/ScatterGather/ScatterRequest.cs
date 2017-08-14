@@ -28,7 +28,19 @@ namespace Acquaintance.ScatterGather
         }
     }
 
-    public class ScatterRequest<TResponse> : IDisposable
+    public interface IScatter<TResponse> : IDisposable
+    {
+        ScatterResponse<TResponse> GetNextResponse(TimeSpan timeout);
+        ScatterResponse<TResponse> GetNextResponse(int timeoutMs);
+        ScatterResponse<TResponse> GetNextResponse();
+        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max, TimeSpan timeout);
+        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max);
+        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(TimeSpan timeout);
+        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses();
+        bool IsComplete();
+    }
+
+    public class Scatter<TResponse> : IScatter<TResponse>
     {
         private const int DefaultTimeoutS = 10;
         private readonly BlockingCollection<ScatterResponse<TResponse>> _responses;
@@ -36,7 +48,7 @@ namespace Acquaintance.ScatterGather
         private bool _isComplete;
         private bool _neverHadParticipants;
 
-        public ScatterRequest()
+        public Scatter()
         {
             _activeParticipants = new ConcurrentDictionary<Guid, bool>();
             _responses = new BlockingCollection<ScatterResponse<TResponse>>();
@@ -70,7 +82,7 @@ namespace Acquaintance.ScatterGather
             return GetNextResponse(new TimeSpan(0, 0, DefaultTimeoutS));
         }
 
-        public IReadOnlyList<ScatterResponse<TResponse>> GetResponses(int max, TimeSpan timeout)
+        public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max, TimeSpan timeout)
         {
             var endTime = DateTime.UtcNow + timeout;
             var responses = new List<ScatterResponse<TResponse>>();
@@ -92,29 +104,33 @@ namespace Acquaintance.ScatterGather
             return responses;
         }
 
-        public IReadOnlyList<ScatterResponse<TResponse>> GetResponses(int max)
+        public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max)
         {
-            return GetResponses(max, new TimeSpan(0, 0, DefaultTimeoutS));
+            return GatherResponses(max, new TimeSpan(0, 0, DefaultTimeoutS));
         }
 
-        public IReadOnlyList<ScatterResponse<TResponse>> GetResponses(TimeSpan timeout)
+        public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(TimeSpan timeout)
         {
-            return GetResponses(int.MaxValue, timeout);
+            return GatherResponses(int.MaxValue, timeout);
         }
 
-        public IReadOnlyList<ScatterResponse<TResponse>> GetResponses()
+        public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses()
         {
-            return GetResponses(int.MaxValue, new TimeSpan(0, 0, DefaultTimeoutS));
+            return GatherResponses(int.MaxValue, new TimeSpan(0, 0, DefaultTimeoutS));
         }
 
         public void AddResponse(Guid participantId, TResponse response)
         {
+            if (!_activeParticipants.ContainsKey(participantId))
+                return;
             _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
             _activeParticipants.TryRemove(participantId, out bool whatever);
         }
 
         public void AddError(Guid participantId, Exception error)
         {
+            if (!_activeParticipants.ContainsKey(participantId))
+                return;
             _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
             _activeParticipants.TryRemove(participantId, out bool whatever);
         }

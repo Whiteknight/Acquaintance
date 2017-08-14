@@ -129,23 +129,6 @@ namespace Acquaintance.RequestResponse
         IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
 
         /// <summary>
-        /// Specify a timeout for the request
-        /// </summary>
-        /// <param name="timeoutMs"></param>
-        /// <returns></returns>
-        IDetailsListenerBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
-
-        /// <summary>
-        /// Setup a circuit breaker, which will break the channel after a number of consecutive
-        /// failed requests. A broken channel allows time for the Listener to recover without
-        /// stacking up additional requests.
-        /// </summary>
-        /// <param name="maxAttempts"></param>
-        /// <param name="breakMs"></param>
-        /// <returns></returns>
-        IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxAttempts, int breakMs);
-
-        /// <summary>
         /// Make custom modifications to the Listener before it is installed on the channel
         /// </summary>
         /// <param name="modify"></param>

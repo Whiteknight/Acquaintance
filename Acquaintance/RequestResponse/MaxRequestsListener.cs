@@ -25,16 +25,22 @@ namespace Acquaintance.RequestResponse
             return _maxRequests > 0 || _inner.CanHandle(request);
         }
 
-        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
+        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
         {
             if (ShouldStopListening)
-                return new ImmediateResponse<TResponse>(Id, default(TResponse));
+            {
+                request.SetNoResponse();
+                return;
+            }
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
             if (maxRequests >= 0)
-                return _inner.Request(request);
+            {
+                _inner.Request(envelope, request);
+                return;
+            }
 
             ShouldStopListening = true;
-            return new ImmediateResponse<TResponse>(Id, default(TResponse));
+            request.SetNoResponse();
         }
 
         public bool ShouldStopListening { get; private set; }

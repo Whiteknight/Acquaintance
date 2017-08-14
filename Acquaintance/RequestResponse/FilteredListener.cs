@@ -24,9 +24,9 @@ namespace Acquaintance.RequestResponse
             return _inner.CanHandle(request) && _filter(request.Payload);
         }
 
-        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
+        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
         {
-            return _inner.Request(request);
+            _inner.Request(envelope, request);
         }
 
         public bool ShouldStopListening => _inner.ShouldStopListening;

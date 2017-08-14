@@ -7,7 +7,7 @@ namespace Acquaintance.RequestResponse
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IListener<TRequest, out TResponse>
+    public interface IListener<TRequest, TResponse>
     {
         /// <summary>
         /// Determine if the listener can handle the request depending on the current state of the
@@ -22,9 +22,9 @@ namespace Acquaintance.RequestResponse
         /// thread, so the return value is a waiter that can be used to wait for the result to be
         /// ready.
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="envelope"></param>
         /// <returns></returns>
-        IDispatchableRequest<TResponse> Request(Envelope<TRequest> request);
+        void Request(Envelope<TRequest> envelope, Request<TResponse> request);
 
         /// <summary>
         /// Whether the listener has satisfied all the requests it is able, and needs to be removed

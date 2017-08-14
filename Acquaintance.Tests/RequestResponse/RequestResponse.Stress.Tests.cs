@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Acquaintance.RequestResponse;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace Acquaintance.Tests.RequestResponse
@@ -15,7 +16,7 @@ namespace Acquaintance.Tests.RequestResponse
             int total = 0;
             for (int i = 0; i < numEvents; i++)
             {
-                var value = target.Request<int, int>("Test", i);
+                var value = target.Request<int, int>("Test", i).GetResponseOrWait();
                 total += value;
             }
 
@@ -34,7 +35,7 @@ namespace Acquaintance.Tests.RequestResponse
             int total = 0;
             for (int i = 0; i < numEvents; i++)
             {
-                var value = target.Request<int, int>("Test", i);
+                var value = target.Request<int, int>("Test", i).GetResponseOrWait();
                 total += value;
             }
 

@@ -13,7 +13,7 @@ namespace Acquaintance.Tests.ScatterGather
             public string Text { get; set; }
         }
 
-        private class TestRequest : IRequest<TestResponse>
+        private class TestRequestWithResponse : IRequestWithResponse<TestResponse>
         {
             public string Text { get; set; }
         }
@@ -23,14 +23,14 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus();
 
-            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "A" }));
-            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "B" }));
-            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "C" }));
-            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "D" }));
-            target.Participate<TestRequest, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "E" }));
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "A" }));
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "B" }));
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "C" }));
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "D" }));
+            target.Participate<TestRequestWithResponse, TestResponse>(l => l.WithDefaultTopic().Invoke(r => new TestResponse { Text = r.Text + "E" }));
 
-            var response = target.Scatter<TestRequest, TestResponse>(new TestRequest { Text = "x" })
-                .GetResponses(5)
+            var response = target.Scatter<TestRequestWithResponse, TestResponse>(new TestRequestWithResponse { Text = "x" })
+                .GatherResponses(5)
                 .Select(r => r.Response.Text)
                 .OrderBy(s=> s);
 

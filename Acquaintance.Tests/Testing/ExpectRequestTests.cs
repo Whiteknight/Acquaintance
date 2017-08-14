@@ -14,7 +14,7 @@ namespace Acquaintance.Tests.Testing
             var target = new MessageBus();
             target.ExpectRequest<int, int>(null).WillReturn(5);
 
-            var result = target.Request<int, int>(4);
+            var result = target.RequestWait<int, int>(4);
             result.Should().Be(5);
 
             target.VerifyAllExpectations();
@@ -26,7 +26,7 @@ namespace Acquaintance.Tests.Testing
             var target = new MessageBus();
             target.ExpectRequest<int, int>(null).WillReturn(x => x + 5);
 
-            var result = target.Request<int, int>(4);
+            var result = target.RequestWait<int, int>(4);
             result.Should().Be(9);
 
             target.VerifyAllExpectations();
@@ -39,7 +39,7 @@ namespace Acquaintance.Tests.Testing
             int value = 0;
             target.ExpectRequest<int, int>(null).WillReturn(5).Callback((req, res) => value = req + res);
 
-            var result = target.Request<int, int>(4);
+            target.Request<int, int>(4).WaitForResponse();
 
             value.Should().Be(9);
         }

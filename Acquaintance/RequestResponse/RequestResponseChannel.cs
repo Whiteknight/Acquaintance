@@ -18,24 +18,25 @@ namespace Acquaintance.RequestResponse
 
         public Guid Id { get; }
 
-        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
+        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
         {
             var listener = _listener;
-            if (listener == null || !listener.CanHandle(request))
-                return new ImmediateResponse<TResponse>(Id, default(TResponse));
+            if (listener == null || !listener.CanHandle(envelope))
+            {
+                request.SetNoResponse();
+                return;
+            }
 
             try
             {
-                var waiter = listener.Request(request);
+                listener.Request(envelope, request);
                 if (listener.ShouldStopListening)
                     _listener = null;
-
-                return waiter;
             }
             catch (Exception e)
             {
                 _log.Warn("Listener {0} threw exception {1}\n{2}", Id, e.Message, e.StackTrace);
-                return new ImmediateResponse<TResponse>(Id, default(TResponse));
+                request.SetError(e);
             }
         }
 

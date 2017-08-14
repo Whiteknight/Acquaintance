@@ -25,7 +25,7 @@ namespace Acquaintance.Tests.RequestResponse
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
 
-            var response = requestChannel.Request("Test", new TestRequest { Text = "Request" });
+            var response = requestChannel.RequestWait("Test", new TestRequest { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
         }

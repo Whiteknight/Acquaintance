@@ -37,9 +37,9 @@ namespace Acquaintance
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="request">The request object which represents the input arguments to the RPC call</param>
+        /// <param name="envelope">The request object which represents the input arguments to the RPC call</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        TResponse RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> request);
+        IRequest<TResponse> RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope);
 
         /// <summary>
         /// Listen for an incoming request and provide a response.
@@ -50,22 +50,11 @@ namespace Acquaintance
         /// <param name="listener">The listener to receive the request and provide a response</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener);
-
-        /// <summary>
-        /// Eavesdrop on request/response and scatter/gather conversations, and receive events when
-        /// a conversation is completed.
-        /// </summary>
-        /// <typeparam name="TRequest">The type of request object</typeparam>
-        /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="topic">The name of the channel</param>
-        /// <param name="subscriber">The subscriber object to receive eavesdrop events</param>
-        /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Eavesdrop<TRequest, TResponse>(string topic, ISubscription<Conversation<TRequest, TResponse>> subscriber);
     }
 
     public interface IScatterGatherBus : IBusBase
     {
-        /// <summary>
+        /// <summary>s
         /// Make a request and receive many responses
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
@@ -73,7 +62,7 @@ namespace Acquaintance
         /// <param name="topic">The name of the channel</param>
         /// <param name="request">The request object</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        ScatterRequest<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request);
+        IScatter<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request);
 
         /// <summary>
         /// Listen for incoming scatters and provide responses

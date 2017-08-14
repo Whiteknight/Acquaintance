@@ -13,12 +13,12 @@ namespace Acquaintance.ScatterGather
             _messageBus = messageBus;
         }
 
-        public ScatterRequest<TResponse> Scatter(TRequest request)
+        public IScatter<TResponse> Scatter(TRequest request)
         {
             return _messageBus.Scatter<TRequest, TResponse>(request);
         }
 
-        public ScatterRequest<TResponse> Scatter(string topic, TRequest request)
+        public IScatter<TResponse> Scatter(string topic, TRequest request)
         {
             return _messageBus.Scatter<TRequest, TResponse>(topic, request);
         }

@@ -21,7 +21,7 @@ namespace Acquaintance.ScatterGather
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        void Scatter(TRequest request, ScatterRequest<TResponse> scatter);
+        void Scatter(TRequest request, Scatter<TResponse> scatter);
 
         /// <summary>
         /// Returns true if the participant should stop participating

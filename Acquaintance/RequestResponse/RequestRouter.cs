@@ -26,23 +26,31 @@ namespace Acquaintance.RequestResponse
             return true;
         }
 
-        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
+        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
         {
-            var route = _routes.FirstOrDefault(r => r.Predicate(request.Payload));
+            var route = _routes.FirstOrDefault(r => r.Predicate(envelope.Payload));
             if (route == null)
             {
                 if (_defaultRouteOrNull != null)
                 {
-                    request = request.RedirectToTopic(_defaultRouteOrNull);
-                    var response1 = _messageBus.RequestEnvelope<TRequest, TResponse>(request);
-                    return new ImmediateResponse<TResponse>(Id, response1);
+                    envelope = envelope.RedirectToTopic(_defaultRouteOrNull);
+                    var response1 = _messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
+                    if (response1.WaitForResponse())
+                        request.SetResponse(response1.GetResponse());
+                    else
+                        request.SetNoResponse();
+                    return;
                 }
-                return new ImmediateResponse<TResponse>(Id, default(TResponse));
+                request.SetNoResponse();
+                return;
             }
 
-            request = request.RedirectToTopic(route.Topic);
-            var response = _messageBus.RequestEnvelope<TRequest, TResponse>(request);
-            return new ImmediateResponse<TResponse>(Id, response);
+            envelope = envelope.RedirectToTopic(route.Topic);
+            var response = _messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
+            if (response.WaitForResponse())
+                request.SetResponse(response.GetResponse());
+            else
+                request.SetNoResponse();
         }
 
         public bool ShouldStopListening => false;

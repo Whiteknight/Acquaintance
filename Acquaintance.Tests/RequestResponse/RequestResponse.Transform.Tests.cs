@@ -21,7 +21,7 @@ namespace Acquaintance.Tests.RequestResponse
             target.Listen<int, int>(l => l
                 .WithTopic("test int")
                 .TransformRequestTo("test string", r => r.ToString() + "A"));
-            var response = target.Request<int, int>("test int", 4);
+            var response = target.RequestWait<int, int>("test int", 4);
 
             response.Should().Be(5);
             request.Should().Be("4A");
@@ -37,7 +37,7 @@ namespace Acquaintance.Tests.RequestResponse
             target.Listen<int, int>(l => l
                 .WithTopic("test int")
                 .TransformResponseFrom<string>("test string", int.Parse));
-            var response = target.Request<int, int>("test int", 4);
+            var response = target.RequestWait<int, int>("test int", 4);
 
             response.Should().Be(5);
         }

@@ -1,30 +1,21 @@
 using Acquaintance.Threading;
 using System;
-using System.Threading;
 
 namespace Acquaintance.RequestResponse
 {
-    public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDispatchableRequest<TResponse>
+    public class DispatchableRequest<TRequest, TResponse> : IThreadAction, IDispatchableRequest
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
-        private readonly Envelope<TRequest> _request;
-        private readonly int _timeoutMs;
-        private readonly ManualResetEvent _resetEvent;
+        private readonly Envelope<TRequest> _envelope;
+        private readonly Request<TResponse> _request;
 
-        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, Envelope<TRequest> request, Guid listenerId, int timeoutMs = 1000)
+        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, Envelope<TRequest> envelope, Guid listenerId, Request<TResponse> request)
         {
-            if (timeoutMs <= 0)
-                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
             _func = func;
+            _envelope = envelope;
             _request = request;
-            _timeoutMs = timeoutMs;
-            _resetEvent = new ManualResetEvent(false);
             ListenerId = listenerId;
         }
-
-        public TResponse Response { get; private set; }
-        public bool Success { get; private set; }
-        public Exception ErrorInformation { get; private set; }
 
         public Guid ListenerId { get; }
 
@@ -32,28 +23,13 @@ namespace Acquaintance.RequestResponse
         {
             try
             {
-                Response = _func.Invoke(_request);
-                Success = true;
+                var response = _func.Invoke(_envelope);
+                _request.SetResponse(response);
             }
             catch (Exception e)
             {
-                Success = false;
-                ErrorInformation = e;
+                _request.SetError(e);
             }
-            finally
-            {
-                _resetEvent.Set();
-            }
-        }
-
-        public bool WaitForResponse()
-        {
-            return _resetEvent.WaitOne(_timeoutMs);
-        }
-
-        public void Dispose()
-        {
-            _resetEvent.Dispose();
         }
     }
 }

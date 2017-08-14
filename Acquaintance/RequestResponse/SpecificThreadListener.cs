@@ -8,14 +8,12 @@ namespace Acquaintance.RequestResponse
         private readonly IListenerReference<TRequest, TResponse> _func;
         private readonly int _threadId;
         private readonly IThreadPool _threadPool;
-        private readonly int _timeoutMs;
 
-        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, IThreadPool threadPool, int timeoutMs)
+        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, IThreadPool threadPool)
         {
             _func = func;
             _threadId = threadId;
             _threadPool = threadPool;
-            _timeoutMs = timeoutMs;
         }
 
         public Guid Id { get; set; }
@@ -25,15 +23,17 @@ namespace Acquaintance.RequestResponse
             return _func.IsAlive;
         }
 
-        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
+        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
         {
             var thread = _threadPool.GetThreadDispatcher(_threadId, false);
             if (thread == null)
-                return new ImmediateResponse<TResponse>(Id, default(TResponse));
+            {
+                request.SetNoResponse();
+                return;
+            }
 
-            var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, request, Id, _timeoutMs);
+            var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, envelope, Id, request);
             thread.DispatchAction(responseWaiter);
-            return responseWaiter;
         }
 
         public bool ShouldStopListening => !_func.IsAlive;

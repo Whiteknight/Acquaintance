@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Acquaintance.Utility;
 
 namespace Acquaintance.RequestResponse
@@ -14,19 +15,41 @@ namespace Acquaintance.RequestResponse
             _messageBus = messageBus;
         }
 
-        public TResponse Request(TRequest request)
+        public IRequest<TResponse> Request(TRequest request)
         {
             return _messageBus.Request<TRequest, TResponse>(request);
         }
 
-        public TResponse Request(string topic, TRequest request)
+        public IRequest<TResponse> Request(string topic, TRequest request)
         {
             return _messageBus.Request<TRequest, TResponse>(topic, request);
         }
 
-        public TResponse Request(Envelope<TRequest> request)
+        public TResponse RequestWait(TRequest request)
         {
-            return _messageBus.RequestEnvelope<TRequest, TResponse>(request);
+            return _messageBus.Request<TRequest, TResponse>(request).GetResponseOrWait();
+        }
+
+        public TResponse RequestWait(string topic, TRequest request)
+        {
+            return _messageBus.Request<TRequest, TResponse>(topic, request).GetResponseOrWait();
+        }
+
+        public Task<TResponse> RequestAsync(string topic, TRequest request)
+        {
+            return _messageBus.RequestAsync<TRequest, TResponse>(topic, request);
+        }
+
+        public Task<TResponse> RequestAsync(TRequest request)
+        {
+            return _messageBus.RequestAsync<TRequest, TResponse>(string.Empty, request);
+        }
+
+        public TResponse Request(Envelope<TRequest> envelope)
+        {
+            var request = _messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
+            request.WaitForResponse();
+            return request.GetResponse();
         }
 
         public IDisposable Listen(string topic, IListener<TRequest, TResponse> listener)

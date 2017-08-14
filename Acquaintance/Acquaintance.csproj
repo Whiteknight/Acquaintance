@@ -61,7 +61,6 @@
     <Compile Include="Common\RouterModeType.cs" />
     <Compile Include="Conversation.cs" />
     <Compile Include="DispatchStrategyFactory.cs" />
-    <Compile Include="EavesdropMessageBusExtensions.cs" />
     <Compile Include="Common\IDispatchable.cs" />
     <Compile Include="Envelope.cs" />
     <Compile Include="IEnvelopeFactory.cs" />
@@ -71,8 +70,8 @@
     <Compile Include="PubSub\IPublishableMessage.cs" />
     <Compile Include="PubSub\SubscriptionAttribute.cs" />
     <Compile Include="PubSub\SubscriptionScanner.cs" />
-    <Compile Include="RequestResponse\CircuitBreakerListener.cs" />
     <Compile Include="RequestResponse\IListenerBuilder.cs" />
+    <Compile Include="RequestResponse\Request.cs" />
     <Compile Include="RequestResponse\RequestChannelProxy.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
@@ -128,7 +127,6 @@
     <Compile Include="ReqResMessageBusExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
-    <Compile Include="RequestResponse\ImmediateResponse.cs" />
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
     <Compile Include="RequestResponse\RequestRouter.cs" />
     <Compile Include="ScatterGather\ScatterChannelProxy.cs" />
@@ -149,7 +147,7 @@
     <Compile Include="RequestResponse\ImmediateListener.cs" />
     <Compile Include="RequestResponse\IReqResChannel.cs" />
     <Compile Include="RequestResponse\IListener.cs" />
-    <Compile Include="RequestResponse\IRequest.cs" />
+    <Compile Include="RequestResponse\IRequestWithResponse.cs" />
     <Compile Include="RequestResponse\RequestResponseChannel.cs" />
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="ScatterGather\SpecificThreadParticipant.cs" />

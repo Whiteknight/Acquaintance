@@ -14,7 +14,7 @@ namespace Acquaintance.Tests.RequestResponse
             public string Text { get; set; }
         }
 
-        private class TestRequest : IRequest<TestResponse>
+        private class TestRequestWithResponse : IRequestWithResponse<TestResponse>
         {
             public string Text { get; set; }
         }
@@ -23,10 +23,10 @@ namespace Acquaintance.Tests.RequestResponse
         public void ListenRequestAndResponse()
         {
             var target = new MessageBus();
-            target.Listen<TestRequest, TestResponse>(l => l
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
-            var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            var response = target.RequestWait<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
         }
@@ -35,10 +35,10 @@ namespace Acquaintance.Tests.RequestResponse
         public void ListenRequestAndResponse_InvokeEnvelope()
         {
             var target = new MessageBus();
-            target.Listen<TestRequest, TestResponse>(l => l
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test")
                 .InvokeEnvelope(req => new TestResponse { Text = req.Payload.Text + "Responded" }));
-            var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            var response = target.RequestWait<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
         }
@@ -47,11 +47,11 @@ namespace Acquaintance.Tests.RequestResponse
         public void ListenRequestAndResponse_WeakReference()
         {
             var target = new MessageBus();
-            target.Listen<TestRequest, TestResponse>(l => l
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }, true));
 
-            var response = target.Request<TestRequest, TestResponse>("Test", new TestRequest { Text = "Request" });
+            var response = target.RequestWait<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
         }
@@ -64,19 +64,19 @@ namespace Acquaintance.Tests.RequestResponse
                 .WithDefaultTopic()
                 .Invoke(req => 1));
 
-            target.Request<int, int>(1).Should().Be(1);
+            target.RequestWait<int, int>(1).Should().Be(1);
             token.Dispose();
-            target.Request<int, int>(1).Should().Be(0);
+            target.RequestWait<int, int>(1).Should().Be(0);
         }
 
         [Test]
         public void ListenRequestAndResponse_Object()
         {
             var target = new MessageBus();
-            target.Listen<TestRequest, TestResponse>(l => l
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
-            var response = target.Request("Test", typeof(TestRequest), new TestRequest { Text = "Request" });
+            var response = target.Request("Test", typeof(TestRequestWithResponse), new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
             response.Should().BeOfType(typeof(TestResponse));
         }
@@ -107,8 +107,8 @@ namespace Acquaintance.Tests.RequestResponse
         public void Listen_SecondListener()
         {
             var target = new MessageBus();
-            var listener1 = ImmediateListener<TestRequest, TestResponse>.Create(req => null);
-            var listener2 = ImmediateListener<TestRequest, TestResponse>.Create(req => null);
+            var listener1 = ImmediateListener<TestRequestWithResponse, TestResponse>.Create(req => null);
+            var listener2 = ImmediateListener<TestRequestWithResponse, TestResponse>.Create(req => null);
             target.Listen("test", listener1);
             Action act = () => target.Listen("test", listener2);
             act.ShouldThrow<Exception>();
@@ -121,10 +121,10 @@ namespace Acquaintance.Tests.RequestResponse
             {
                 DispatchStrategy = new TrieDispatchStrategyFactory()
             });
-            target.Listen<TestRequest, TestResponse>(l => l
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test.A")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }));
-            var response = target.Request<TestRequest, TestResponse>("Test.*", new TestRequest { Text = "Request" });
+            var response = target.RequestWait<TestRequestWithResponse, TestResponse>("Test.*", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
         }
@@ -141,7 +141,7 @@ namespace Acquaintance.Tests.RequestResponse
             var responses = new List<int>();
             for (int i = 0; i < 5; i++)
             {
-                var response = target.Request<int, int>("Test", i);
+                var response = target.RequestWait<int, int>("Test", i);
                 responses.Add(response);
             }
 

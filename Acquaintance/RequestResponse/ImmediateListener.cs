@@ -18,10 +18,10 @@ namespace Acquaintance.RequestResponse
             return _func.IsAlive;
         }
 
-        public IDispatchableRequest<TResponse> Request(Envelope<TRequest> request)
+        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
         {
-            var value = _func.Invoke(request);
-            return new ImmediateResponse<TResponse>(Id, value);
+            var value = _func.Invoke(envelope);
+            request.SetResponse(value);
         }
 
         public static IListener<TRequest, TResponse> Create(Func<TRequest, TResponse> func)

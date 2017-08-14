@@ -47,19 +47,12 @@ namespace Acquaintance
             return token;
         }
 
-        public IDisposable Eavesdrop<TRequest, TResponse>(string topic, ISubscription<Conversation<TRequest, TResponse>> subscriber)
+        public IRequest<TResponse> RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
         {
-            var token = _messageBus.Eavesdrop(topic, subscriber);
-            _subscriptions.Add(token);
-            return token;
+            return _messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
         }
 
-        public TResponse RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> request)
-        {
-            return _messageBus.RequestEnvelope<TRequest, TResponse>(request);
-        }
-
-        public ScatterRequest<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
+        public IScatter<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
         {
             return _messageBus.Scatter<TRequest, TResponse>(topic, request);
         }
