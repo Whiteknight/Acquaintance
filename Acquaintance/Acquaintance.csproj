@@ -56,12 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\CircuitBreaker.cs" />
-    <Compile Include="Common\CompleteResponse.cs" />
     <Compile Include="Common\EnvelopeFactory.cs" />
-    <Compile Include="Common\RouterModeType.cs" />
     <Compile Include="Conversation.cs" />
     <Compile Include="DispatchStrategyFactory.cs" />
-    <Compile Include="Common\IDispatchable.cs" />
     <Compile Include="Envelope.cs" />
     <Compile Include="IEnvelopeFactory.cs" />
     <Compile Include="MessageBusCreateParameters.cs" />
@@ -90,7 +87,6 @@
     <Compile Include="Nets\Net.cs" />
     <Compile Include="Nets\NetBuilder.cs" />
     <Compile Include="Nets\NodeBuilder.cs" />
-    <Compile Include="Common\EventRoute.cs" />
     <Compile Include="PubSub\ActivatedSubscriberReference.cs" />
     <Compile Include="PubSub\FilteredSubscription.cs" />
     <Compile Include="PubSub\ISubscriberReference.cs" />
