@@ -97,16 +97,16 @@ namespace Acquaintance
             return request;
         }
 
-        public IScatter<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
+        public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
         {
             var scatter = new Scatter<TResponse>();
-            topic = _router.RouteScatter<TRequest, TResponse>(topic, request);
+            topic = _router.RouteScatter<TRequest, TResponse>(topic, envelope);
             if (topic == null)
                 return scatter;
             foreach (var channel in _scatterGatherStrategy.GetExistingChannels<TRequest, TResponse>(topic))
             {
                 _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
-                channel.Scatter(request, scatter);
+                channel.Scatter(envelope, scatter);
             }
 
             return scatter;

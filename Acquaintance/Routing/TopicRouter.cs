@@ -47,14 +47,14 @@ namespace Acquaintance.Routing
             return typedRule?.GetRoute(topic, envelope) ?? topic;
         }
 
-        public string RouteScatter<TRequest, TResponse>(string topic, TRequest request)
+        public string RouteScatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
         {
             topic = topic ?? string.Empty;
             var key = GetKey<TRequest, TResponse>(topic);
             if (!_scatterRoutes.TryGetValue(key, out IScatterRouteRule rule))
                 return topic;
             var typedRule = rule as IScatterRouteRule<TRequest>;
-            return typedRule?.GetRoute(topic, request) ?? topic;
+            return typedRule?.GetRoute(topic, envelope) ?? topic;
         }
 
         private class NoRouteToken : IDisposable

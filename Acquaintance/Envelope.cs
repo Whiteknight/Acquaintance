@@ -9,7 +9,7 @@ namespace Acquaintance
         public Envelope(long id, string topic, TPayload payload)
         {
             Id = id;
-            Topic = topic;
+            Topic = topic ?? string.Empty;
             Payload = payload;
         }
 

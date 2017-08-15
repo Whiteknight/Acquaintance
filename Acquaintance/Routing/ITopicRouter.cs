@@ -16,7 +16,7 @@ namespace Acquaintance.Routing
 
     public interface IScatterTopicRouter
     {
-        string RouteScatter<TRequest, TResponse>(string topic, TRequest request);
+        string RouteScatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope);
         IDisposable AddRule<TRequest, TResponse>(string topic, IScatterRouteRule<TRequest> rule);
     }
 }

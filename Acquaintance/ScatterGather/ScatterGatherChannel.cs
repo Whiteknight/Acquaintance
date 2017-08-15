@@ -20,7 +20,7 @@ namespace Acquaintance.ScatterGather
 
         public Guid Id { get; }
 
-        public void Scatter(TRequest request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
         {
             var toRemove = new List<Guid>();
             foreach (var kvp in _participants)

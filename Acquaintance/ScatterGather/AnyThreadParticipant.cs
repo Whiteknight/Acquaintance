@@ -22,21 +22,21 @@ namespace Acquaintance.ScatterGather
         public Guid Id { get; set; }
         public bool ShouldStopParticipating => !_func.IsAlive;
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
             return _func.IsAlive;
         }
 
-        public void Scatter(TRequest request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
         {
             var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)
             { 
-                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request, scatter);
+                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request.Payload, scatter);
                 return;
             }
 
-            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, scatter);
+            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request.Payload, Id, scatter);
             thread.DispatchAction(responseWaiter);
         }
     }

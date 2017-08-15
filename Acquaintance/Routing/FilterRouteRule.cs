@@ -8,18 +8,11 @@ namespace Acquaintance.Routing
     public class FilterRouteBuilder<T>
     {
         private readonly List<EventRoute<T>> _routes;
-        private bool _keepOriginalTopic;
         private string _defaultRoute;
 
         public FilterRouteBuilder()
         {
             _routes = new List<EventRoute<T>>();
-        }
-
-        public FilterRouteBuilder<T> KeepOriginalTopic()
-        {
-            _keepOriginalTopic = true;
-            return this;
         }
 
         public FilterRouteBuilder<T> When(Func<T, bool> predicate, string topic)
@@ -85,9 +78,9 @@ namespace Acquaintance.Routing
             return GetRouteInternal(topic, envelope.Payload);
         }
 
-        string IScatterRouteRule<T>.GetRoute(string topic, T request)
+        string IScatterRouteRule<T>.GetRoute(string topic, Envelope<T> envelope)
         {
-            return GetRouteInternal(topic, request);
+            return GetRouteInternal(topic, envelope.Payload);
         }
 
         private string GetRouteInternal(string topic, T payload)
@@ -95,10 +88,8 @@ namespace Acquaintance.Routing
             var route = _routes.FirstOrDefault(r => r.Predicate(payload));
             if (route != null)
                 return route.Topic;
-            
-            if (_defaultRouteOrNull != null)
-                return _defaultRouteOrNull;
-            return null;
+
+            return _defaultRouteOrNull;
         }
     }
 }

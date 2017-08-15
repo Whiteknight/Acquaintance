@@ -60,9 +60,9 @@ namespace Acquaintance
             return _messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
         }
 
-        public IScatter<TResponse> Scatter<TRequest, TResponse>(string topic, TRequest request)
+        public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
         {
-            return _messageBus.Scatter<TRequest, TResponse>(topic, request);
+            return _messageBus.ScatterEnvelope<TRequest, TResponse>(topic, envelope);
         }
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)
@@ -119,9 +119,9 @@ namespace Acquaintance
                 return token;
             }
 
-            public string RouteScatter<TRequest, TResponse>(string topic, TRequest request)
+            public string RouteScatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
             {
-                return _scatterRouter.RouteScatter<TRequest, TResponse>(topic, request);
+                return _scatterRouter.RouteScatter<TRequest, TResponse>(topic, envelope);
             }
 
             public IDisposable AddRule<TRequest, TResponse>(string topic, IScatterRouteRule<TRequest> rule)

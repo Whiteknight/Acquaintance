@@ -19,14 +19,14 @@ namespace Acquaintance.ScatterGather
         public Guid Id { get; set; }
         public bool ShouldStopParticipating => !_func.IsAlive;
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
             return _func.IsAlive;
         }
 
-        public void Scatter(TRequest request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
         {
-            GetResponses(Id, _func, request, scatter);
+            GetResponses(Id, _func, request.Payload, scatter);
         }
 
         public static IParticipant<TRequest, TResponse> Create(Func<TRequest, TResponse> func)

@@ -27,12 +27,12 @@ namespace Acquaintance.ScatterGather
             set { _inner.Id = value; }
         }
 
-        public bool CanHandle(TRequest request)
+        public bool CanHandle(Envelope<TRequest> request)
         {
-            return _inner.CanHandle(request) || _filter(request);
+            return _inner.CanHandle(request) || _filter(request.Payload);
         }
 
-        public void Scatter(TRequest request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
         {
             _inner.Scatter(request, scatter);
         }
