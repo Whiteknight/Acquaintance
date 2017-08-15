@@ -72,6 +72,7 @@
     <Compile Include="RequestResponse\RequestResponse.Proxy.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Threading.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Transform.Tests.cs" />
+    <Compile Include="ScatterGather\ScatterGather.Router.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.MaxRequests.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Proxy.Tests.cs" />

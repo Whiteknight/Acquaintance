@@ -16,7 +16,6 @@ namespace Acquaintance.PubSub
         private readonly IThreadPool _threadPool;
 
         private ISubscriberReference<TPayload> _actionReference;
-        private RouteBuilder<TPayload> _routeBuilder;
         private List<string> _distributionList;
         private DispatchThreadType _dispatchType;
         private Func<TPayload, bool> _filter;
@@ -52,8 +51,6 @@ namespace Acquaintance.PubSub
         {
             if (_actionReference != null)
                 return CreateSubscription(_actionReference, _dispatchType, _threadId);
-            if (_routeBuilder != null)
-                return _routeBuilder.BuildSubscription();
             if (_distributionList != null && _distributionList.Any())
                 return new RoundRobinDispatchSubscription<TPayload>(_messageBus, _distributionList);
             throw new Exception("No action specified");
@@ -129,17 +126,6 @@ namespace Acquaintance.PubSub
                 var transformed = transform(payload);
                 _messageBus.Publish(newTopic, transformed);
             });
-        }
-
-        public IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build)
-        {
-            Assert.ArgumentNotNull(build, nameof(build));
-
-            ValidateDoesNotHaveAction();
-
-            _routeBuilder = new RouteBuilder<TPayload>(_messageBus);
-            build(_routeBuilder);
-            return this;
         }
 
         public IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> topics)
@@ -230,8 +216,6 @@ namespace Acquaintance.PubSub
         {
             if (_actionReference != null)
                 throw new Exception("Builder already has a defined action");
-            if (_routeBuilder != null)
-                throw new Exception("Builder has already setup for routing. A new action may not be defined");
             if (_distributionList != null && _distributionList.Any())
                 throw new Exception("Builder already has a distribution list setup. A new action may not be defined");
         }

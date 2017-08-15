@@ -73,6 +73,12 @@
     <Compile Include="RequestResponse\IListenerBuilder.cs" />
     <Compile Include="RequestResponse\Request.cs" />
     <Compile Include="RequestResponse\RequestChannelProxy.cs" />
+    <Compile Include="Routing\FilterRouteRule.cs" />
+    <Compile Include="Routing\IPublishRouteRule.cs" />
+    <Compile Include="Routing\IRequestRouteRule.cs" />
+    <Compile Include="Routing\IScatterRouteRule.cs" />
+    <Compile Include="Routing\ITopicRouter.cs" />
+    <Compile Include="RouterExtensions.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />
@@ -93,9 +99,6 @@
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
     <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
-    <Compile Include="RequestResponse\RouteBuilder.cs" />
-    <Compile Include="PubSub\RouteBuilder.cs" />
-    <Compile Include="PubSub\RoutingSubscriber.cs" />
     <Compile Include="PubSub\Sources\SourceManagementModule.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
     <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />
@@ -128,7 +131,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestResponse\IDispatchableRequest.cs" />
     <Compile Include="RequestResponse\ReqResTrieDispatchStrategy.cs" />
-    <Compile Include="RequestResponse\RequestRouter.cs" />
     <Compile Include="ScatterGather\ScatterChannelProxy.cs" />
     <Compile Include="ScatterGather\ScatterGatherSimpleDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherTrieDispatchStrategy.cs" />
@@ -185,6 +187,7 @@
     <Compile Include="Timers\MessageTimer.cs" />
     <Compile Include="Timers\MessageTimerEvent.cs" />
     <Compile Include="Timers\TimerMessageBusExtensions.cs" />
+    <Compile Include="Routing\TopicRouter.cs" />
     <Compile Include="Utility\Assert.cs" />
     <Compile Include="Utility\DisposableCollection.cs" />
     <Compile Include="Utility\StringTrie.cs" />

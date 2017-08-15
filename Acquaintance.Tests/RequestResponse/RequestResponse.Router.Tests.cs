@@ -17,11 +17,9 @@ namespace Acquaintance.Tests.RequestResponse
                 .WithTopic("Odds")
                 .Invoke(e => e * 100));
 
-            target.Listen<int, int>(l => l
-                .WithDefaultTopic()
-                .Route(r => r
-                    .When(e => e % 2 == 0, "Evens")
-                    .When(e => e % 2 == 1, "Odds")));
+            target.SetupRequestRouting<int, int>("", r => r
+                .When(e => e % 2 == 0, "Evens")
+                .When(e => e % 2 == 1, "Odds"));
 
             target.RequestWait<int, int>(1).Should().Be(100);
             target.RequestWait<int, int>(2).Should().Be(20);
@@ -41,11 +39,9 @@ namespace Acquaintance.Tests.RequestResponse
                 .WithTopic("Odds")
                 .Invoke(e => e * 100));
 
-            target.Listen<int, int>(l => l
-                .WithDefaultTopic()
-                .Route(r => r
-                    .When(e => e % 2 == 0, "Evens")
-                    .Else("Odds")));
+            target.SetupRequestRouting<int, int>("", r => r
+                .When(e => e % 2 == 0, "Evens")
+                .Else("Odds"));
 
             target.RequestWait<int, int>(1).Should().Be(100);
             target.RequestWait<int, int>(2).Should().Be(20);

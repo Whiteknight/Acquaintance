@@ -4,6 +4,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Routing;
 
 namespace Acquaintance
 {
@@ -28,6 +29,7 @@ namespace Acquaintance
         IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription);
 
         void PublishEnvelope<TPayload>(Envelope<TPayload> envelope);
+        IPublishTopicRouter PublishRouter { get; }
     }
 
     public interface IReqResBus : IBusBase
@@ -50,6 +52,8 @@ namespace Acquaintance
         /// <param name="listener">The listener to receive the request and provide a response</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener);
+
+        IRequestTopicRouter RequestRouter { get; }
     }
 
     public interface IScatterGatherBus : IBusBase
@@ -74,7 +78,7 @@ namespace Acquaintance
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant);
 
-        // TODO: An Eavesdrop variant for scatter/gather?
+        IScatterTopicRouter ScatterRouter { get; }
     }
 
     public interface IMessageBus : IPubSubBus, IReqResBus, IScatterGatherBus, IDisposable

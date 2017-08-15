@@ -42,13 +42,6 @@ namespace Acquaintance.RequestResponse
         IThreadListenerBuilder<TRequest, TResponse> InvokeEnvelope(Func<Envelope<TRequest>, TResponse> listener, bool useWeakReference = false);
 
         /// <summary>
-        /// Route the request to a different channel based on routing rules
-        /// </summary>
-        /// <param name="build"></param>
-        /// <returns></returns>
-        IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build);
-
-        /// <summary>
         /// Transform the request payload to a new object type and forward it to a new channel
         /// </summary>
         /// <typeparam name="TTransformed"></typeparam>

@@ -1,6 +1,7 @@
 ﻿using Acquaintance.PubSub;
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Routing;
 using Acquaintance.Utility;
 
 namespace Acquaintance.Sources
@@ -35,5 +36,7 @@ namespace Acquaintance.Sources
         {
             return null;
         }
+
+        public IPublishTopicRouter PublishRouter => _messageBus.PublishRouter;
     }
 }

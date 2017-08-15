@@ -57,13 +57,6 @@ namespace Acquaintance.PubSub
         IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newTopic = null);
 
         /// <summary>
-        /// Route the message to a new channel based on rules
-        /// </summary>
-        /// <param name="build">A lambda function to prepare the route builder</param>
-        /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> Route(Action<RouteBuilder<TPayload>> build);
-
-        /// <summary>
         /// Distrubute the message to one of several channels using a round-robin dispatching scheme
         /// </summary>
         /// <param name="topics">A list of new channels to dispatch to</param>

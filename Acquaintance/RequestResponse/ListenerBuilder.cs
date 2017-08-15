@@ -18,7 +18,6 @@ namespace Acquaintance.RequestResponse
         private IListenerReference<TRequest, TResponse> _funcReference;
         private int _maxRequests;
         private Func<TRequest, bool> _filter;
-        private RouteBuilder<TRequest, TResponse> _routeBuilder;
         private bool _useDedicatedThread;
         private Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> _modify;
 
@@ -42,8 +41,6 @@ namespace Acquaintance.RequestResponse
 
         private IListener<TRequest, TResponse> BuildListenerInternal()
         {
-            if (_routeBuilder != null)
-                return _routeBuilder.BuildListener();
             if (_funcReference != null)
                 return CreateListener(_funcReference, _dispatchType, _threadId);
             throw new Exception("No function or routes supplied");
@@ -82,15 +79,6 @@ namespace Acquaintance.RequestResponse
             Assert.ArgumentNotNull(listener, nameof(listener));
             ValidateDoesNotAlreadyHaveAction();
             _funcReference = CreateReference(listener, useWeakReference);
-            return this;
-        }
-
-        public IThreadListenerBuilder<TRequest, TResponse> Route(Action<RouteBuilder<TRequest, TResponse>> build)
-        {
-            Assert.ArgumentNotNull(build, nameof(build));
-            ValidateDoesNotAlreadyHaveAction();
-            _routeBuilder = new RouteBuilder<TRequest, TResponse>(_messageBus);
-            build(_routeBuilder);
             return this;
         }
 
@@ -185,8 +173,6 @@ namespace Acquaintance.RequestResponse
         {
             if (_funcReference != null)
                 throw new Exception("Builder already has a defined action reference");
-            if (_routeBuilder != null)
-                throw new Exception("Builder is already configured for routing. Cannot add a new action");
         }
 
         private IListener<TRequest, TResponse> CreateListener(IListenerReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId)

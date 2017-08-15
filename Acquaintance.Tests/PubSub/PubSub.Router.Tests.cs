@@ -22,12 +22,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus();
             int evens = 0;
             int odds = 0;
-            int all = 0;
 
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithDefaultTopic()
-                .Invoke(e => all += e.Number)
-                .Immediate());
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithTopic("Evens")
                 .Invoke(e => evens += e.Number)
@@ -37,11 +32,9 @@ namespace Acquaintance.Tests.PubSub
                 .Invoke(e => odds += e.Number)
                 .Immediate());
 
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithDefaultTopic()
-                .Route(r => r
-                    .When(e => e.Number % 2 == 0, "Evens")
-                    .When(e => e.Number % 2 == 1, "Odds")));
+            target.SetupPublishRouting<TestPubSubEvent>("", r => r
+                .When(e => e.Number % 2 == 0, "Evens")
+                .When(e => e.Number % 2 == 1, "Odds"));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));
@@ -49,7 +42,6 @@ namespace Acquaintance.Tests.PubSub
             target.Publish(new TestPubSubEvent(4));
             target.Publish(new TestPubSubEvent(5));
 
-            all.Should().Be(15);
             evens.Should().Be(6);
             odds.Should().Be(9);
         }
@@ -70,10 +62,8 @@ namespace Acquaintance.Tests.PubSub
                 .Invoke(e => evens += e.Number)
                 .Immediate());
 
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithDefaultTopic()
-                .Route(r => r
-                    .When(e => e.Number % 2 == 0, "Evens")));
+            target.SetupPublishRouting<TestPubSubEvent>("", r => r
+                .When(e => e.Number % 2 == 0, "Evens"));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));
@@ -101,11 +91,9 @@ namespace Acquaintance.Tests.PubSub
                 .Invoke(e => evens += e.Number)
                 .Immediate());
 
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithDefaultTopic()
-                .Route(r => r
-                    .When(e => e.Number % 2 == 0, "Evens")
-                    .Else("Default")));
+            target.SetupPublishRouting<TestPubSubEvent>("", r => r
+                .When(e => e.Number % 2 == 0, "Evens")
+                .Else("Default"));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));
@@ -115,46 +103,6 @@ namespace Acquaintance.Tests.PubSub
 
             all.Should().Be(9);
             evens.Should().Be(6);
-        }
-
-        [Test]
-        public void Subscribe_SubscriptionBuilder_AllMatchingMode()
-        {
-            var target = new MessageBus();
-            int evens = 0;
-            int odds = 0;
-            int all = 0;
-
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithTopic("All")
-                .Invoke(e => all += e.Number)
-                .Immediate());
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithTopic("Evens")
-                .Invoke(e => evens += e.Number)
-                .Immediate());
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithTopic("Odds")
-                .Invoke(e => odds += e.Number)
-                .Immediate());
-
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithDefaultTopic()
-                .Route(r => r
-                    .Mode(Common.RouterModeType.AllMatchingRoutes)
-                    .When(e => e.Number % 2 == 0, "Evens")
-                    .When(e => e.Number % 2 == 1, "Odds")
-                    .When(e => true, "All")));
-
-            target.Publish(new TestPubSubEvent(1));
-            target.Publish(new TestPubSubEvent(2));
-            target.Publish(new TestPubSubEvent(3));
-            target.Publish(new TestPubSubEvent(4));
-            target.Publish(new TestPubSubEvent(5));
-
-            all.Should().Be(15);
-            evens.Should().Be(6);
-            odds.Should().Be(9);
         }
 
         [Test]
@@ -173,12 +121,9 @@ namespace Acquaintance.Tests.PubSub
                 .Invoke(e => evens += e.Number)
                 .Immediate());
 
-            target.Subscribe<TestPubSubEvent>(builder => builder
-                .WithDefaultTopic()
-                .Route(r => r
-                    .Mode(Common.RouterModeType.FirstMatchingRoute)
-                    .When(e => e.Number % 2 == 0, "Evens")
-                    .When(e => true, "All")));
+            target.SetupPublishRouting<TestPubSubEvent>("", r => r
+                .When(e => e.Number % 2 == 0, "Evens")
+                .When(e => true, "All"));
 
             target.Publish(new TestPubSubEvent(1));
             target.Publish(new TestPubSubEvent(2));
