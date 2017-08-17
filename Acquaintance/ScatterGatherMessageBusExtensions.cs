@@ -1,5 +1,6 @@
 ﻿using Acquaintance.ScatterGather;
 using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -7,16 +8,20 @@ namespace Acquaintance
     {
         public static IScatter<TResponse> Scatter<TRequest, TResponse>(this IScatterGatherBus messageBus, string topic, TRequest request)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var envelope = messageBus.EnvelopeFactory.Create(topic, request);
             return messageBus.ScatterEnvelope<TRequest, TResponse>(topic, envelope);
         }
+
         public static IScatter<TResponse> Scatter<TRequest, TResponse>(this IScatterGatherBus messageBus, TRequest request)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             return messageBus.Scatter<TRequest, TResponse>(string.Empty, request);
         }
 
         public static IDisposable Participate<TRequest, TResponse>(this IScatterGatherBus messageBus, Action<ITopicParticipantBuilder<TRequest, TResponse>> build)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var builder = new ParticipantBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
             build(builder);
             var participant = builder.BuildParticipant();

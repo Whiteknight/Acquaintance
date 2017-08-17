@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Acquaintance
 {
     public class Envelope<TPayload>
     {
-        private IDictionary<string, string> _metadata;
+        private ConcurrentDictionary<string, string> _metadata;
 
         public Envelope(long id, string topic, TPayload payload)
         {
@@ -21,7 +22,7 @@ namespace Acquaintance
         {
             var envelope = new Envelope<TPayload>(Id, topic, Payload);
             if (_metadata != null)
-                envelope._metadata = new Dictionary<string, string>(_metadata);
+                envelope._metadata = new ConcurrentDictionary<string, string>(_metadata);
             return envelope;
         }
 
@@ -29,18 +30,20 @@ namespace Acquaintance
         {
             if (_metadata == null)
                 return null;
-            return _metadata.ContainsKey(name) ? _metadata[name] : null;
+            return _metadata.TryGetValue(name, out string value) ? value : null;
         }
 
         public void SetMetadata(string name, string value)
         {
-            if (_metadata == null)
-                _metadata = new Dictionary<string, string>();
+            var metadata = _metadata;
+            if (metadata == null)
+            {
+                var newMetadata = new ConcurrentDictionary<string, string>();
+                var oldMetadata = Interlocked.CompareExchange(ref _metadata, newMetadata, null);
+                metadata = oldMetadata == null ? newMetadata : _metadata;
+            }
 
-            if (_metadata.ContainsKey(name))
-                _metadata[name] = value;
-            else
-                _metadata.Add(name, value);
+            metadata.AddOrUpdate(name, value, (a, b) => value);
         }
     }
 }
