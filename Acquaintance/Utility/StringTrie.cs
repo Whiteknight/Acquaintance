@@ -7,26 +7,6 @@ namespace Acquaintance.Utility
 {
     public class StringTrie<T>
     {
-        public class TrieNode
-        {
-            public TrieNode(string key)
-            {
-                Key = key;
-                Children = new ConcurrentDictionary<string, TrieNode>();
-            }
-            public string Key { get; }
-            public T Value { get; private set; }
-            public bool HasValue { get; private set; }
-            public void SetValueIfMissing(T value)
-            {
-                if (HasValue)
-                    return;
-                Value = value;
-                HasValue = true;
-            }
-            public ConcurrentDictionary<string, TrieNode> Children { get; }
-        }
-
         private readonly TrieNode _root;
 
         public StringTrie()
@@ -37,17 +17,9 @@ namespace Acquaintance.Utility
         public T GetOrInsert(string root, IEnumerable<string> path, Func<T> getValue)
         {
             var node = _root;
-            if (!string.IsNullOrEmpty(root))
+            foreach (string key in new [] { root }.Concat(path))
             {
-                if (root == "*")
-                    throw new Exception("Cannot use wildcards for GetOrInsert");
-                node = node.Children.GetOrAdd(root, k => new TrieNode(root));
-            }
-
-            foreach (string key in path)
-            {
-                if (key == "*")
-                    throw new Exception("Cannot use wildcards for GetOrInsert");
+                ValidateKeyIsNotWildcardForInsert(key);
                 node = node.Children.GetOrAdd(key, k => new TrieNode(k));
             }
             node.SetValueIfMissing(getValue());
@@ -57,68 +29,79 @@ namespace Acquaintance.Utility
         public T GetOrInsert(string root1, string root2, IEnumerable<string> path, Func<T> getValue)
         {
             var node = _root;
-            if (!string.IsNullOrEmpty(root1))
+            foreach (string key in new [] { root1, root2 }.Concat(path))
             {
-                if (root1 == "*")
-                    throw new Exception("Cannot use wildcards for GetOrInsert");
-                node = node.Children.GetOrAdd(root1, k => new TrieNode(root1));
-            }
-
-            if (!string.IsNullOrEmpty(root2))
-            {
-                if (root2 == "*")
-                    throw new Exception("Cannot use wildcards for GetOrInsert");
-                node = node.Children.GetOrAdd(root2, k => new TrieNode(root2));
-            }
-
-            foreach (string key in path)
-            {
-                if (key == "*")
-                    throw new Exception("Cannot use wildcards for GetOrInsert");
+                ValidateKeyIsNotWildcardForInsert(key);
                 node = node.Children.GetOrAdd(key, k => new TrieNode(k));
             }
             node.SetValueIfMissing(getValue());
             return node.Value;
         }
 
-
         public IEnumerable<T> Get(string root, string[] path)
         {
-            var node = _root;
-            if (!string.IsNullOrEmpty(root))
-            {
-                bool ok = node.Children.TryGetValue(root, out node);
-                if (!ok)
-                    return Enumerable.Empty<T>();
-            }
+            var node = GetStartingNode(root);
+            if (node == null)
+                return Enumerable.Empty<T>();
+            
             var foundNodes = new List<TrieNode>();
-            GetInternal(path, 0, node, foundNodes, true);
+            GetInternal(path, 0, node, foundNodes);
             return foundNodes.Select(n => n.Value);
+        }
+
+        private TrieNode GetStartingNode(string root)
+        {
+            if (string.IsNullOrEmpty(root))
+                return _root;
+            return _root.Children.TryGetValue(root, out TrieNode node) ? node : null;
         }
 
         public IEnumerable<T> Get(string root1, string root2, string[] path)
         {
-            var node = _root;
-            if (!string.IsNullOrEmpty(root1))
-            {
-                bool ok = node.Children.TryGetValue(root1, out node);
-                if (!ok)
-                    return Enumerable.Empty<T>();
-            }
-            if (!string.IsNullOrEmpty(root2))
-            {
-                bool ok = node.Children.TryGetValue(root2, out node);
-                if (!ok)
-                    return Enumerable.Empty<T>();
-            }
+            var node = GetStartingNode(root1, root2);
+            if (node == null)
+                return Enumerable.Empty<T>();
             var foundNodes = new List<TrieNode>();
-            GetInternal(path, 0, node, foundNodes, true);
+            GetInternal(path, 0, node, foundNodes);
             return foundNodes.Select(n => n.Value);
+        }
+
+        private TrieNode GetStartingNode(string root1, string root2)
+        {
+            if (string.IsNullOrEmpty(root1))
+                return _root;
+            if (!_root.Children.TryGetValue(root1, out TrieNode node))
+                return null;
+            if (string.IsNullOrEmpty(root2))
+                return node;
+            return node.Children.TryGetValue(root2, out node) ? node : null;
         }
 
         public void OnEach(Action<T> act)
         {
             OnEach(_root, act);
+        }
+
+        public class TrieNode
+        {
+            public TrieNode(string key)
+            {
+                Key = key;
+                Children = new ConcurrentDictionary<string, TrieNode>();
+            }
+
+            public string Key { get; }
+            public T Value { get; private set; }
+            public bool HasValue { get; private set; }
+            public ConcurrentDictionary<string, TrieNode> Children { get; }
+
+            public void SetValueIfMissing(T value)
+            {
+                if (HasValue)
+                    return;
+                Value = value;
+                HasValue = true;
+            }
         }
 
         private void OnEach(TrieNode node, Action<T> act)
@@ -128,7 +111,7 @@ namespace Acquaintance.Utility
                 OnEach(child, act);
         }
 
-        private void GetInternal(string[] path, int i, TrieNode node, List<TrieNode> resultNodes, bool allowWildcards)
+        private void GetInternal(string[] path, int i, TrieNode node, List<TrieNode> resultNodes)
         {
             if (i >= path.Length)
             {
@@ -139,19 +122,20 @@ namespace Acquaintance.Utility
             string key = path[i];
             if (key != "*")
             {
-                bool ok = node.Children.TryGetValue(key, out node);
-                if (ok)
-                    GetInternal(path, i + 1, node, resultNodes, allowWildcards);
+                if (node.Children.TryGetValue(key, out node))
+                    GetInternal(path, i + 1, node, resultNodes);
                 return;
             }
 
-            if (!allowWildcards)
-                throw new Exception("Cannot use a wildcard here");
-
             foreach (var child in node.Children.Values)
-                GetInternal(path, i + 1, child, resultNodes, true);
+                GetInternal(path, i + 1, child, resultNodes);
         }
 
+        private static void ValidateKeyIsNotWildcardForInsert(string key)
+        {
+            if (key == "*")
+                throw new Exception("Cannot use wildcards for GetOrInsert");
+        }
         // TODO: Logic to remove entries from the Trie
     }
 }
