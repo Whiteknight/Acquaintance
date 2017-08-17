@@ -1,7 +1,5 @@
 ﻿using Acquaintance.Threading;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub

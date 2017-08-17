@@ -27,9 +27,7 @@ namespace Acquaintance.Sources
         public void Stop()
         {
             foreach (var thread in _threads.Values.ToList())
-            {
                 thread.Dispose();
-            }
             _threads.Clear();
         }
 
@@ -46,6 +44,7 @@ namespace Acquaintance.Sources
             if (!ok)
             {
                 // TODO: Handle the rare error
+                return null;
             }
             _messageBus.ThreadPool.RegisterManagedThread(this, thread.ThreadId, "SourceModule thread " + thread.Id);
             return new ThreadToken(this, thread, thread.Id);

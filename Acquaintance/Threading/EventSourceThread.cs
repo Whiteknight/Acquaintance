@@ -7,7 +7,8 @@ namespace Acquaintance.Threading
 {
     public class EventSourceThread : IEventSourceThread
     {
-        private const int IterationDelayMs = 1000;
+        private const int DefaultIterationDelayMs = 1000;
+
         private readonly IEventSource _source;
         private readonly Thread _thread;
         private readonly IEventSourceContext _context;
@@ -57,8 +58,10 @@ namespace Acquaintance.Threading
                     // TODO: Some kind of alert or event that tells the rest of the system that we've stopped?
                     return;
                 }
-                // TODO: Make IterationDelayMs configurable when we set up the source. 
-                Thread.Sleep(IterationDelayMs);
+                if (_context.IterationDelayMs < 0)
+                    _context.IterationDelayMs = DefaultIterationDelayMs;
+                if (_context.IterationDelayMs > 0)
+                    Thread.Sleep(_context.IterationDelayMs);
             }
         }
     }

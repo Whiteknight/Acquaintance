@@ -95,7 +95,6 @@
     <Compile Include="PubSub\ISubscriptionHandler.cs" />
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
-    <Compile Include="PubSub\Sources\SourceManagementModule.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
     <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />
     <Compile Include="PubSub\WeakSubscriberReference.cs" />
@@ -149,6 +148,7 @@
     <Compile Include="RequestResponse\RequestResponseChannel.cs" />
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="ScatterGather\SpecificThreadParticipant.cs" />
+    <Compile Include="Sources\DelegateEventSource.cs" />
     <Compile Include="Sources\EventSourceContext.cs" />
     <Compile Include="Sources\EventSourceExtensions.cs" />
     <Compile Include="Sources\EventSourceModule.cs" />

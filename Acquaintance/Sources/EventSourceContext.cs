@@ -14,13 +14,18 @@ namespace Acquaintance.Sources
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             _messageBus = messageBus;
+            IterationDelayMs = -1;
         }
+
+        public int IterationDelayMs { get; set; }
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
         public bool IsComplete { get; private set; }
 
         public IThreadPool ThreadPool => _messageBus.ThreadPool;
+
+        public IPublishTopicRouter PublishRouter => _messageBus.PublishRouter;
 
         public void Complete()
         {
@@ -36,7 +41,5 @@ namespace Acquaintance.Sources
         {
             return null;
         }
-
-        public IPublishTopicRouter PublishRouter => _messageBus.PublishRouter;
     }
 }

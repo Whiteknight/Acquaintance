@@ -4,5 +4,6 @@
     {
         void Complete();
         bool IsComplete { get; }
+        int IterationDelayMs { get; set; }
     }
 }
