@@ -12,12 +12,14 @@ namespace Acquaintance.Timers
             Assert.IsInRange(multiple, nameof(multiple), 1, int.MaxValue);
             Assert.ArgumentNotNull(build, nameof(build));
 
+            // TODO: Warning to the user of the MessageTimer hasn't been added to the list of modules?
+
             return messageBus.Subscribe<MessageTimerEvent>(builder =>
             {
                 var b2 = builder.WithTopic(MessageTimerEvent.EventName);
                 build(b2);
                 var b3 = b2 as IDetailsSubscriptionBuilder<MessageTimerEvent>;
-                b3.WithFilter(t => t.Id % multiple == 0);
+                b3?.WithFilter(t => t.Id % multiple == 0);
             });
         }
 

@@ -5,12 +5,13 @@ namespace Acquaintance.Timers
 {
     public class MessageTimer : IMessageBusModule
     {
-        private IMessageBus _messageBus;
         private readonly int _delayMs;
         private readonly int _intervalMs;
+        private readonly string _name;
+
+        private IMessageBus _messageBus;
         private Timer _timer;
         private int _messageId;
-        private readonly string _name;
 
         public MessageTimer(string name = null, int delayMs = 5000, int intervalMs = 10000)
         {
