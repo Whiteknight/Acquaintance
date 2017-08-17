@@ -69,6 +69,7 @@
     <Compile Include="RequestResponse\IListenerBuilder.cs" />
     <Compile Include="RequestResponse\Request.cs" />
     <Compile Include="RequestResponse\RequestChannelProxy.cs" />
+    <Compile Include="RequestResponse\ThreadPoolListener.cs" />
     <Compile Include="Routing\FilterRouteRule.cs" />
     <Compile Include="Routing\IPublishRouteRule.cs" />
     <Compile Include="Routing\IRequestRouteRule.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="RequestResponse\RequestResponseChannel.cs" />
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
     <Compile Include="ScatterGather\SpecificThreadParticipant.cs" />
+    <Compile Include="ScatterGather\ThreadPoolParticipant.cs" />
     <Compile Include="Sources\DelegateEventSource.cs" />
     <Compile Include="Sources\EventSourceContext.cs" />
     <Compile Include="Sources\EventSourceExtensions.cs" />

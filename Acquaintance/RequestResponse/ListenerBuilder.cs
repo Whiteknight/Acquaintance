@@ -179,10 +179,16 @@ namespace Acquaintance.RequestResponse
         {
             switch (dispatchType)
             {
+                case DispatchThreadType.NoPreference:
+                    return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool);
                 case DispatchThreadType.AnyWorkerThread:
                     return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool);
                 case DispatchThreadType.SpecificThread:
                     return new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool);
+                case DispatchThreadType.Immediate:
+                    return new ImmediateListener<TRequest, TResponse>(reference);
+                case DispatchThreadType.ThreadpoolThread:
+                    return new ThreadPoolListener<TRequest, TResponse>(reference, _threadPool);
                 default:
                     return new ImmediateListener<TRequest, TResponse>(reference);
             }

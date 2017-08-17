@@ -157,10 +157,16 @@ namespace Acquaintance.ScatterGather
         {
             switch (dispatchType)
             {
+                case DispatchThreadType.NoPreference:
+                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool);
                 case DispatchThreadType.AnyWorkerThread:
                     return new AnyThreadParticipant<TRequest, TResponse>(reference, _threadPool);
                 case DispatchThreadType.SpecificThread:
                     return new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _threadPool);
+                case DispatchThreadType.ThreadpoolThread:
+                    return new ThreadPoolParticipant<TRequest, TResponse>(_threadPool, reference);
+                case DispatchThreadType.Immediate:
+                    return new ImmediateParticipant<TRequest, TResponse>(reference);
                 default:
                     return new ImmediateParticipant<TRequest, TResponse>(reference);
             }
