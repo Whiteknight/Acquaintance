@@ -9,7 +9,7 @@ namespace Acquaintance.PubSub
     /// </summary>
     public interface IPublishableMessage
     {
-        void PublishTo(IPubSubBus messageBus);
+        void PublishTo(IPublishable messageBus);
     }
 
     public class PublishableMessage : IPublishableMessage
@@ -35,7 +35,7 @@ namespace Acquaintance.PubSub
             _messageType = messageType;
         }
 
-        public void PublishTo(IPubSubBus messageBus)
+        public void PublishTo(IPublishable messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
@@ -54,7 +54,7 @@ namespace Acquaintance.PubSub
             _payload = payload;
         }
 
-        public void PublishTo(IPubSubBus messageBus)
+        public void PublishTo(IPublishable messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 

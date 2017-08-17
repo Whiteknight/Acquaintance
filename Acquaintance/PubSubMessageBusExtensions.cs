@@ -14,7 +14,7 @@ namespace Acquaintance
         /// <param name="messageBus"></param>
         /// <param name="topic">The name of the channel</param>
         /// <param name="payload">The event payload object to send to subscribers. This object should not be modified after publishing to avoid concurrency conflicts.</param>
-        public static void Publish<TPayload>(this IPubSubBus messageBus, string topic, TPayload payload)
+        public static void Publish<TPayload>(this IPublishable messageBus, string topic, TPayload payload)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var envelope = messageBus.EnvelopeFactory.Create(topic, payload);
@@ -28,7 +28,7 @@ namespace Acquaintance
         /// <param name="messageBus">The message bus</param>
         /// <param name="payload">The payload object to publish as an event. This object should not
         /// be modified after publishing, to prevent concurrency conflicts.</param>
-        public static void Publish<TPayload>(this IPubSubBus messageBus, TPayload payload)
+        public static void Publish<TPayload>(this IPublishable messageBus, TPayload payload)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Publish(messageBus, string.Empty, payload);
@@ -43,7 +43,7 @@ namespace Acquaintance
         /// <param name="topic">The name of the channel</param>
         /// <param name="payloadType">The runtime-known type of the payload object</param>
         /// <param name="payload">The payload object itself.</param>
-        public static void Publish(this IPubSubBus messageBus, string topic, Type payloadType, object payload)
+        public static void Publish(this IPublishable messageBus, string topic, Type payloadType, object payload)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
@@ -61,7 +61,7 @@ namespace Acquaintance
         /// </summary>
         /// <param name="messageBus">The message bus</param>
         /// <param name="message">The encapsulated message with all necessary publish details</param>
-        public static void PublishMessage(this IPubSubBus messageBus, IPublishableMessage message)
+        public static void PublishMessage(this IPublishable messageBus, IPublishableMessage message)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(message, nameof(message));

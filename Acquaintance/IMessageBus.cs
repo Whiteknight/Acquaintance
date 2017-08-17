@@ -17,7 +17,12 @@ namespace Acquaintance
         IEnvelopeFactory EnvelopeFactory { get; }
     }
 
-    public interface IPubSubBus : IBusBase
+    public interface IPublishable : IBusBase
+    {
+        void PublishEnvelope<TPayload>(Envelope<TPayload> envelope);
+    }
+
+    public interface IPubSubBus : IPublishable
     {
         /// <summary>
         /// Subscribe to pub/sub events for the given type, on the given channel name.
@@ -28,7 +33,6 @@ namespace Acquaintance
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription);
 
-        void PublishEnvelope<TPayload>(Envelope<TPayload> envelope);
         IPublishTopicRouter PublishRouter { get; }
     }
 
