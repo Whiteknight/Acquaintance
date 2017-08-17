@@ -3,6 +3,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using Acquaintance.Routing;
 
 namespace Acquaintance.Tests.RequestResponse
 {
@@ -51,6 +52,18 @@ namespace Acquaintance.Tests.RequestResponse
                 .WithTopic("Test")
                 .Invoke(req => new TestResponse { Text = req.Text + "Responded" }, true));
 
+            var response = target.RequestWait<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
+            response.Should().NotBeNull();
+            response.Text.Should().Be("RequestResponded");
+        }
+
+        [Test]
+        public void ListenRequestAndResponse_EnvelopeWeakReference()
+        {
+            var target = new MessageBus();
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
+                .WithTopic("Test")
+                .InvokeEnvelope(req => new TestResponse { Text = req.Payload.Text + "Responded" }, true));
             var response = target.RequestWait<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.Should().NotBeNull();
             response.Text.Should().Be("RequestResponded");
@@ -146,6 +159,58 @@ namespace Acquaintance.Tests.RequestResponse
             }
 
             responses.Should().BeEquivalentTo(5, 6, 7, 0, 0);
+        }
+
+        [Test]
+        public void RequestWithNoListeners()
+        {
+            var target = new MessageBus();
+            var result = target.Request<int, int>(5);
+            result.Should().NotBeNull();
+            result.GetResponse().Should().Be(default(int));
+        }
+
+        private class ReturnsNullRouteRule : IRequestRouteRule<int>
+        {
+            public string GetRoute(string topic, Envelope<int> envelope)
+            {
+                return null;
+            }
+        }
+
+        [Test]
+        public void RequestRouterReturnsNull()
+        {
+            var target = new MessageBus();
+            target.RequestRouter.AddRule<int, int>("", new ReturnsNullRouteRule());
+            var response = target.Request<int, int>("", 5);
+        }
+
+        [Test]
+        public void ListenRequestAndResponse_Error()
+        {
+            var target = new MessageBus();
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
+                .WithTopic("Test")
+                .Invoke(req => { throw new Exception("Expected"); }));
+            var response = target.Request<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
+            response.WaitForResponse();
+            response.HasResponse().Should().BeTrue();
+            response.GetErrorInformation().Should().NotBeNull();
+        }
+
+        [Test]
+        public void ListenRequestAndResponse_ThrowError()
+        {
+            var target = new MessageBus();
+            target.Listen<TestRequestWithResponse, TestResponse>(l => l
+                .WithTopic("Test")
+                .Invoke(req => { throw new Exception("Expected"); }));
+            var response = target.Request<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
+            response.WaitForResponse();
+
+            Action act = () => response.ThrowExceptionIfError();
+            act.ShouldThrow<Exception>();
         }
     }
 }

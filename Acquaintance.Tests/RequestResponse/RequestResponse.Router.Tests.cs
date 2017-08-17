@@ -49,5 +49,23 @@ namespace Acquaintance.Tests.RequestResponse
             target.RequestWait<int, int>(4).Should().Be(40);
             target.RequestWait<int, int>(5).Should().Be(500);
         }
+
+        [Test]
+        public void RequestRouter_Distribute()
+        {
+            var target = new MessageBus();
+            target.Listen<int, int>(l => l
+                .WithTopic("A")
+                .Invoke(e => e * 10));
+            target.Listen<int, int>(l => l
+                .WithTopic("B")
+                .Invoke(e => e * 100));
+
+            target.SetupRequestDistribution<int, int>("", new [] { "A", "B" });
+
+            var first = target.RequestWait<int, int>(1);
+            var second = target.RequestWait<int, int>(1);
+            first.Should().NotBe(second);
+        }
     }
 }

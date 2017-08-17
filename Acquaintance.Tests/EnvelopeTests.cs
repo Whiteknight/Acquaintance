@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Generic;
+using Acquaintance.Common;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace Acquaintance.Tests
@@ -19,6 +21,28 @@ namespace Acquaintance.Tests
             var target = new Envelope<string>(1, "Test", "Payload");
             target.SetMetadata("Anything", "Value");
             target.GetMetadata("Anything").Should().Be("Value");
+        }
+
+        [Test]
+        public void HasMetadataFromFactory()
+        {
+            var target = new EnvelopeFactory().Create<int>("test", 5, new Dictionary<string, string>
+            {
+                { "value1", "result1" }
+            });
+
+            target.Should().BeOfType<Envelope<int>>();
+            target.GetMetadata("value1").Should().Be("result1");
+        }
+
+        [Test]
+        public void RedirectsWithMetadata()
+        {
+            var target = new Envelope<int>(1, "test", 5);
+            target.SetMetadata("key", "value");
+
+            var result = target.RedirectToTopic("other");
+            result.GetMetadata("key").Should().Be("value");
         }
     }
 }

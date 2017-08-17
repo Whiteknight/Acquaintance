@@ -71,13 +71,6 @@ namespace Acquaintance.RequestResponse
             _resetEvent = new ManualResetEvent(false);
         }
 
-        public static Request<TResponse> WithNoResponse()
-        {
-            var request = new Request<TResponse>();
-            request.SetNoResponse();
-            return request;
-        }
-
         public void SetNoResponse()
         {
             var canSet = Interlocked.Increment(ref _timesSet);

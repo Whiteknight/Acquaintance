@@ -77,12 +77,6 @@ namespace Acquaintance
         {
             var request = new Request<TResponse>();
             var topic = _router.RouteRequest<TRequest, TResponse>(envelope.Topic, envelope);
-            if (topic == null)
-            {
-                request.SetNoResponse();
-                return request;
-            }
-
             if (topic != envelope.Topic)
                 envelope = envelope.RedirectToTopic(topic);
             var channel = _requestResponseStrategy.GetExistingChannel<TRequest, TResponse>(envelope.Topic);

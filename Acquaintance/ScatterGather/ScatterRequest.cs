@@ -123,16 +123,16 @@ namespace Acquaintance.ScatterGather
         {
             if (!_activeParticipants.ContainsKey(participantId))
                 return;
-            _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
             _activeParticipants.TryRemove(participantId, out bool whatever);
+            _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
         }
 
         public void AddError(Guid participantId, Exception error)
         {
             if (!_activeParticipants.ContainsKey(participantId))
                 return;
-            _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
             _activeParticipants.TryRemove(participantId, out bool whatever);
+            _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
         }
 
         public void AddParticipant(Guid participantId)

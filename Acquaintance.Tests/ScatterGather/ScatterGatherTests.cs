@@ -4,6 +4,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace Acquaintance.Tests.ScatterGather
 {
@@ -148,6 +149,24 @@ namespace Acquaintance.Tests.ScatterGather
             target.Scatter<int, int>(2).GetNextResponse().Should().NotBeNull();
             target.Scatter<int, int>(3).GetNextResponse().Should().BeNull();
             target.Scatter<int, int>(4).GetNextResponse().Should().BeNull();
+        }
+
+        [Test]
+        public void ParticipateScatterGather_IsComplete()
+        {
+            var target = new MessageBus();
+            target.Participate<int, int>(l => l
+                .WithTopic("Test")
+                .Invoke(req =>
+                {
+                    Thread.Sleep(1000);
+                    return req + 10;
+                }));
+            var response = target.Scatter<int, int>("Test", 5);
+            response.IsComplete().Should().BeFalse();
+            var values = response.GatherResponses(1).Select(r => r.Response).ToArray();
+            response.IsComplete().Should().BeTrue();
+            values.Length.Should().Be(1);
         }
     }
 }

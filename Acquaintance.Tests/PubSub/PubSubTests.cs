@@ -1,3 +1,4 @@
+using System.Threading;
 using Acquaintance.PubSub;
 using FluentAssertions;
 using NUnit.Framework;
@@ -53,6 +54,16 @@ namespace Acquaintance.Tests.PubSub
                 .Immediate());
             target.Publish("1.*.c", new TestPubSubEvent("Test2"));
             count.Should().Be(11);
+        }
+
+        [Test]
+        public void SubscribeAndPublish_TrieStrategy_Dispose()
+        {
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                DispatchStrategy = new TrieDispatchStrategyFactory()
+            });
+            target.Dispose();
         }
 
         [Test]
@@ -178,6 +189,20 @@ namespace Acquaintance.Tests.PubSub
                 .Immediate());
             target.Publish("Test", new TestPubSubEvent("Test2"));
             text.Should().Be("Test2");
+        }
+
+        [Test]
+        public void RunEventLoop_Test()
+        {
+            var target = new MessageBus();
+            var threadId = Thread.CurrentThread.ManagedThreadId;
+            var result = 0;
+            target.Subscribe<int>(b => b.WithDefaultTopic().Invoke(i => result = i).OnThread(threadId));
+            target.Publish<int>(5);
+            result.Should().Be(0);
+            int iterations = 0;
+            target.RunEventLoop(() => iterations++ != 0);
+            result.Should().Be(5);
         }
     }
 }

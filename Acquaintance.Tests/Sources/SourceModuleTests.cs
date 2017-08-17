@@ -129,5 +129,29 @@ namespace Acquaintance.Tests.Sources
                 messageBus.Dispose();
             }
         }
+
+        [Test]
+        public void RunEventSource__Delegate()
+        {
+            IDisposable token = null;
+            var messageBus = new MessageBus();
+            messageBus.InitializeEventSources();
+            var resetEvent = new ManualResetEvent(false);
+            var target = new TestEventSource2(resetEvent);
+
+            try
+            {
+                token = messageBus.RunEventSource(target);
+                var report = messageBus.ThreadPool.GetThreadReport();
+                report.RegisteredThreads.Count.Should().Be(1);
+                var str = report.ToString();
+            }
+            finally
+            {
+                token?.Dispose();
+                resetEvent.Dispose();
+                messageBus.Dispose();
+            }
+        }
     }
 }
