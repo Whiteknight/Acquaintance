@@ -1,7 +1,4 @@
-﻿using Acquaintance.PubSub;
-using Acquaintance.Threading;
-using System;
-using Acquaintance.Routing;
+﻿using Acquaintance.Threading;
 using Acquaintance.Utility;
 
 namespace Acquaintance.Sources
@@ -25,8 +22,6 @@ namespace Acquaintance.Sources
 
         public IThreadPool ThreadPool => _messageBus.ThreadPool;
 
-        public IPublishTopicRouter PublishRouter => _messageBus.PublishRouter;
-
         public void Complete()
         {
             IsComplete = true;
@@ -35,11 +30,6 @@ namespace Acquaintance.Sources
         public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)
         {
             _messageBus.PublishEnvelope(envelope);
-        }
-
-        public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
-        {
-            return null;
         }
     }
 }

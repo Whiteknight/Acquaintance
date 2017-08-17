@@ -57,7 +57,6 @@
   <ItemGroup>
     <Compile Include="Common\CircuitBreaker.cs" />
     <Compile Include="Common\EnvelopeFactory.cs" />
-    <Compile Include="Conversation.cs" />
     <Compile Include="DispatchStrategyFactory.cs" />
     <Compile Include="Envelope.cs" />
     <Compile Include="IEnvelopeFactory.cs" />

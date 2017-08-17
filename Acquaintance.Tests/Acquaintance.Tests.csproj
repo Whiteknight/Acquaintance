@@ -61,6 +61,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="EnvelopeTests.cs" />
     <Compile Include="PubSub\PubSub.AutoSubscribe.Tests.cs" />
     <Compile Include="PubSub\PubSub.Threading.Tests.cs" />
     <Compile Include="PubSub\PubSub.Filter.Tests.cs" />
