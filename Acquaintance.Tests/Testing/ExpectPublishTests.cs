@@ -12,6 +12,7 @@ namespace Acquaintance.Tests.Testing
         public void ExpectPublish_Test()
         {
             var messageBus = new MessageBus();
+            messageBus.InitializeTesting();
             messageBus.ExpectPublish<int>(null);
 
             messageBus.Publish(5);
@@ -23,6 +24,7 @@ namespace Acquaintance.Tests.Testing
         public void ExpectPublish_Failed()
         {
             var messageBus = new MessageBus();
+            messageBus.InitializeTesting();
             messageBus.ExpectPublish<int>(null);
 
             Action act = () => messageBus.VerifyAllExpectations();
@@ -30,9 +32,22 @@ namespace Acquaintance.Tests.Testing
         }
 
         [Test]
+        public void ExpectPublish_Failed_OnError()
+        {
+            var messageBus = new MessageBus();
+            messageBus.InitializeTesting();
+            messageBus.ExpectPublish<int>(null);
+
+            string[] errors = null;
+            messageBus.VerifyAllExpectations(s => errors = s);
+            errors.Should().NotBeNullOrEmpty();
+        }
+
+        [Test]
         public void ExpectPublish_Callback()
         {
             var messageBus = new MessageBus();
+            messageBus.InitializeTesting();
             int value = 0;
             messageBus.ExpectPublish<int>(null).Callback(e => value = e);
 

@@ -49,6 +49,7 @@ namespace Acquaintance.Tests.Testing
         public void ExpectScatter_UnmetExpectation()
         {
             var target = new MessageBus();
+            target.InitializeTesting();
             target.ExpectScatter<int, int>(null);
 
             Action act = () => target.VerifyAllExpectations();

@@ -14,14 +14,14 @@ namespace Acquaintance.Testing
             _expectations = new ConcurrentBag<IExpectation>();
         }
 
-        public void VerifyAllExpectations()
+        public void VerifyAllExpectations(Action<string[]> onError)
         {
-            var _messages = _expectations
+            var messages = _expectations
                 .Where(expectation => !expectation.IsMet)
                 .Select(expectation => expectation.ToString())
-                .ToList();
-            if (_messages.Any())
-                throw new ExpectationFailedException(_messages);
+                .ToArray();
+            if (messages.Any())
+                (onError ?? DefaultOnError)(messages);
         }
 
         public PublishExpectation<TPayload> ExpectPublish<TPayload>(string topic, Func<TPayload, bool> filter, string description)
@@ -81,6 +81,11 @@ namespace Acquaintance.Testing
 
         public void Stop()
         {
+        }
+
+        private void DefaultOnError(string[] errors)
+        {
+            throw new ExpectationFailedException(errors);
         }
     }
 }
