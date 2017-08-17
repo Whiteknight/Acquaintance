@@ -32,17 +32,7 @@ namespace Acquaintance.Threading
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerThread>();
             _detachedContexts = new ConcurrentDictionary<int, IMessageHandlerThreadContext>();
             _registeredThreads = new ConcurrentDictionary<int, RegisteredManagedThread>();
-
-            if (numFreeWorkers > 0)
-            {
-                _freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages, _log);
-                for (int i = 0; i < numFreeWorkers; i++)
-                {
-                    var thread = new MessageHandlerThread(_freeWorkerContext, $"AcquaintanceFW{i}");
-                    _freeWorkers.Add(thread);
-                    thread.Start();
-                }
-            }
+            _freeWorkerContext = InitializeFreeWorkers(numFreeWorkers);
         }
 
         public int NumberOfRunningFreeWorkers => _freeWorkers.Count;
@@ -130,11 +120,6 @@ namespace Acquaintance.Threading
             _registeredThreads.TryRemove(threadId, out RegisteredManagedThread registration);
         }
 
-        private IMessageHandlerThreadContext CreateDetachedContext()
-        {
-            return new MessageHandlerThreadContext(_maxQueuedMessages, _log);
-        }
-
         public ThreadReport GetThreadReport()
         {
             var freeWorkers = _freeWorkers.Select(w => w.ThreadId).ToList();
@@ -179,6 +164,26 @@ namespace Acquaintance.Threading
             {
                 _threadPool.UnregisterManagedThread(_threadId);
             }
+        }
+
+        private IMessageHandlerThreadContext InitializeFreeWorkers(int numFreeWorkers)
+        {
+            if (numFreeWorkers <= 0)
+                return null;
+
+            var freeWorkerContext = new MessageHandlerThreadContext(_maxQueuedMessages, _log);
+            for (int i = 0; i < numFreeWorkers; i++)
+            {
+                var thread = new MessageHandlerThread(freeWorkerContext, $"AcquaintanceFW{i}");
+                _freeWorkers.Add(thread);
+                thread.Start();
+            }
+            return freeWorkerContext;
+        }
+
+        private IMessageHandlerThreadContext CreateDetachedContext()
+        {
+            return new MessageHandlerThreadContext(_maxQueuedMessages, _log);
         }
     }
 }
