@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Acquaintance.PubSub
 {
@@ -55,13 +54,6 @@ namespace Acquaintance.PubSub
         /// <param name="newTopic">The new channel name to publish the transformed message to</param>
         /// <returns>The builder</returns>
         IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newTopic = null);
-
-        /// <summary>
-        /// Distrubute the message to one of several channels using a round-robin dispatching scheme
-        /// </summary>
-        /// <param name="topics">A list of new channels to dispatch to</param>
-        /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> Distribute(IEnumerable<string> topics);
     }
 
     public interface IThreadSubscriptionBuilder<TPayload>

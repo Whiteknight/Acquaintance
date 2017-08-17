@@ -76,6 +76,7 @@
     <Compile Include="Routing\IScatterRouteRule.cs" />
     <Compile Include="Routing\ITopicRouter.cs" />
     <Compile Include="RouterExtensions.cs" />
+    <Compile Include="Routing\RoundRobinDistributeRule.cs" />
     <Compile Include="ScatterGather\IDispatchableScatter.cs" />
     <Compile Include="IMessageBusModule.cs" />
     <Compile Include="Logging\DelegateLogger.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="PubSub\ISubscriptionHandler.cs" />
     <Compile Include="PubSub\MaxEventsSubscription.cs" />
     <Compile Include="PubSub\PubSubTrieDispatchStrategy.cs" />
-    <Compile Include="PubSub\RoundRobinDispatchSubscription.cs" />
     <Compile Include="PubSub\Sources\SourceManagementModule.cs" />
     <Compile Include="PubSub\StrongSubscriberReference.cs" />
     <Compile Include="PubSub\ThreadpoolThreadSubscription.cs" />

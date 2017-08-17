@@ -191,10 +191,7 @@ namespace Acquaintance.Nets
         {
             var routerOutputTopic = "Router_" + _key + "_";
             var workerTopics = Enumerable.Range(1, _onDedicatedThreads).Select(i => routerOutputTopic + i).ToArray();
-            _messageBus.Subscribe<TInput>(b => b
-                .WithTopic(_topic)
-                .Distribute(workerTopics)
-                .Immediate());
+            _messageBus.SetupPublishDistribution<TInput>(_topic, workerTopics);
             for (int i = 0; i < _onDedicatedThreads; i++)
                 SubscribeSingleWorker(workerTopics[i], true);
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Acquaintance.Routing;
 using Acquaintance.Utility;
 
@@ -35,6 +36,20 @@ namespace Acquaintance
             build(builder);
             var router = builder.Build();
             return router;
+        }
+        
+        public static IDisposable SetupPublishDistribution<TPayload>(this IPubSubBus messageBus, string topic, IEnumerable<string> topics)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            var rule = new RoundRobinDistributeRule<TPayload>(topics);
+            return messageBus.PublishRouter.AddRule(topic, rule);
+        }
+
+        public static IDisposable SetupRequestDistribution<TRequest, TResponse>(this IReqResBus messageBus, string topic, IEnumerable<string> topics)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            var rule = new RoundRobinDistributeRule<TRequest>(topics);
+            return messageBus.RequestRouter.AddRule<TRequest, TResponse>(topic, rule);
         }
     }
 }

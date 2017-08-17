@@ -88,9 +88,8 @@ namespace Acquaintance.Tests.PubSub
                 .WithTopic("c")
                 .Invoke(x => c += x)
                 .Immediate());
-            target.Subscribe<int>(builder => builder
-                .WithDefaultTopic()
-                .Distribute(new[] { "a", "b", "c" }));
+
+            target.SetupPublishDistribution<int>("", new[] { "a", "b", "c" });
 
             target.Publish(1);
             target.Publish(2);
