@@ -162,7 +162,9 @@ namespace Acquaintance
             _requestResponseStrategy.Dispose();
             _eavesdropStrategy.Dispose();
             _scatterGatherStrategy.Dispose();
-            ThreadPool.Dispose();
+
+            (ThreadPool as IDisposable)?.Dispose();
+            (Modules as IDisposable)?.Dispose();
         }
     }
 }

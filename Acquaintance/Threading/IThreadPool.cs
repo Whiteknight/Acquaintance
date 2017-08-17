@@ -2,7 +2,7 @@ using System;
 
 namespace Acquaintance.Threading
 {
-    public interface IThreadPool : IDisposable
+    public interface IThreadPool
     {
         int NumberOfRunningFreeWorkers { get; }
         ThreadReport GetThreadReport();

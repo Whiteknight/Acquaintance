@@ -8,7 +8,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
-    public class MessagingWorkerThreadPool : IThreadPool
+    public class MessagingWorkerThreadPool : IThreadPool, IDisposable
     {
         private readonly ILogger _log;
         private readonly int _maxQueuedMessages;

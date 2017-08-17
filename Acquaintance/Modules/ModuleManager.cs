@@ -25,7 +25,10 @@ namespace Acquaintance.Modules
             _logger.Debug("Adding module Id={0} Type={1}", id, module.GetType().Name);
             module.Attach(_messageBus);
             if (!_modules.TryAdd(id, module))
+            {
+                _logger.Error($"Could not add module of type {module.GetType().Name} for unknown reasons");
                 return null;
+            }
 
             _logger.Debug("Starting module Id={0} Type={1}", id, module.GetType().Name);
             module.Start();
