@@ -21,13 +21,19 @@ namespace Acquaintance.PubSub
     public interface IActionSubscriptionBuilder<TPayload>
     {
         /// <summary>
-        /// Invoke the given callback in response to the event
+        /// Invoke the given callback in response to the event. The callback receives the raw message payload
         /// </summary>
         /// <param name="action">The callback action to invoke</param>
         /// <param name="useWeakReferences">Whether to use a weak reference when storing the callback reference</param>
         /// <returns>The builder</returns>
         IThreadSubscriptionBuilder<TPayload> Invoke(Action<TPayload> action, bool useWeakReferences = false);
 
+        /// <summary>
+        /// Invoke the given callback in response to the event. The callback receives the message envelope
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="useWeakReferences"></param>
+        /// <returns></returns>
         IThreadSubscriptionBuilder<TPayload> InvokeEnvelope(Action<Envelope<TPayload>> action, bool useWeakReferences = false);
 
         /// <summary>

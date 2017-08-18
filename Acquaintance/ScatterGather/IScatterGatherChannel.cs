@@ -1,5 +1,3 @@
-using System;
-
 namespace Acquaintance.ScatterGather
 {
     public interface IScatterGatherChannel<TRequest, TResponse> : IScatterGatherChannel
@@ -10,6 +8,5 @@ namespace Acquaintance.ScatterGather
 
     public interface IScatterGatherChannel : IChannel
     {
-        Guid Id { get; }
     }
 }

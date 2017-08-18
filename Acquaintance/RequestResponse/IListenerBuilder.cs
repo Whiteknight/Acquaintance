@@ -31,7 +31,7 @@ namespace Acquaintance.RequestResponse
     public interface IActionListenerBuilder<TRequest, TResponse>
     {
         /// <summary>
-        /// Invoke a callback function
+        /// Invoke a callback function. The callback receives the raw request payload
         /// </summary>
         /// <param name="listener"></param>
         /// <param name="useWeakReference">Whether to use a weak reference or not. Weak references
@@ -39,6 +39,12 @@ namespace Acquaintance.RequestResponse
         /// <returns></returns>
         IThreadListenerBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> listener, bool useWeakReference = false);
 
+        /// <summary>
+        /// Invoke a callback function. The callback receives the complete message envelope
+        /// </summary>
+        /// <param name="listener"></param>
+        /// <param name="useWeakReference"></param>
+        /// <returns></returns>
         IThreadListenerBuilder<TRequest, TResponse> InvokeEnvelope(Func<Envelope<TRequest>, TResponse> listener, bool useWeakReference = false);
 
         /// <summary>

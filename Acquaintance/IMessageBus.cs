@@ -14,11 +14,20 @@ namespace Acquaintance
         /// The threadpool which holds worker threads for dispatching requests and events
         /// </summary>
         IThreadPool ThreadPool { get; }
+
+        /// <summary>
+        /// Factory for creating envelopes
+        /// </summary>
         IEnvelopeFactory EnvelopeFactory { get; }
     }
 
     public interface IPublishable : IBusBase
     {
+        /// <summary>
+        /// Publish a message envelope to the bus
+        /// </summary>
+        /// <typeparam name="TPayload"></typeparam>
+        /// <param name="envelope"></param>
         void PublishEnvelope<TPayload>(Envelope<TPayload> envelope);
     }
 
@@ -33,6 +42,9 @@ namespace Acquaintance
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription);
 
+        /// <summary>
+        /// Router for publish topics
+        /// </summary>
         IPublishTopicRouter PublishRouter { get; }
     }
 
@@ -57,6 +69,9 @@ namespace Acquaintance
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener);
 
+        /// <summary>
+        /// Router for request topics
+        /// </summary>
         IRequestTopicRouter RequestRouter { get; }
     }
 
@@ -82,6 +97,9 @@ namespace Acquaintance
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant);
 
+        /// <summary>
+        /// Router for scatter topics
+        /// </summary>
         IScatterTopicRouter ScatterRouter { get; }
     }
 

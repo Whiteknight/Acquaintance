@@ -1,5 +1,3 @@
-using System;
-
 namespace Acquaintance.RequestResponse
 {
     public interface IReqResChannel<TRequest, TResponse> : IReqResChannel
@@ -10,6 +8,5 @@ namespace Acquaintance.RequestResponse
 
     public interface IReqResChannel : IChannel
     {
-        Guid Id { get; }
     }
 }
