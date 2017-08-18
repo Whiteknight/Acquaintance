@@ -77,7 +77,7 @@ namespace Acquaintance.ScatterGather
 
         public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(TimeSpan timeout)
         {
-            return GatherResponses(int.MaxValue, timeout);
+            return GatherResponses(TotalParticipants, timeout);
         }
 
         public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses()

@@ -21,6 +21,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{221C8162-6AFB-4660-B14A-6A0E41EBB356}"
 	ProjectSection(SolutionItems) = preProject
 		docs\index.md = docs\index.md
+		docs\PubSub.md = docs\PubSub.md
 	EndProjectSection
 EndProject
 Global
