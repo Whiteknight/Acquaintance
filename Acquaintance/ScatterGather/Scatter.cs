@@ -1,56 +1,23 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 
 namespace Acquaintance.ScatterGather
 {
-    public class ScatterResponse<TResponse>
-    {
-        public ScatterResponse(TResponse response, Guid participantId, Exception errorInformation)
-        {
-            Response = response;
-            ParticipantId = participantId;
-            ErrorInformation = errorInformation;
-            Success = errorInformation == null;
-        }
-
-        public TResponse Response { get; private set; }
-        public Guid ParticipantId { get; }
-        public bool Success { get; private set; }
-        public Exception ErrorInformation { get; }
-        public bool Completed { get; set; }
-
-        public void ThrowExceptionIfPresent()
-        {
-            if (ErrorInformation != null)
-                throw ErrorInformation;
-        }
-    }
-
-    public interface IScatter<TResponse> : IDisposable
-    {
-        ScatterResponse<TResponse> GetNextResponse(TimeSpan timeout);
-        ScatterResponse<TResponse> GetNextResponse(int timeoutMs);
-        ScatterResponse<TResponse> GetNextResponse();
-        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max, TimeSpan timeout);
-        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max);
-        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(TimeSpan timeout);
-        IReadOnlyList<ScatterResponse<TResponse>> GatherResponses();
-        bool IsComplete();
-    }
-
     public class Scatter<TResponse> : IScatter<TResponse>
     {
         private const int DefaultTimeoutS = 10;
         private readonly BlockingCollection<ScatterResponse<TResponse>> _responses;
-        private readonly ConcurrentDictionary<Guid, bool> _activeParticipants;
+
         private bool _isComplete;
         private bool _neverHadParticipants;
+        private int _expectCount;
+        private int _totalParticipants;
+        private int _completedParticipants;
 
         public Scatter()
         {
-            _activeParticipants = new ConcurrentDictionary<Guid, bool>();
             _responses = new BlockingCollection<ScatterResponse<TResponse>>();
             _isComplete = false;
             _neverHadParticipants = true;
@@ -61,14 +28,13 @@ namespace Acquaintance.ScatterGather
             if (_neverHadParticipants)
                 return null;
 
-            if (_activeParticipants.Count == 0 && _responses.Count == 0)
+            if (_expectCount == 0 && _responses.Count == 0)
                 return null;
 
             var ok = _responses.TryTake(out ScatterResponse<TResponse> response, timeout);
             if (ok)
                 return response;
 
-            CheckCompleteness();
             return null;
         }
 
@@ -121,30 +87,28 @@ namespace Acquaintance.ScatterGather
 
         public void AddResponse(Guid participantId, TResponse response)
         {
-            if (!_activeParticipants.ContainsKey(participantId))
-                return;
-            _activeParticipants.TryRemove(participantId, out bool whatever);
+            Interlocked.Increment(ref _completedParticipants);
             _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
+            Interlocked.Decrement(ref _expectCount);
         }
 
         public void AddError(Guid participantId, Exception error)
         {
-            if (!_activeParticipants.ContainsKey(participantId))
-                return;
-            _activeParticipants.TryRemove(participantId, out bool whatever);
+            Interlocked.Increment(ref _completedParticipants);
             _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
+            Interlocked.Decrement(ref _expectCount);
         }
 
         public void AddParticipant(Guid participantId)
         {
+            Interlocked.Increment(ref _totalParticipants);
             _neverHadParticipants = false;
-            _activeParticipants.TryAdd(participantId, true);
+            Interlocked.Increment(ref _expectCount);
         }
 
-        public bool IsComplete()
-        {
-            return CheckCompleteness();
-        }
+        public int TotalParticipants => _totalParticipants;
+
+        public int CompletedParticipants => _completedParticipants;
 
         public void Dispose()
         {
@@ -155,11 +119,12 @@ namespace Acquaintance.ScatterGather
         {
             if (_isComplete)
                 return true;
-            bool hasMore = _activeParticipants.Any();
-            if (hasMore)
-                return false;
-            _isComplete = true;
-            return true;
+            if (_expectCount == 0)
+            {
+                _isComplete = true;
+                return true;
+            }
+            return false;
         }
     }
 }

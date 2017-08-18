@@ -109,6 +109,7 @@
     <Compile Include="ScatterGather\IParticipant.cs" />
     <Compile Include="ScatterGather\IParticipantBuilder.cs" />
     <Compile Include="ScatterGather\IParticipantReference.cs" />
+    <Compile Include="ScatterGather\IScatter.cs" />
     <Compile Include="ScatterGather\IScatterGatherChannel.cs" />
     <Compile Include="ScatterGather\IScatterGatherChannelDispatchStrategy.cs" />
     <Compile Include="ScatterGather\MaxRequestsParticipant.cs" />
@@ -130,7 +131,7 @@
     <Compile Include="ScatterGather\ScatterGatherSimpleDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherTrieDispatchStrategy.cs" />
     <Compile Include="ScatterGather\ScatterGatherChannel.cs" />
-    <Compile Include="ScatterGather\ScatterRequest.cs" />
+    <Compile Include="ScatterGather\Scatter.cs" />
     <Compile Include="ScatterGatherMessageBusExtensions.cs" />
     <Compile Include="PubSub\AnyThreadPubSubSubscription.cs" />
     <Compile Include="PubSub\ImmediatePubSubSubscription.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="RequestResponse\IRequestWithResponse.cs" />
     <Compile Include="RequestResponse\RequestResponseChannel.cs" />
     <Compile Include="RequestResponse\SpecificThreadListener.cs" />
+    <Compile Include="ScatterGather\ScatterResponse.cs" />
     <Compile Include="ScatterGather\SpecificThreadParticipant.cs" />
     <Compile Include="ScatterGather\ThreadPoolParticipant.cs" />
     <Compile Include="Sources\DelegateEventSource.cs" />

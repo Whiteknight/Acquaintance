@@ -36,6 +36,21 @@ namespace Acquaintance.Tests.ScatterGather
         }
 
         [Test]
+        public void ParticipateScatterGather_ImmediateCounts()
+        {
+            var target = new MessageBus();
+            target.Participate<int, int>(l => l
+                .WithDefaultTopic()
+                .Invoke(req => req + 5));
+            var response = target.Scatter<int, int>(10);
+            response.TotalParticipants.Should().Be(1);
+            response.CompletedParticipants.Should().Be(1);
+            var responses = response.GatherResponses();
+            responses.Should().HaveCount(1);
+            responses[0].Response.Should().Be(15);
+        }
+
+        [Test]
         public void ParticipateScatterGather_WeakReference()
         {
             var target = new MessageBus();
@@ -152,7 +167,7 @@ namespace Acquaintance.Tests.ScatterGather
         }
 
         [Test]
-        public void ParticipateScatterGather_IsComplete()
+        public void ParticipateScatterGather_TotalParticipants()
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
@@ -163,9 +178,9 @@ namespace Acquaintance.Tests.ScatterGather
                     return req + 10;
                 }));
             var response = target.Scatter<int, int>("Test", 5);
-            response.IsComplete().Should().BeFalse();
+            response.TotalParticipants.Should().Be(1);
             var values = response.GatherResponses(1).Select(r => r.Response).ToArray();
-            response.IsComplete().Should().BeTrue();
+            response.CompletedParticipants.Should().Be(1);
             values.Length.Should().Be(1);
         }
     }
