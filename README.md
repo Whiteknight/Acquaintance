@@ -5,16 +5,12 @@ You can stay in touch without having to be all up in each others' business.
 ## Project
 ### Status
 
-Acquaintance is currently in an pre-release state and is likely not ready for production uses.
-It is under active development and new features are being added and bugs are being resolved on a 
-regular basis.
+Acquaintance 1.0.1 is released and ready for most use.
+Acquaintance 2.0.0 is under active development with many improvements and breaking changes.
 
 ### Contributing
 
-Feedback, bug reports and feature requests are accepted and appreciated. If you'd like to make a
-fork and start putting together Pull Requests, please talk to me first. I maintain a lot of local
-branches to experiment with various features and changes, so I don't want you to waste time
-duplicating something that I already have.
+Feedback, bug reports and feature requests are accepted and appreciated. 
 
 ## Introduction
 
@@ -33,7 +29,7 @@ Scatter/Gather. To start using these, first create an `IMessageBus`:
 Acquaintance can act like the messaging "glue" for a loosely-coupled application or it can serve as
 an intermediate step when trying to migrate a monolithic application to a distributed,
 service-oriented application. Acquaintance can also be used to help alleviate concurrency problems
-with non-thread-safe resources.
+with non-thread-safe resources, or distributing tasks to worker threads.
 
 ## Publish/Subscribe
 
@@ -42,35 +38,30 @@ It is used when you need to alert many parts of your application about an event 
 a response to those events is not required.
 
     // Create a subscription
-    messageBus.Subscribe(s => s
-        .WithChannelName("test event")
-        .InvokeAction(e => Console.WriteLine(e.Message)));
+    messageBus.Subscribe<MyEvent>(s => s
+        .WithTopic("test event")
+        .Invoke(e => Console.WriteLine(e.Message)));
     
     // Publish a message
     messageBus.Publish("test event", new MyEvent {
         Message = "Hello World"
     });
     
-The type of payload object along with the name (`"test event"` in the above example) define a 
-channel. A channel may contain zero or more subscribers, and may be published to by any number of
+The type of payload object along with the topic (`"test event"` in the above example) define a 
+**channel**. A channel may contain zero or more subscribers, and may be published to by any number of
 publishers. 
-
-The Pub/Sub pattern is very similar to the `event` / `EventHandler` functionality built-in to C#, 
-but unlike `event` Acquaintance pub/sub does not require explicit references nor does it enforce
-order of initialization.
 
 ## Request/Response
 
 Request/Response is a pattern where a client sends a request to zero or one listeners, and receives 
-back zero or one response in return. It is used in cases where you need to serialize access to a
-single resource which is not thread-safe (DB, File System, Socket, etc), or when you need to send a
-Remote Procedure Call (RPC) to a component which may not be known at initialization time. 
-
+back a single response in return. It is used in cases where you need to serialize access to a
+single resource which is not thread-safe (DB, File System, Socket, etc), or when you need to interact
+with a separate subsystem or module in your system.
 
     // Setup a Listener
     messageBus.Listen<MyRequest, MyResponse>(l => l
-        .WithChannelName("test")
-        .InvokeFunction(req => new MyResponse { 
+        .WithTopic("test")
+        .Invoke(req => new MyResponse { 
             Message = "Hello " + req.Message"
         }));
     
@@ -80,29 +71,12 @@ Remote Procedure Call (RPC) to a component which may not be known at initializat
     });
     Console.WriteLine(response.Message);
 
-The types of Request, Response and the name (`"test"` in the example above) define the req/res
-channel. 
+The types of Request, Response and the topic (`"test"` in the example above) define the 
+request/response channel. 
 
 Acquaintance allows a Request/Response channel to only have zero or one Listener. Any attempt to 
 add an additional Listener to an existing channel will throw an Exception. Every Request will
-generate either one response or a default value.
-
-### Eavesdropping
-
-Sometimes some part of your system wants to be aware of a request/response conversation without
-having to `Listen` and generate a response. The `Eavesdrop` method allows exactly that. An
-`Eavesdrop` is a pub/sub subscription to the request/response conversation:
-
-    messageBus.Eavesdrop<MyRequest, MyResponse>(l => l
-        .WithChannelName("test")
-        .InvokeAction(conversation => ...));
-
-Neither the caller nor the listeners will be aware that the conversation is being eavesdropped on.
-Eavesdrop events contain the complete request and all generated responses, and are published after
-all responses are received.
-
-It is possible to make modifications to the request and response objects in an eavesdropper, but as
-a matter of best practices it is strongly recommended against.
+generate either one response (which may be an exception, if the listener threw one) or a default value.
 
 ## Scatter/Gather
 
@@ -111,28 +85,29 @@ to participate in the conversation and the client will return many responses.
 
     // Setup a Listener
     messageBus.Participate<MyRequest, MyResponse>(p => p
-        .WithChannelName("test")
-        .InvokeFunction(req => new[] { new MyResponse { 
+        .WithTopic("test")
+        .Invoke(req => new MyResponse { 
             Message = "Hello " + req.Message"
-        }}));
+        }));
     
     // Send a request
-    var response = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
+    var scatter = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
         Message = "World"
     });
-    foreach (var message in response.Responses)
-        Console.WriteLine(response);
+    var responses = scatter.GatherResponses();
+    foreach (var message in response.Response)
+        Console.WriteLine(response.Message);
 
 Scatter/Gather can be used in places where you want to compare multiple results together:
 
-1. You need to gather several bids so you can select the best one
-2. You need to read values from multiple sensors to calculate an average
+1. You need to gather several bids or opinions so you can select the best one
+2. You need to read values from multiple sensors to calculate an average or aggregation
 3. You need to read data from several storage locations to assemble a single aggregate object
 4. You want to publish an event to multiple recipients, and receive back confirmation that they are received
 
 ## Managing Subscriptions
 
-Every `Subscribe`, `Listen`, `Participate` and `Eavesdrop` method variant returns an 
+Every `Subscribe`, `Listen`,  and `Participate` method variant returns an 
 `IDisposable` **subscription token**. This token can be disposed to cancel the subscription:
 
     // Create a subscription
@@ -156,6 +131,9 @@ the generated tokens so they can all be disposed of at once.
 
 This is useful when you have multiple modules in your application and a module maintains several of
 its own subscriptions, which all need to be disposed when the module is disposed.
+
+Acquaintance uses the `IDisposable` pattern to cleanup and manage several different types of
+resources.
     
 ## Thread Safety
 
@@ -163,19 +141,20 @@ Thread safety is handled by the subscriber, listener or participant. When buildi
 listener or participant, there are options available to control how the message is received:
 
     var token = messageBus.Subscribe(b => b
-        .WithChannelName("...")
-        .InvokeAction(...)
-        .Immediate()
+        .WithTopic("...")
+        .Invoke(...)
+        .Immediate()    // Run on the current thread
     });
     
 There are several options for scheduling delivery of an event or a request. 
 
 1. `.Immediate()` executes the handler immediately in the current thread, which means the operation will block
-2. `.OnWorkerThread()` executes the handler on one of the managed worker threads
-3. `.OnThreadpoolThread()` executes the handler in the .Net threadpool
-4. '.OnThread(int)` dispatches the handler to the thread with the given thread Id
+2. `.OnWorkerThread()` executes the handler on one of the managed Acquaintance worker threads
+3. `.OnThreadpool()` executes the handler in the .Net threadpool
+4. `.OnThread(int)` dispatches the handler to the thread with the given thread Id
+5. `.OnDedicated()` creates a new dedicated worker thread for this subscriber and sends all requests there
 
-If no option is specified, Acquaintance will dispatch the handler in a way that makes the mose sense.
+If no option is specified, Acquaintance will dispatch the handler in a way that makes the most sense.
 
 ### Immediate Delivery
 
