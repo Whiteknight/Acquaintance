@@ -16,7 +16,6 @@ namespace Acquaintance.ScatterGather
         public Guid ParticipantId { get; }
         public bool Success { get; private set; }
         public Exception ErrorInformation { get; }
-        public bool Completed { get; set; }
 
         public void ThrowExceptionIfPresent()
         {

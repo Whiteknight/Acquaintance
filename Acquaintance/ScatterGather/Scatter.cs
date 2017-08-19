@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Acquaintance.ScatterGather
 {
@@ -32,10 +33,28 @@ namespace Acquaintance.ScatterGather
                 return null;
 
             var ok = _responses.TryTake(out ScatterResponse<TResponse> response, timeout);
-            if (ok)
-                return response;
+            return ok ? response : null;
+        }
 
-            return null;
+        public async Task<TResponse> GetNextResponseAsync(int timeoutMs, CancellationToken token)
+        {
+            if (_neverHadParticipants)
+                return default(TResponse);
+
+            if (_expectCount == 0 && _responses.Count == 0)
+                return default(TResponse);
+
+            return await Task
+                .Run(() =>
+                {
+                    var ok = _responses.TryTake(out ScatterResponse<TResponse> response, timeoutMs, token);
+                    if (!ok)
+                        return default(TResponse);
+
+                    response.ThrowExceptionIfPresent();
+                    return response.Response;
+                }, token)
+                .ConfigureAwait(false);
         }
 
         public ScatterResponse<TResponse> GetNextResponse(int timeoutMs)
@@ -50,6 +69,9 @@ namespace Acquaintance.ScatterGather
 
         public IReadOnlyList<ScatterResponse<TResponse>> GatherResponses(int max, TimeSpan timeout)
         {
+            if (max > TotalParticipants)
+                max = TotalParticipants;
+
             var endTime = DateTime.UtcNow + timeout;
             var responses = new List<ScatterResponse<TResponse>>();
             while(timeout.TotalMilliseconds > 0)
