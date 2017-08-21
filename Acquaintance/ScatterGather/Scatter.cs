@@ -110,6 +110,7 @@ namespace Acquaintance.ScatterGather
         public void AddResponse(Guid participantId, TResponse response)
         {
             Interlocked.Increment(ref _completedParticipants);
+            Interlocked.MemoryBarrier();
             _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
             Interlocked.Decrement(ref _expectCount);
         }
@@ -117,6 +118,7 @@ namespace Acquaintance.ScatterGather
         public void AddError(Guid participantId, Exception error)
         {
             Interlocked.Increment(ref _completedParticipants);
+            Interlocked.MemoryBarrier();
             _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
             Interlocked.Decrement(ref _expectCount);
         }

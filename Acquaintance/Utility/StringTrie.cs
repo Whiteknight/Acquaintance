@@ -49,13 +49,6 @@ namespace Acquaintance.Utility
             return foundNodes.Select(n => n.Value);
         }
 
-        private TrieNode GetStartingNode(string root)
-        {
-            if (string.IsNullOrEmpty(root))
-                return _root;
-            return _root.Children.TryGetValue(root, out TrieNode node) ? node : null;
-        }
-
         public IEnumerable<T> Get(string root1, string root2, string[] path)
         {
             var node = GetStartingNode(root1, root2);
@@ -66,20 +59,30 @@ namespace Acquaintance.Utility
             return foundNodes.Select(n => n.Value);
         }
 
-        private TrieNode GetStartingNode(string root1, string root2)
-        {
-            if (string.IsNullOrEmpty(root1))
-                return _root;
-            if (!_root.Children.TryGetValue(root1, out TrieNode node))
-                return null;
-            if (string.IsNullOrEmpty(root2))
-                return node;
-            return node.Children.TryGetValue(root2, out node) ? node : null;
-        }
-
         public void OnEach(Action<T> act)
         {
             OnEach(_root, act);
+        }
+
+        public void RemoveValue(string root, string[] path, Action<T> onRemoved)
+        {
+            if (path == null || path.Length == 0)
+                return;
+            var parent = _root;
+            var child = GetStartingNode(root);
+            if (child == null || child == parent)
+                return;
+            foreach (var p in path)
+            {
+                if (string.IsNullOrEmpty(p) || p == "*")
+                    throw new Exception("Cannot remove on a wildcard");
+                parent = child;
+                if (!parent.Children.TryGetValue(p, out child))
+                    return;
+            }
+            parent.Children.TryRemove(path.Last(), out child);
+            if (onRemoved != null)
+                OnEach(child, onRemoved);
         }
 
         public class TrieNode
@@ -102,6 +105,24 @@ namespace Acquaintance.Utility
                 Value = value;
                 HasValue = true;
             }
+        }
+
+        private TrieNode GetStartingNode(string root)
+        {
+            if (string.IsNullOrEmpty(root))
+                return _root;
+            return _root.Children.TryGetValue(root, out TrieNode node) ? node : null;
+        }
+
+        private TrieNode GetStartingNode(string root1, string root2)
+        {
+            if (string.IsNullOrEmpty(root1))
+                return _root;
+            if (!_root.Children.TryGetValue(root1, out TrieNode node))
+                return null;
+            if (string.IsNullOrEmpty(root2))
+                return node;
+            return node.Children.TryGetValue(root2, out node) ? node : null;
         }
 
         private void OnEach(TrieNode node, Action<T> act)

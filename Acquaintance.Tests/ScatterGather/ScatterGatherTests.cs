@@ -44,8 +44,8 @@ namespace Acquaintance.Tests.ScatterGather
                 .Invoke(req => req + 5));
             var response = target.Scatter<int, int>(10);
             response.TotalParticipants.Should().Be(1);
-            response.CompletedParticipants.Should().Be(1);
             var responses = response.GatherResponses();
+            response.CompletedParticipants.Should().Be(1);
             responses.Should().HaveCount(1);
             responses[0].Response.Should().Be(15);
         }

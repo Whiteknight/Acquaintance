@@ -1,12 +1,11 @@
-﻿using Acquaintance.PubSub;
-using Acquaintance.RequestResponse;
+﻿using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 
 namespace Acquaintance
 {
     public interface IDispatchStrategyFactory
     {
-        IPubSubChannelDispatchStrategy CreatePubSubStrategy();
+        bool AllowWildcards { get; }
 
         IReqResChannelDispatchStrategy CreateRequestResponseStrategy();
         IScatterGatherChannelDispatchStrategy CreateScatterGatherStrategy();
@@ -14,10 +13,7 @@ namespace Acquaintance
 
     public class SimpleDispatchStrategyFactory : IDispatchStrategyFactory
     {
-        public IPubSubChannelDispatchStrategy CreatePubSubStrategy()
-        {
-            return new PubSubSimpleDispatchStrategy();
-        }
+        public bool AllowWildcards => false;
 
         public IReqResChannelDispatchStrategy CreateRequestResponseStrategy()
         {
@@ -32,10 +28,7 @@ namespace Acquaintance
 
     public class TrieDispatchStrategyFactory : IDispatchStrategyFactory
     {
-        public IPubSubChannelDispatchStrategy CreatePubSubStrategy()
-        {
-            return new PubSubTrieDispatchStrategy();
-        }
+        public bool AllowWildcards => true;
 
         public IReqResChannelDispatchStrategy CreateRequestResponseStrategy()
         {

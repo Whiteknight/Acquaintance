@@ -17,8 +17,7 @@ namespace Acquaintance
     public sealed class MessageBus : IMessageBus
     {
         private readonly ILogger _logger;
-        private readonly IPubSubChannelDispatchStrategy _pubSubStrategy;
-        private readonly IPubSubChannelDispatchStrategy _eavesdropStrategy;
+        private readonly SubscriptionDispatcher _pubSubDispatcher;
         private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
         private readonly IScatterGatherChannelDispatchStrategy _scatterGatherStrategy;
         private readonly TopicRouter _router;
@@ -33,8 +32,7 @@ namespace Acquaintance
             EnvelopeFactory = new EnvelopeFactory();
 
             var dispatcherFactory = parameters.GetDispatchStrategyFactory();
-            _pubSubStrategy = dispatcherFactory.CreatePubSubStrategy();
-            _eavesdropStrategy = dispatcherFactory.CreatePubSubStrategy();
+            _pubSubDispatcher = new SubscriptionDispatcher(_logger, dispatcherFactory.AllowWildcards);
             _requestResponseStrategy = dispatcherFactory.CreateRequestResponseStrategy();
             _scatterGatherStrategy = dispatcherFactory.CreateScatterGatherStrategy();
             _router = new TopicRouter();
@@ -51,16 +49,7 @@ namespace Acquaintance
         public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {
             var topics = _router.RoutePublish(message.Topic, message);
-            foreach (var topic in topics)
-            {
-                var routedMessage = topic == message.Topic ? message : message.RedirectToTopic(topic);
-                foreach (var channel in _pubSubStrategy.GetExistingChannels<TPayload>(topic))
-                {
-                    _logger.Debug("Publishing message Type={0} Topic={1} to channel Id={2}", typeof(TPayload).FullName, topic, channel.Id);
-                    channel.Publish(routedMessage);
-                }
-            }
-            // TODO: Interceptors here so we can send messages to plugins or to federated instances
+            _pubSubDispatcher.Publish(topics, message);
         }
 
         public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
@@ -68,9 +57,9 @@ namespace Acquaintance
             Assert.ArgumentNotNull(subscription, nameof(subscription));
 
             subscription.Id = Guid.NewGuid();
-            var channel = _pubSubStrategy.GetChannelForSubscription<TPayload>(topic, _logger);
-            _logger.Debug("Adding subscription {0} of type Type={1} Topic={2} to channel Id={3}", subscription.Id, typeof(TPayload).FullName, topic, channel.Id);
-            return channel.Subscribe(subscription);
+            var token = _pubSubDispatcher.Subscribe(topic, subscription);
+            _logger.Debug("Adding subscription {0} to type Type={1} Topic={2}", subscription.Id, typeof(TPayload).FullName, topic);
+            return token;
         }
 
         public IRequest<TResponse> RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
@@ -152,9 +141,8 @@ namespace Acquaintance
 
         public void Dispose()
         {
-            _pubSubStrategy.Dispose();
+            _pubSubDispatcher.Dispose();
             _requestResponseStrategy.Dispose();
-            _eavesdropStrategy.Dispose();
             _scatterGatherStrategy.Dispose();
 
             (ThreadPool as IDisposable)?.Dispose();
