@@ -2,21 +2,19 @@
 <package >
   <metadata>
     <id>Acquaintance</id>
-    <version>1.0.1</version>
+    <version>2.0.0-beta</version>
     <title>$title$</title>
     <authors>Andrew F. Whitworth</authors>
     <owners>$author$</owners>
     <licenseUrl>https://github.com/Whiteknight/Acquaintance/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://whiteknight.github.io/Acquaintance/</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Internal messaging for loosely-coupled applications</description>
-    <copyright>Copyright 2016-2017</copyright>
+    <description></description>
+    <copyright></copyright>
     <tags>Messaging Pub/Sub Request/Response Scatter/Gather</tags>
   </metadata>
   <files>
-        <file src="bin\Release\net45\Acquaintance.dll" target="lib\net45\Acquaintance.dll" />
-        <file src="bin\Release\net45\Acquaintance.pdb" target="lib\net45\Acquaintance.pdb" />
-        <file src="bin\Release\net46\Acquaintance.dll" target="lib\net46\Acquaintance.dll" />
-        <file src="bin\Release\net46\Acquaintance.pdb" target="lib\net46\Acquaintance.pdb" />
+        <file src="bin\Release\netstandard2.0\Acquaintance.dll" target="lib\net45\Acquaintance.dll" />
+        <file src="bin\Release\netstandard2.0\Acquaintance.pdb" target="lib\net45\Acquaintance.pdb" />
     </files>
 </package>

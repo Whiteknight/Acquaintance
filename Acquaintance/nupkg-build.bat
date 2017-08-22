@@ -1,9 +1,9 @@
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild Acquaintance.csproj /t:Build /p:Configuration="Release"
+dotnet build Acquaintance.csproj --configuration Release
 if ERRORLEVEL 1 GOTO :error
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild Acquaintance.csproj /t:Build /p:Configuration="Release 4.5"
+
+dotnet pack Acquaintance.csproj --configuration Release --no-build
 if ERRORLEVEL 1 GOTO :error
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\msbuild Acquaintance.csproj /t:Package
-if ERRORLEVEL 1 GOTO :error
+
 goto :done
 
 :error
