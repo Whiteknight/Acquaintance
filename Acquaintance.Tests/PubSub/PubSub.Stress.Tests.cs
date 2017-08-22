@@ -44,7 +44,7 @@ namespace Acquaintance.Tests.PubSub
             var target = new MessageBus(new MessageBusCreateParameters
             {
                 ThreadPool = new MessagingWorkerThreadPool(null, 4),
-                DispatchStrategy = new TrieDispatchStrategyFactory()
+                AllowWildcards = true
             });
             int count = 0;
             var resetEvent = new ManualResetEvent(false);

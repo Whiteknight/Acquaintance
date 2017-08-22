@@ -34,10 +34,7 @@ namespace Acquaintance.Tests.PubSub
         [Test]
         public void SubscribeAndPublish_Wildcards()
         {
-            var target = new MessageBus(new MessageBusCreateParameters
-            {
-                DispatchStrategy = new TrieDispatchStrategyFactory()
-            });
+            var target = new MessageBus(MessageBusCreateParameters.Default.WithWildcards());
             int count = 0;
             target.Subscribe<TestPubSubEvent>(builder => builder
                 .WithTopic("1.X.c")
@@ -57,12 +54,23 @@ namespace Acquaintance.Tests.PubSub
         }
 
         [Test]
+        public void SubscribeAndPublish_Wildcards_Unsubscribe()
+        {
+            var target = new MessageBus(MessageBusCreateParameters.Default.WithWildcards());
+            int count = 0;
+            var token = target.Subscribe<TestPubSubEvent>(builder => builder
+                .WithTopic("1.X.c")
+                .Invoke(e => count += 1)
+                .Immediate());
+            token.Dispose();
+            target.Publish("1.*.c", new TestPubSubEvent("Test2"));
+            count.Should().Be(0);
+        }
+
+        [Test]
         public void SubscribeAndPublish_TrieStrategy_Dispose()
         {
-            var target = new MessageBus(new MessageBusCreateParameters
-            {
-                DispatchStrategy = new TrieDispatchStrategyFactory()
-            });
+            var target = new MessageBus(MessageBusCreateParameters.Default.WithWildcards());
             target.Dispose();
         }
 
@@ -198,7 +206,7 @@ namespace Acquaintance.Tests.PubSub
             var threadId = Thread.CurrentThread.ManagedThreadId;
             var result = 0;
             target.Subscribe<int>(b => b.WithDefaultTopic().Invoke(i => result = i).OnThread(threadId));
-            target.Publish<int>(5);
+            target.Publish(5);
             result.Should().Be(0);
             int iterations = 0;
             target.RunEventLoop(() => iterations++ != 0);

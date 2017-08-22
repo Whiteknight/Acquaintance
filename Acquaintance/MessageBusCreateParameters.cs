@@ -5,11 +5,18 @@ namespace Acquaintance
 {
     public class MessageBusCreateParameters
     {
+        public bool AllowWildcards { get; set; }
         public IThreadPool ThreadPool { get; set; }
         public ILogger Logger { get; set; }
         public IDispatchStrategyFactory DispatchStrategy { get; set; }
 
         public static MessageBusCreateParameters Default => new MessageBusCreateParameters();
+
+        public MessageBusCreateParameters WithWildcards()
+        {
+            AllowWildcards = true;
+            return this;
+        }
 
         public ILogger GetLogger()
         {

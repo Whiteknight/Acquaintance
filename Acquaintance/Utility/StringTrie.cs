@@ -11,7 +11,7 @@ namespace Acquaintance.Utility
 
         public StringTrie()
         {
-            _root = new TrieNode("");
+            _root = new TrieNode("", null);
         }
 
         public T GetOrInsert(string root, IEnumerable<string> path, Func<T> getValue)
@@ -20,7 +20,7 @@ namespace Acquaintance.Utility
             foreach (string key in new [] { root }.Concat(path))
             {
                 ValidateKeyIsNotWildcardForInsert(key);
-                node = node.Children.GetOrAdd(key, k => new TrieNode(k));
+                node = node.Children.GetOrAdd(key, k => new TrieNode(k, node));
             }
             node.SetValueIfMissing(getValue());
             return node.Value;
@@ -32,7 +32,7 @@ namespace Acquaintance.Utility
             foreach (string key in new [] { root1, root2 }.Concat(path))
             {
                 ValidateKeyIsNotWildcardForInsert(key);
-                node = node.Children.GetOrAdd(key, k => new TrieNode(k));
+                node = node.Children.GetOrAdd(key, k => new TrieNode(k, node));
             }
             node.SetValueIfMissing(getValue());
             return node.Value;
@@ -80,16 +80,22 @@ namespace Acquaintance.Utility
                 if (!parent.Children.TryGetValue(p, out child))
                     return;
             }
-            parent.Children.TryRemove(path.Last(), out child);
+            if (child == null)
+                return;
+            var nodeToRemove = child;
+            while (nodeToRemove.Parent != _root && nodeToRemove.Children.Count <= 1)
+                nodeToRemove = nodeToRemove.Parent;
+            nodeToRemove.Parent.Children.TryRemove(nodeToRemove.Key, out nodeToRemove);
             if (onRemoved != null)
-                OnEach(child, onRemoved);
+                OnEach(nodeToRemove, onRemoved);
         }
 
         public class TrieNode
         {
-            public TrieNode(string key)
+            public TrieNode(string key, TrieNode parent)
             {
                 Key = key;
+                Parent = parent;
                 Children = new ConcurrentDictionary<string, TrieNode>();
             }
 
@@ -97,6 +103,7 @@ namespace Acquaintance.Utility
             public T Value { get; private set; }
             public bool HasValue { get; private set; }
             public ConcurrentDictionary<string, TrieNode> Children { get; }
+            public TrieNode Parent { get; }
 
             public void SetValueIfMissing(T value)
             {

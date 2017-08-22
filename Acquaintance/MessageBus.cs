@@ -32,7 +32,7 @@ namespace Acquaintance
             EnvelopeFactory = new EnvelopeFactory();
 
             var dispatcherFactory = parameters.GetDispatchStrategyFactory();
-            _pubSubDispatcher = new SubscriptionDispatcher(_logger, dispatcherFactory.AllowWildcards);
+            _pubSubDispatcher = new SubscriptionDispatcher(_logger, parameters.AllowWildcards);
             _requestResponseStrategy = dispatcherFactory.CreateRequestResponseStrategy();
             _scatterGatherStrategy = dispatcherFactory.CreateScatterGatherStrategy();
             _router = new TopicRouter();

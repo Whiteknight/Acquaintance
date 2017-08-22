@@ -46,7 +46,7 @@ namespace Acquaintance.PubSub
         {
             var root = typeof(TPayload).FullName;
             var path = topic.Split('.');
-            var channel = _channels.Get(root, path);
+            var channel = _channels.Get(root, path).FirstOrDefault();
             var typedChannel = channel as Channel<TPayload>;
             if (typedChannel == null)
                 return;
