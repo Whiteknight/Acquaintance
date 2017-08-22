@@ -20,7 +20,8 @@ namespace Acquaintance.Utility
             foreach (string key in new [] { root }.Concat(path))
             {
                 ValidateKeyIsNotWildcardForInsert(key);
-                node = node.Children.GetOrAdd(key, k => new TrieNode(k, node));
+                var temp = node;
+                node = node.Children.GetOrAdd(key, k => new TrieNode(k, temp));
             }
             node.SetValueIfMissing(getValue());
             return node.Value;
@@ -32,7 +33,8 @@ namespace Acquaintance.Utility
             foreach (string key in new [] { root1, root2 }.Concat(path))
             {
                 ValidateKeyIsNotWildcardForInsert(key);
-                node = node.Children.GetOrAdd(key, k => new TrieNode(k, node));
+                var temp = node;
+                node = node.Children.GetOrAdd(key, k => new TrieNode(k, temp));
             }
             node.SetValueIfMissing(getValue());
             return node.Value;
@@ -61,7 +63,13 @@ namespace Acquaintance.Utility
 
         public void OnEach(Action<T> act)
         {
+            Assert.ArgumentNotNull(act, nameof(act));
             OnEach(_root, act);
+        }
+
+        public void RemoveValue(string root1, string root2, string[] path, Action<T> onRemoved)
+        {
+            RemoveValue(root1, new[] { root2 }.Concat(path).ToArray(), onRemoved);
         }
 
         public void RemoveValue(string root, string[] path, Action<T> onRemoved)
@@ -74,8 +82,7 @@ namespace Acquaintance.Utility
                 return;
             foreach (var p in path)
             {
-                if (string.IsNullOrEmpty(p) || p == "*")
-                    throw new Exception("Cannot remove on a wildcard");
+                ValidateKeyIsNotWildcardForRemove(p);
                 parent = child;
                 if (!parent.Children.TryGetValue(p, out child))
                     return;
@@ -164,6 +171,11 @@ namespace Acquaintance.Utility
             if (key == "*")
                 throw new Exception("Cannot use wildcards for GetOrInsert");
         }
-        // TODO: Logic to remove entries from the Trie
+
+        private static void ValidateKeyIsNotWildcardForRemove(string p)
+        {
+            if (string.IsNullOrEmpty(p) || p == "*")
+                throw new Exception("Cannot remove on a wildcard");
+        }
     }
 }

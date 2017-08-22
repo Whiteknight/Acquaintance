@@ -132,7 +132,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                DispatchStrategy = new TrieDispatchStrategyFactory()
+                AllowWildcards = true
             });
             target.Listen<TestRequestWithResponse, TestResponse>(l => l
                 .WithTopic("Test.A")

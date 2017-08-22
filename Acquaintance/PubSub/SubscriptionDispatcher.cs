@@ -4,7 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
-    public class SubscriptionDispatcher 
+    public class SubscriptionDispatcher : IDisposable
     {
         private readonly ILogger _log;
         private readonly ISubscriptionStore _store;
@@ -18,7 +18,9 @@ namespace Acquaintance.PubSub
         public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
         {
             Assert.ArgumentNotNull(subscription, nameof(subscription));
-            return _store.AddSubscription(topic, subscription);
+            var token = _store.AddSubscription(topic, subscription);
+            _log.Debug("Adding subscription {0} to type Type={1} Topic={2}", subscription.Id, typeof(TPayload).FullName, topic);
+            return token;
         }
 
         public void Publish<TPayload>(string[] topics, Envelope<TPayload> envelope)

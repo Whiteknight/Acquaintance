@@ -17,8 +17,8 @@ namespace Acquaintance
     public sealed class MessageBus : IMessageBus
     {
         private readonly ILogger _logger;
-        private readonly SubscriptionDispatcher _pubSubDispatcher;
-        private readonly IReqResChannelDispatchStrategy _requestResponseStrategy;
+        private readonly SubscriptionDispatcher _subscriptionDispatcher;
+        private readonly RequestDispatcher _requestDispatcher;
         private readonly IScatterGatherChannelDispatchStrategy _scatterGatherStrategy;
         private readonly TopicRouter _router;
 
@@ -32,8 +32,8 @@ namespace Acquaintance
             EnvelopeFactory = new EnvelopeFactory();
 
             var dispatcherFactory = parameters.GetDispatchStrategyFactory();
-            _pubSubDispatcher = new SubscriptionDispatcher(_logger, parameters.AllowWildcards);
-            _requestResponseStrategy = dispatcherFactory.CreateRequestResponseStrategy();
+            _subscriptionDispatcher = new SubscriptionDispatcher(_logger, parameters.AllowWildcards);
+            _requestDispatcher = new RequestDispatcher(_logger, parameters.AllowWildcards);
             _scatterGatherStrategy = dispatcherFactory.CreateScatterGatherStrategy();
             _router = new TopicRouter();
         }
@@ -49,7 +49,7 @@ namespace Acquaintance
         public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {
             var topics = _router.RoutePublish(message.Topic, message);
-            _pubSubDispatcher.Publish(topics, message);
+            _subscriptionDispatcher.Publish(topics, message);
         }
 
         public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
@@ -57,27 +57,21 @@ namespace Acquaintance
             Assert.ArgumentNotNull(subscription, nameof(subscription));
 
             subscription.Id = Guid.NewGuid();
-            var token = _pubSubDispatcher.Subscribe(topic, subscription);
-            _logger.Debug("Adding subscription {0} to type Type={1} Topic={2}", subscription.Id, typeof(TPayload).FullName, topic);
-            return token;
+            return _subscriptionDispatcher.Subscribe(topic, subscription);
         }
 
         public IRequest<TResponse> RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
         {
             var request = new Request<TResponse>();
             var topic = _router.RouteRequest<TRequest, TResponse>(envelope.Topic, envelope);
-            if (topic != envelope.Topic)
-                envelope = envelope.RedirectToTopic(topic);
-            var channel = _requestResponseStrategy.GetExistingChannel<TRequest, TResponse>(envelope.Topic);
-            if (channel == null)
-            {
-                request.SetNoResponse();
-                return request;
-            }
-
-            _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, envelope.Topic, channel.Id);
-            channel.Request(envelope, request);
+            _requestDispatcher.Request<TRequest, TResponse>(topic, envelope, request);
             return request;
+        }
+
+        public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
+        {
+            Assert.ArgumentNotNull(listener, nameof(listener));
+            return _requestDispatcher.Listen<TRequest, TResponse>(topic, listener);
         }
 
         public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
@@ -93,16 +87,6 @@ namespace Acquaintance
             }
 
             return scatter;
-        }
-
-        public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
-        {
-            Assert.ArgumentNotNull(listener, nameof(listener));
-
-            listener.Id = Guid.NewGuid();
-            var channel = _requestResponseStrategy.GetChannelForSubscription<TRequest, TResponse>(topic, _logger);
-            _logger.Debug("Listener {0} RequestType={1} ResponseType={2} Topic={3} to channel Id={4}", listener.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
-            return channel.Listen(listener);
         }
 
         public IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant)
@@ -141,8 +125,8 @@ namespace Acquaintance
 
         public void Dispose()
         {
-            _pubSubDispatcher.Dispose();
-            _requestResponseStrategy.Dispose();
+            _subscriptionDispatcher.Dispose();
+            _requestDispatcher.Dispose();
             _scatterGatherStrategy.Dispose();
 
             (ThreadPool as IDisposable)?.Dispose();
