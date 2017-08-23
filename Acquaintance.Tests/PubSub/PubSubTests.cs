@@ -88,6 +88,23 @@ namespace Acquaintance.Tests.PubSub
         }
 
         [Test]
+        public void Subscribe_Unsubscribe()
+        {
+            var target = new MessageBus();
+            string text = null;
+            var token = target.Subscribe<string>(builder => builder
+                .WithDefaultTopic()
+                .Invoke(e => text = e)
+                .Immediate());
+            target.Publish("Test2");
+            text.Should().Be("Test2");
+
+            token.Dispose();
+            target.Publish("Test3");
+            text.Should().Be("Test2");
+        }
+
+        [Test]
         public void Subscribe_SubscriptionBuilder_Distribute()
         {
             int a = 0;

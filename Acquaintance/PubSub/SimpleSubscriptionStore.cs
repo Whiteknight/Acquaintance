@@ -43,7 +43,7 @@ namespace Acquaintance.PubSub
         private void Unsubscribe<TPayload>(string topic, Guid id)
         {
             var key = GetKey<TPayload>(topic);
-            bool found = _pubSubChannels.TryGetValue(topic, out object channel);
+            bool found = _pubSubChannels.TryGetValue(key, out object channel);
             if (!found || channel == null)
                 return;
             var typedChannel = channel as Channel<TPayload>;
