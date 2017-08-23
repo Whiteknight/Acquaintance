@@ -108,6 +108,6 @@ namespace Acquaintance.RequestResponse
         {
             if (_exception != null)
                 throw _exception;
-        }
+        }  
     }
 }

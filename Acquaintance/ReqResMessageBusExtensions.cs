@@ -43,13 +43,13 @@ namespace Acquaintance
         public static Task<TResponse> RequestAsync<TRequest, TResponse>(this IReqResBus messageBus, string topic, TRequest requestPayload)
         {
             var request = Request<TRequest, TResponse>(messageBus, topic, requestPayload);
-            return request.ToTask();
+            return request.GetResponseAsync();
         }
 
         public static Task<TResponse> RequestAsync<TRequest, TResponse>(this IReqResBus messageBus, TRequest requestPayload)
         {
             var request = Request<TRequest, TResponse>(messageBus, requestPayload);
-            return request.ToTask();
+            return request.GetResponseAsync();
         }
 
         /// <summary>

@@ -276,5 +276,16 @@ namespace Acquaintance.Tests.RequestResponse
             response.GetErrorInformation().Should().BeNull();
             response.GetResponse().Should().Be(0);
         }
+
+        [Test]
+        public void Request_GetResponseAsync()
+        {
+            var target = new MessageBus();
+            target.Listen<int, int>(l => l
+                .WithDefaultTopic()
+                .Invoke(req => req + 10));
+            var response = target.Request<int, int>(5).GetResponseAsync().Result;
+            response.Should().Be(15);
+        }
     }
 }
