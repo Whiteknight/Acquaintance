@@ -11,16 +11,14 @@ namespace Acquaintance.ScatterGather
         private const int DefaultTimeoutS = 10;
         private readonly BlockingCollection<ScatterResponse<TResponse>> _responses;
 
-        private bool _isComplete;
-        private bool _neverHadParticipants;
-        private int _expectCount;
-        private int _totalParticipants;
-        private int _completedParticipants;
+        private volatile bool _neverHadParticipants;
+        private volatile int _expectCount;
+        private volatile int _totalParticipants;
+        private volatile int _completedParticipants;
 
         public Scatter()
         {
             _responses = new BlockingCollection<ScatterResponse<TResponse>>();
-            _isComplete = false;
             _neverHadParticipants = true;
         }
 
@@ -110,7 +108,6 @@ namespace Acquaintance.ScatterGather
         public void AddResponse(Guid participantId, TResponse response)
         {
             Interlocked.Increment(ref _completedParticipants);
-            Interlocked.MemoryBarrier();
             _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
             Interlocked.Decrement(ref _expectCount);
         }
@@ -118,7 +115,6 @@ namespace Acquaintance.ScatterGather
         public void AddError(Guid participantId, Exception error)
         {
             Interlocked.Increment(ref _completedParticipants);
-            Interlocked.MemoryBarrier();
             _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
             Interlocked.Decrement(ref _expectCount);
         }
@@ -137,18 +133,6 @@ namespace Acquaintance.ScatterGather
         public void Dispose()
         {
             _responses.Dispose();
-        }
-
-        private bool CheckCompleteness()
-        {
-            if (_isComplete)
-                return true;
-            if (_expectCount == 0)
-            {
-                _isComplete = true;
-                return true;
-            }
-            return false;
         }
     }
 }
