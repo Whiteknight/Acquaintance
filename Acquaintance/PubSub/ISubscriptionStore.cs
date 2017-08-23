@@ -7,5 +7,6 @@ namespace Acquaintance.PubSub
     {
         IDisposable AddSubscription<TPayload>(string topic, ISubscription<TPayload> subscription);
         IEnumerable<ISubscription<TPayload>> GetSubscriptions<TPayload>(string topic);
+        void Remove<TPayload>(string topic, ISubscription<TPayload> subscription);
     }
 }

@@ -35,6 +35,11 @@ namespace Acquaintance.PubSub
             return typedChannel.GetSubscriptions();
         }
 
+        public void Remove<TPayload>(string topic, ISubscription<TPayload> subscription)
+        {
+            Unsubscribe<TPayload>(topic, subscription.Id);
+        }
+
         private static string GetKey<TPayload>(string topic)
         {
             return $"{typeof(TPayload).FullName}:{topic}";

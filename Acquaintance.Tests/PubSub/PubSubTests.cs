@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Acquaintance.PubSub;
 using FluentAssertions;
@@ -228,6 +229,34 @@ namespace Acquaintance.Tests.PubSub
             int iterations = 0;
             target.RunEventLoop(() => iterations++ != 0);
             result.Should().Be(5);
+        }
+
+        private class ShouldUnsubscribeSubscription : ISubscription<int>
+        {
+            private readonly Action _act;
+
+            public ShouldUnsubscribeSubscription(Action act)
+            {
+                _act = act;
+            }
+
+            public void Publish(Envelope<int> message)
+            {
+                _act();
+            }
+
+            public bool ShouldUnsubscribe => true;
+            public Guid Id { get; set; }
+        }
+
+        [Test]
+        public void Subscription_ShouldUnsubscribe()
+        {
+            var target = new MessageBus();
+            int value = 0;
+            target.Subscribe("", new ShouldUnsubscribeSubscription(() => value = 1));
+            target.Publish("", 5);
+            value.Should().Be(0);
         }
     }
 }

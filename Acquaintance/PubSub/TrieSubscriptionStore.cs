@@ -15,11 +15,6 @@ namespace Acquaintance.PubSub
             _channels = new StringTrie<object>();
         }
 
-        public void Dispose()
-        {
-            _channels.OnEach(c => (c as IDisposable)?.Dispose());
-        }
-
         public IDisposable AddSubscription<TPayload>(string topic, ISubscription<TPayload> subscription)
         {
             var channel = _channels.GetOrInsert(typeof(TPayload).FullName, topic.Split('.'), () => new Channel<TPayload>());
@@ -40,6 +35,16 @@ namespace Acquaintance.PubSub
                 .OfType<Channel<TPayload>>()
                 .SelectMany(c => c.GetAllSubscriptions())
                 .ToArray();
+        }
+
+        public void Remove<TPayload>(string topic, ISubscription<TPayload> subscription)
+        {
+            RemoveSubscription<TPayload>(topic, subscription.Id);
+        }
+
+        public void Dispose()
+        {
+            _channels.OnEach(c => (c as IDisposable)?.Dispose());
         }
 
         private void RemoveSubscription<TPayload>(string topic, Guid id)
