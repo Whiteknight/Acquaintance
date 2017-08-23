@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Acquaintance.ScatterGather
 {
@@ -69,5 +71,13 @@ namespace Acquaintance.ScatterGather
         /// might be incremented before the response is available to be read.
         /// </summary>
         int CompletedParticipants { get; }
+
+        /// <summary>
+        /// Start a task to get the next response asynchronously
+        /// </summary>
+        /// <param name="timeoutMs"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task<TResponse> GetNextResponseAsync(int timeoutMs, CancellationToken token);
     }
 }
