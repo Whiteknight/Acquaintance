@@ -231,7 +231,7 @@ namespace Acquaintance.Tests.RequestResponse
                 .Invoke(req => { throw new Exception("Expected"); }));
             var response = target.Request<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
             response.WaitForResponse();
-            response.HasResponse().Should().BeTrue();
+            response.IsComplete().Should().BeTrue();
             response.GetErrorInformation().Should().NotBeNull();
         }
 
@@ -247,6 +247,34 @@ namespace Acquaintance.Tests.RequestResponse
 
             Action act = () => response.ThrowExceptionIfError();
             act.ShouldThrow<Exception>();
+        }
+
+        private class ShouldStopListeningListener : IListener<int, int>
+        {
+            public bool CanHandle(Envelope<int> request)
+            {
+                return true;
+            }
+
+            public void Request(Envelope<int> envelope, Request<int> request)
+            {
+                request.SetError(new Exception("Should not get here"));
+            }
+
+            public bool ShouldStopListening => true;
+            public Guid Id { get; set; }
+        }
+
+        [Test]
+        public void Listen_ShouldStopListening()
+        {
+            var target = new MessageBus();
+            target.Listen("", new ShouldStopListeningListener());
+            var response = target.Request<int, int>(5);
+            response.IsComplete().Should().BeTrue();
+            response.HasResponse().Should().BeFalse();
+            response.GetErrorInformation().Should().BeNull();
+            response.GetResponse().Should().Be(0);
         }
     }
 }

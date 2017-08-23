@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Acquaintance.RequestResponse
 {
@@ -18,52 +17,15 @@ namespace Acquaintance.RequestResponse
         public abstract void ThrowExceptionIfError();
     }
 
-    public interface IRequest<out TResponse>
-    {
-        bool WaitForResponse(TimeSpan timeout);
-        TResponse GetResponse();
-        object GetResponseObject();
-        Exception GetErrorInformation();
-        bool HasResponse();
-        void ThrowExceptionIfError();
-        bool WaitForResponse();
-    }
-
-    public static class RequestExtensions
-    {
-        public static TResponse GetResponseOrWait<TResponse>(this IRequest<TResponse> request, TimeSpan timeout)
-        {
-            request.WaitForResponse(timeout);
-            request.ThrowExceptionIfError();
-            return request.GetResponse();
-        }
-
-        public static TResponse GetResponseOrWait<TResponse>(this IRequest<TResponse> request)
-        {
-            return GetResponseOrWait(request, new TimeSpan(0, 0, 10));
-        }
-
-        public static async Task<TResponse> ToTask<TResponse>(this IRequest<TResponse> request)
-        {
-            return await Task
-                .Run(() =>
-                {
-                    request.WaitForResponse();
-                    request.ThrowExceptionIfError();
-                    return request.GetResponse();
-                })
-                .ConfigureAwait(false);
-        }
-    }
-    
     public class Request<TResponse> : Request, IRequest<TResponse>
     {
         private readonly ManualResetEvent _resetEvent;
 
         private TResponse _response;
-        private Exception _exception;
+        private volatile Exception _exception;
         private int _timesSet;
-        private bool _hasResponse;
+        private volatile bool _isComplete;
+        private volatile bool _hasResponse;
 
         public Request()
         {
@@ -76,7 +38,8 @@ namespace Acquaintance.RequestResponse
             var canSet = Interlocked.Increment(ref _timesSet);
             if (canSet == 1)
             {
-                _hasResponse = true;
+                _isComplete = true;
+                _hasResponse = false;
                 _resetEvent.Set();
             }
         }
@@ -87,6 +50,7 @@ namespace Acquaintance.RequestResponse
             if (canSet == 1)
             {
                 _response = response;
+                _isComplete = true;
                 _hasResponse = true;
                 _exception = null;
                 _resetEvent.Set();
@@ -100,6 +64,7 @@ namespace Acquaintance.RequestResponse
             {
                 _response = default(TResponse);
                 _exception = e;
+                _isComplete = true;
                 _hasResponse = true;
                 _resetEvent.Set();
             }
@@ -107,7 +72,7 @@ namespace Acquaintance.RequestResponse
 
         public override bool WaitForResponse(TimeSpan timeout)
         {
-            if (_hasResponse)
+            if (_isComplete)
                 return true;
             bool ok = _resetEvent.WaitOne(timeout);
             _resetEvent.Dispose();
@@ -127,6 +92,11 @@ namespace Acquaintance.RequestResponse
         public Exception GetErrorInformation()
         {
             return _exception;
+        }
+
+        public bool IsComplete()
+        {
+            return _isComplete;
         }
 
         public bool HasResponse()

@@ -45,6 +45,9 @@ namespace Acquaintance.RequestResponse
             {
                 _logger.Error($"Error on request Type={typeof(TRequest).FullName}, {typeof(TResponse).FullName} Topic={topic}, Listener Id={listener.Id}: {e.Message}\n{e.StackTrace}");
             }
+
+            if (listener.ShouldStopListening)
+                _store.RemoveListener(topic, listener);
         }
 
         public void Dispose()

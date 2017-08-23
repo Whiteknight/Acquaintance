@@ -14,7 +14,7 @@ namespace Acquaintance.RequestResponse
 
         public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
         {
-            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
+            var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             if (_listeners.ContainsKey(key))
                 throw new Exception("Cannot add a second listener to this channel");
             var id = Guid.NewGuid();
@@ -26,13 +26,23 @@ namespace Acquaintance.RequestResponse
 
         public IListener<TRequest, TResponse> GetListener<TRequest, TResponse>(string topic)
         {
-            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
+            var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_listeners.TryGetValue(key, out object listenerObj) || listenerObj == null)
                 return null;
             var listener = listenerObj as IListener<TRequest, TResponse>;
             if (listener == null)
                 throw new Exception($"Wrong listener type. Expected {typeof(IListener<TRequest, TResponse>).FullName} but got {listenerObj.GetType().FullName}");
+            if (listener.ShouldStopListening)
+            {
+                RemoveListener<TRequest, TResponse>(topic, listener.Id);
+                return null;
+            }
             return listener;
+        }
+
+        public void RemoveListener<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
+        {
+            RemoveListener<TRequest, TResponse>(topic, listener.Id);
         }
 
         private class Token<TRequest, TResponse> : IDisposable
@@ -56,7 +66,7 @@ namespace Acquaintance.RequestResponse
 
         private void RemoveListener<TRequest, TResponse>(string topic, Guid id)
         {
-            var key = GetReqResKey(typeof(TRequest), typeof(TResponse), topic);
+            var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             var found = _listeners.TryGetValue(key, out object listenerObj);
             if (!found || listenerObj == null)
                 return;
@@ -66,9 +76,9 @@ namespace Acquaintance.RequestResponse
             _listeners.TryRemove(key, out object whatever);
         }
 
-        private static string GetReqResKey(Type requestType, Type responseType, string name)
+        private static string GetKey(Type requestType, Type responseType, string name)
         {
             return $"Request={requestType.AssemblyQualifiedName}:Response={responseType.AssemblyQualifiedName}:Name={name ?? string.Empty}";
-        }
+        }   
     }
 }

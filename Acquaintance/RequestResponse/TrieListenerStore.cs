@@ -24,8 +24,23 @@ namespace Acquaintance.RequestResponse
 
         public IListener<TRequest, TResponse> GetListener<TRequest, TResponse>(string topic)
         {
-            var listenerObj = _listeners.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.')).FirstOrDefault();
-            return listenerObj as IListener<TRequest, TResponse>;
+            var allListeners = _listeners.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'))
+                .OfType< IListener<TRequest, TResponse>>()
+                .ToArray();
+            var toRemove = allListeners.Where(l => l.ShouldStopListening).ToArray();
+            foreach (var removeListener in toRemove)
+                RemoveListener<TRequest, TResponse>(topic, removeListener.Id);
+            return allListeners.FirstOrDefault(l => !l.ShouldStopListening);
+        }
+
+        public void RemoveListener<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
+        {
+            RemoveListener<TRequest, TResponse>(topic, listener.Id);
+        }
+
+        public void Dispose()
+        {
+            _listeners.OnEach(v => (v as IDisposable)?.Dispose());
         }
 
         private class Token<TRequest, TResponse> : IDisposable
@@ -57,11 +72,6 @@ namespace Acquaintance.RequestResponse
             if (listener == null || listener.Id != id)
                 return;
             _listeners.RemoveValue(root1, root2, path, v => (v as IDisposable)?.Dispose());
-        }
-
-        public void Dispose()
-        {
-            _listeners.OnEach(v => (v as IDisposable)?.Dispose());
         }
     }
 }
