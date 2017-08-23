@@ -8,7 +8,6 @@ namespace Acquaintance
         public bool AllowWildcards { get; set; }
         public IThreadPool ThreadPool { get; set; }
         public ILogger Logger { get; set; }
-        public IDispatchStrategyFactory DispatchStrategy { get; set; }
 
         public static MessageBusCreateParameters Default => new MessageBusCreateParameters();
 
@@ -32,11 +31,6 @@ namespace Acquaintance
         public IThreadPool GetThreadPool(ILogger log)
         {
             return ThreadPool ?? new MessagingWorkerThreadPool(log, 2);
-        }
-
-        public IDispatchStrategyFactory GetDispatchStrategyFactory()
-        {
-            return DispatchStrategy ?? new SimpleDispatchStrategyFactory();
         }
     }
 }

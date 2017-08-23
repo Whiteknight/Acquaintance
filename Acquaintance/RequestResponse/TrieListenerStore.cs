@@ -17,6 +17,8 @@ namespace Acquaintance.RequestResponse
         {
             listener.Id = Guid.NewGuid(); 
             var inserted = _listeners.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'), () => listener);
+            if (inserted == null)
+                throw new Exception("Could not get channel");
             if (inserted != listener)
                 throw new Exception("Could not add a second listener to this channel");
             return new Token<TRequest, TResponse>(this, topic, listener.Id);

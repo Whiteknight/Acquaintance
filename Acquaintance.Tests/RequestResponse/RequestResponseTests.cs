@@ -159,7 +159,6 @@ namespace Acquaintance.Tests.RequestResponse
             response.Should().Be(15);
         }
 
-
         [Test]
         public void ListenRequestAndResponse_Wildcards_Unsubscribe()
         {

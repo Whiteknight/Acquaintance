@@ -1,38 +1,40 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Acquaintance.PubSub
 {
     public class SimpleSubscriptionStore : ISubscriptionStore
     {
-        private readonly ConcurrentDictionary<string, object> _pubSubChannels;
+        private readonly ConcurrentDictionary<string, object> _channels;
 
         public SimpleSubscriptionStore()
         {
-            _pubSubChannels = new ConcurrentDictionary<string, object>();
+            _channels = new ConcurrentDictionary<string, object>();
         }
 
         public IDisposable AddSubscription<TPayload>(string topic, ISubscription<TPayload> subscription)
         {
             var key = GetKey<TPayload>(topic);
-            var channel = _pubSubChannels.GetOrAdd(key, s => new Channel<TPayload>());
-            var typedChannel = channel as Channel<TPayload>;
-            if (typedChannel == null)
-                throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channel.GetType().FullName}");
-            var id = Guid.NewGuid();
-            typedChannel.AddSubscription(id, subscription);
-            return new SubscriberToken<TPayload>(this, topic, id);
+            var channelObj = _channels.GetOrAdd(key, s => new Channel<TPayload>());
+            var channel = channelObj as Channel<TPayload>;
+            if (channel == null)
+                throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
+            subscription.Id = Guid.NewGuid();
+            channel.AddSubscription(subscription.Id, subscription);
+            return new SubscriberToken<TPayload>(this, topic, subscription.Id);
         }
 
         public IEnumerable<ISubscription<TPayload>> GetSubscriptions<TPayload>(string topic)
         {
             var key = GetKey<TPayload>(topic);
-            var channel = _pubSubChannels.GetOrAdd(key, s => new Channel<TPayload>());
-            var typedChannel = channel as Channel<TPayload>;
-            if (typedChannel == null)
-                throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channel.GetType().FullName}");
-            return typedChannel.GetSubscriptions();
+            if (!_channels.TryGetValue(key, out object channelObj))
+                return Enumerable.Empty<ISubscription<TPayload>>();
+            var channel = channelObj as Channel<TPayload>;
+            if (channel == null)
+                throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
+            return channel.GetSubscriptions();
         }
 
         public void Remove<TPayload>(string topic, ISubscription<TPayload> subscription)
@@ -48,7 +50,7 @@ namespace Acquaintance.PubSub
         private void Unsubscribe<TPayload>(string topic, Guid id)
         {
             var key = GetKey<TPayload>(topic);
-            bool found = _pubSubChannels.TryGetValue(key, out object channel);
+            bool found = _channels.TryGetValue(key, out object channel);
             if (!found || channel == null)
                 return;
             var typedChannel = channel as Channel<TPayload>;
@@ -56,7 +58,7 @@ namespace Acquaintance.PubSub
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)
-                _pubSubChannels.TryRemove(key, out channel);
+                _channels.TryRemove(key, out channel);
         }
 
         private class Channel<TPayload> 

@@ -39,7 +39,7 @@ namespace Acquaintance.PubSub
 
         public void Remove<TPayload>(string topic, ISubscription<TPayload> subscription)
         {
-            RemoveSubscription<TPayload>(topic, subscription.Id);
+            Remove<TPayload>(topic, subscription.Id);
         }
 
         public void Dispose()
@@ -47,7 +47,7 @@ namespace Acquaintance.PubSub
             _channels.OnEach(c => (c as IDisposable)?.Dispose());
         }
 
-        private void RemoveSubscription<TPayload>(string topic, Guid id)
+        private void Remove<TPayload>(string topic, Guid id)
         {
             var root = typeof(TPayload).FullName;
             var path = topic.Split('.');
@@ -75,7 +75,7 @@ namespace Acquaintance.PubSub
 
             public void Dispose()
             {
-                _store.RemoveSubscription<TPayload>(_topic, _id);
+                _store.Remove<TPayload>(_topic, _id);
             }
         }
 

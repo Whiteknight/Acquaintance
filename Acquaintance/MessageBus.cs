@@ -1,5 +1,4 @@
 ﻿using Acquaintance.Common;
-using Acquaintance.Logging;
 using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
@@ -16,25 +15,23 @@ namespace Acquaintance
     /// </summary>
     public sealed class MessageBus : IMessageBus
     {
-        private readonly ILogger _logger;
         private readonly SubscriptionDispatcher _subscriptionDispatcher;
         private readonly RequestDispatcher _requestDispatcher;
-        private readonly IScatterGatherChannelDispatchStrategy _scatterGatherStrategy;
+        private readonly ParticipantDispatcher _participantDispatcher;
         private readonly TopicRouter _router;
 
         public MessageBus(MessageBusCreateParameters parameters = null)
         {
             parameters = parameters ?? MessageBusCreateParameters.Default;
-            _logger = parameters.GetLogger();
-            ThreadPool = parameters.GetThreadPool(_logger);
+            var logger = parameters.GetLogger();
+            ThreadPool = parameters.GetThreadPool(logger);
 
-            Modules = new ModuleManager(this, _logger);
+            Modules = new ModuleManager(this, logger);
             EnvelopeFactory = new EnvelopeFactory();
 
-            var dispatcherFactory = parameters.GetDispatchStrategyFactory();
-            _subscriptionDispatcher = new SubscriptionDispatcher(_logger, parameters.AllowWildcards);
-            _requestDispatcher = new RequestDispatcher(_logger, parameters.AllowWildcards);
-            _scatterGatherStrategy = dispatcherFactory.CreateScatterGatherStrategy();
+            _subscriptionDispatcher = new SubscriptionDispatcher(logger, parameters.AllowWildcards);
+            _requestDispatcher = new RequestDispatcher(logger, parameters.AllowWildcards);
+            _participantDispatcher = new ParticipantDispatcher(logger, parameters.AllowWildcards);
             _router = new TopicRouter();
         }
 
@@ -64,39 +61,27 @@ namespace Acquaintance
         {
             var request = new Request<TResponse>();
             var topic = _router.RouteRequest<TRequest, TResponse>(envelope.Topic, envelope);
-            _requestDispatcher.Request<TRequest, TResponse>(topic, envelope, request);
+            _requestDispatcher.Request(topic, envelope, request);
             return request;
         }
 
         public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
         {
             Assert.ArgumentNotNull(listener, nameof(listener));
-            return _requestDispatcher.Listen<TRequest, TResponse>(topic, listener);
+            return _requestDispatcher.Listen(topic, listener);
         }
 
-        public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
+        public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
         {
             var scatter = new Scatter<TResponse>();
-            topic = _router.RouteScatter<TRequest, TResponse>(topic, envelope);
-            if (topic == null)
-                return scatter;
-            foreach (var channel in _scatterGatherStrategy.GetExistingChannels<TRequest, TResponse>(topic))
-            {
-                _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to channel Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
-                channel.Scatter(envelope, scatter);
-            }
-
+            var topic = _router.RouteScatter<TRequest, TResponse>(envelope.Topic, envelope);
+            _participantDispatcher.Scatter(topic ?? string.Empty, envelope, scatter);
             return scatter;
         }
 
         public IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant)
         {
-            Assert.ArgumentNotNull(participant, nameof(participant));
-
-            participant.Id = Guid.NewGuid();
-            var channel = _scatterGatherStrategy.GetChannelForSubscription<TRequest, TResponse>(topic, _logger);
-            _logger.Debug("Participant {0} on RequestType={1} ResponseType={2} Topic={3}, on channel Id={4}", participant.Id, typeof(TRequest).FullName, typeof(TResponse).FullName, topic, channel.Id);
-            return channel.Participate(participant);
+            return _participantDispatcher.Participate(topic ?? string.Empty, participant);
         }
 
         public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)
@@ -127,7 +112,7 @@ namespace Acquaintance
         {
             _subscriptionDispatcher.Dispose();
             _requestDispatcher.Dispose();
-            _scatterGatherStrategy.Dispose();
+            _participantDispatcher.Dispose();
 
             (ThreadPool as IDisposable)?.Dispose();
             (Modules as IDisposable)?.Dispose();

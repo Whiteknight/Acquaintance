@@ -17,7 +17,7 @@ namespace Acquaintance.Tests.ScatterGather
         }
 
         [Test]
-        public void ParticipateScatterGather()
+        public void ScatterGather_Proxy_Test()
         {
             var target = new MessageBus();
             var channel = target.GetScatterChannel<TestRequest, TestResponse>();

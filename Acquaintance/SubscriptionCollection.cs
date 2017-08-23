@@ -60,9 +60,9 @@ namespace Acquaintance
             return _messageBus.RequestEnvelope<TRequest, TResponse>(envelope);
         }
 
-        public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
+        public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
         {
-            return _messageBus.ScatterEnvelope<TRequest, TResponse>(topic, envelope);
+            return _messageBus.ScatterEnvelope<TRequest, TResponse>(envelope);
         }
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)
@@ -141,10 +141,6 @@ namespace Acquaintance
             {
                 _inner = inner;
                 _tokens = tokens;
-            }
-
-            public void Dispose()
-            {
             }
 
             public int NumberOfRunningFreeWorkers => _inner.NumberOfRunningFreeWorkers;

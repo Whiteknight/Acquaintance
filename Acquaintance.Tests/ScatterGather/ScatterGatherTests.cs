@@ -113,7 +113,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                DispatchStrategy = new TrieDispatchStrategyFactory()
+                AllowWildcards = true
             });
             target.Participate<int, int>(l => l.WithTopic("Test.A").Invoke(req => 1));
             target.Participate<int, int>(l => l.WithTopic("Test.B").Invoke(req => 2));

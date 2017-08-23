@@ -85,7 +85,7 @@ namespace Acquaintance
         /// <param name="topic">The name of the channel</param>
         /// <param name="envelope">The request object</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(string topic, Envelope<TRequest> envelope);
+        IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope);
 
         /// <summary>
         /// Listen for incoming scatters and provide responses

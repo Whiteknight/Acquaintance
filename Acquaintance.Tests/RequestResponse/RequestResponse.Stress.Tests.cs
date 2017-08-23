@@ -29,7 +29,7 @@ namespace Acquaintance.Tests.RequestResponse
             const int numEvents = 100000;
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                DispatchStrategy = new TrieDispatchStrategyFactory()
+                AllowWildcards = true
             });
             target.Listen<int, int>(l => l.WithTopic("Test").Invoke(x => 5));
             int total = 0;

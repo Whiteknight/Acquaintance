@@ -10,7 +10,7 @@ namespace Acquaintance
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var envelope = messageBus.EnvelopeFactory.Create(topic, request);
-            return messageBus.ScatterEnvelope<TRequest, TResponse>(topic, envelope);
+            return messageBus.ScatterEnvelope<TRequest, TResponse>(envelope);
         }
 
         public static IScatter<TResponse> Scatter<TRequest, TResponse>(this IScatterGatherBus messageBus, TRequest request)

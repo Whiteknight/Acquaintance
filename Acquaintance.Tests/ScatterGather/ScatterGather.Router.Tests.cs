@@ -8,7 +8,7 @@ namespace Acquaintance.Tests.ScatterGather
     public class ScatterGather_Router_Tests
     {
         [Test]
-        public void RequestRouter_Route()
+        public void ScatterRouter_Route()
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
@@ -30,7 +30,7 @@ namespace Acquaintance.Tests.ScatterGather
         }
 
         [Test]
-        public void RequestRouter_DefaultRoute()
+        public void ScatterRouter_DefaultRoute()
         {
             var target = new MessageBus();
             target.Participate<int, int>(l => l
