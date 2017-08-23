@@ -52,7 +52,7 @@ namespace Acquaintance.RequestResponse
             var root1 = typeof(TRequest).FullName;
             var root2 = typeof(TResponse).FullName;
             var path = topic.Split('.');
-            var listenerObj = _listeners.Get(root1, root2, path);
+            var listenerObj = _listeners.Get(root1, root2, path).FirstOrDefault();
             var listener = listenerObj as IListener<TRequest, TResponse>;
             if (listener == null || listener.Id != id)
                 return;

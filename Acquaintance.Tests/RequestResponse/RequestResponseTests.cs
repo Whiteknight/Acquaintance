@@ -143,6 +143,42 @@ namespace Acquaintance.Tests.RequestResponse
         }
 
         [Test]
+        public void ListenRequestAndResponse_Wildcards_MultipleListenersBreadthFirst()
+        {
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                AllowWildcards = true
+            });
+            target.Listen<int, int>(l => l
+                .WithTopic("Test.A")
+                .Invoke(req =>req + 10));
+            target.Listen<int, int>(l => l
+                .WithTopic("Test.A.B")
+                .Invoke(req => req + 100));
+            var response = target.RequestWait<int, int>("Test.*", 5);
+            response.Should().Be(15);
+        }
+
+
+        [Test]
+        public void ListenRequestAndResponse_Wildcards_Unsubscribe()
+        {
+            var target = new MessageBus(new MessageBusCreateParameters
+            {
+                AllowWildcards = true
+            });
+            var token = target.Listen<int, int>(l => l
+                .WithTopic("Test.A")
+                .Invoke(req => req + 10));
+            var response = target.RequestWait<int, int>("Test.*", 5);
+            response.Should().Be(15);
+
+            token.Dispose();
+            response = target.RequestWait<int, int>("Test.*", 5);
+            response.Should().Be(0);
+        }
+
+        [Test]
         public void ListenRequestAndResponse_ModifyListener()
         {
             var target = new MessageBus();
