@@ -29,7 +29,7 @@ namespace Acquaintance.ScatterGather
             return _maxRequests > 0 || _inner.CanHandle(request);
         }
 
-        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
             if (ShouldStopParticipating)
                 return;

@@ -7,9 +7,9 @@ namespace Acquaintance.ScatterGather
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;
         private readonly TRequest _request;
-        private readonly Scatter<TResponse> _scatter;
+        private readonly IGatherReceiver<TResponse> _scatter;
 
-        public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, TRequest request, Guid participantId, Scatter<TResponse> scatter)
+        public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, TRequest request, Guid participantId, IGatherReceiver<TResponse> scatter)
         {
             _func = func;
             _request = request;

@@ -27,7 +27,7 @@ namespace Acquaintance.ScatterGather
             return _func.IsAlive;
         }
 
-        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
             var thread = _threadPool.GetFreeWorkerThreadDispatcher();
             if (thread == null)

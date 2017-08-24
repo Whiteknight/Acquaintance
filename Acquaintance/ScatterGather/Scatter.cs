@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Acquaintance.ScatterGather
 {
-    public class Scatter<TResponse> : IScatter<TResponse>
+    public class Scatter<TResponse> : IScatter<TResponse>, IGatherReceiver<TResponse>
     {
         private const int DefaultTimeoutS = 10;
         private readonly BlockingCollection<ScatterResponse<TResponse>> _responses;
@@ -21,6 +21,10 @@ namespace Acquaintance.ScatterGather
             _responses = new BlockingCollection<ScatterResponse<TResponse>>();
             _neverHadParticipants = true;
         }
+
+        public int TotalParticipants => _totalParticipants;
+
+        public int CompletedParticipants => _completedParticipants;
 
         public ScatterResponse<TResponse> GetNextResponse(TimeSpan timeout)
         {
@@ -119,16 +123,18 @@ namespace Acquaintance.ScatterGather
             Interlocked.Decrement(ref _expectCount);
         }
 
+        public void CompleteWithNoResponse(Guid participantId)
+        {
+            Interlocked.Increment(ref _completedParticipants);
+            Interlocked.Decrement(ref _expectCount);
+        }
+
         public void AddParticipant(Guid participantId)
         {
             Interlocked.Increment(ref _totalParticipants);
             _neverHadParticipants = false;
             Interlocked.Increment(ref _expectCount);
         }
-
-        public int TotalParticipants => _totalParticipants;
-
-        public int CompletedParticipants => _completedParticipants;
 
         public void Dispose()
         {

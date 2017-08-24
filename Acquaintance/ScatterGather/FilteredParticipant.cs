@@ -32,7 +32,7 @@ namespace Acquaintance.ScatterGather
             return _inner.CanHandle(request) || _filter(request.Payload);
         }
 
-        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
             _inner.Scatter(request, scatter);
         }

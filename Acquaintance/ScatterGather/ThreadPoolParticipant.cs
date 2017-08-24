@@ -26,7 +26,7 @@ namespace Acquaintance.ScatterGather
             return true;
         }
 
-        public void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter)
+        public void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
             var action = new DispatchableScatter<TRequest, TResponse>(_action, request.Payload, Id, scatter);
             var context = _threadPool.GetThreadPoolActionDispatcher();

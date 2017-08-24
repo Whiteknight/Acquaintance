@@ -23,7 +23,7 @@ namespace Acquaintance.ScatterGather
             return token;
         }
 
-        public void Scatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope, Scatter<TResponse> scatter)
+        public void Scatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope, IGatherReceiver<TResponse> scatter)
         {
             Assert.ArgumentNotNull(envelope, nameof(envelope));
             Assert.ArgumentNotNull(scatter, nameof(scatter));

@@ -7,7 +7,7 @@ namespace Acquaintance.ScatterGather
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IParticipant<TRequest, TResponse>
+    public interface IParticipant<TRequest, out TResponse>
     {
         /// <summary>
         /// Determine if the participant can handle the request
@@ -20,8 +20,9 @@ namespace Acquaintance.ScatterGather
         /// Receive the request and produce responses
         /// </summary>
         /// <param name="request"></param>
+        /// <param name="scatter"></param>
         /// <returns></returns>
-        void Scatter(Envelope<TRequest> request, Scatter<TResponse> scatter);
+        void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter);
 
         /// <summary>
         /// Returns true if the participant should stop participating
