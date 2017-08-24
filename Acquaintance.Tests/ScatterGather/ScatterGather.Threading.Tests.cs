@@ -1,5 +1,4 @@
 using Acquaintance.RequestResponse;
-using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System.Threading;
@@ -24,7 +23,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                WorkerPool = new WorkerPool(null, 1)
+                NumberOfWorkers = 1
             });
 
             try

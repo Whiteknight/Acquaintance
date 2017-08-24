@@ -23,15 +23,15 @@ namespace Acquaintance
         public MessageBus(MessageBusCreateParameters parameters = null)
         {
             parameters = parameters ?? MessageBusCreateParameters.Default;
-            var logger = parameters.GetLogger();
-            WorkerPool = parameters.GetThreadPool(logger);
+            var log = parameters.GetLogger();
+            WorkerPool = new WorkerPool(log, parameters.NumberOfWorkers, parameters.MaximumQueuedMessages);
 
-            Modules = new ModuleManager(this, logger);
+            Modules = new ModuleManager(this, log);
             EnvelopeFactory = new EnvelopeFactory();
 
-            _subscriptionDispatcher = new SubscriptionDispatcher(logger, parameters.AllowWildcards);
-            _requestDispatcher = new RequestDispatcher(logger, parameters.AllowWildcards);
-            _participantDispatcher = new ParticipantDispatcher(logger, parameters.AllowWildcards);
+            _subscriptionDispatcher = new SubscriptionDispatcher(log, parameters.AllowWildcards);
+            _requestDispatcher = new RequestDispatcher(log, parameters.AllowWildcards);
+            _participantDispatcher = new ParticipantDispatcher(log, parameters.AllowWildcards);
             _router = new TopicRouter();
         }
 

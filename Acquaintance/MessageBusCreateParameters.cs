@@ -1,12 +1,18 @@
 ﻿using Acquaintance.Logging;
-using Acquaintance.Threading;
 
 namespace Acquaintance
 {
     public class MessageBusCreateParameters
     {
+        public MessageBusCreateParameters()
+        {
+            NumberOfWorkers = 2;
+            MaximumQueuedMessages = 1000;
+        }
+
         public bool AllowWildcards { get; set; }
-        public IWorkerPool WorkerPool { get; set; }
+        public int NumberOfWorkers { get; set; }
+        public int MaximumQueuedMessages { get; set; }
         public ILogger Logger { get; set; }
 
         public static MessageBusCreateParameters Default => new MessageBusCreateParameters();
@@ -26,11 +32,6 @@ namespace Acquaintance
 #else
             return new SilentLogger();
 #endif
-        }
-
-        public IWorkerPool GetThreadPool(ILogger log)
-        {
-            return WorkerPool ?? new WorkerPool(log, 2);
         }
     }
 }

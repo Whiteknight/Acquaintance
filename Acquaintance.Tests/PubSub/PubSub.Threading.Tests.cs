@@ -1,4 +1,3 @@
-using Acquaintance.Threading;
 using FluentAssertions;
 using NUnit.Framework;
 using System.Threading;
@@ -36,7 +35,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                WorkerPool = new WorkerPool(null, 1)
+                NumberOfWorkers = 1
             });
             var resetEvent = new ManualResetEvent(false);
             try
@@ -146,7 +145,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                WorkerPool = new WorkerPool(null, 1)
+                NumberOfWorkers = 1
             });
             try
             {
