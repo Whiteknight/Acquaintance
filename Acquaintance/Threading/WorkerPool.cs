@@ -12,7 +12,7 @@ namespace Acquaintance.Threading
     {
         private readonly ILogger _log;
         private readonly int _maxQueuedMessages;
-        private readonly List<MessageHandlerWorker> _freeWorkers;
+        private readonly IReadOnlyList<MessageHandlerWorker> _freeWorkers;
         private readonly IWorkerContext _freeWorkerContext;
         private readonly IActionDispatcher _threadPoolDispatcher;
 
@@ -28,11 +28,13 @@ namespace Acquaintance.Threading
             _log = log;
             _maxQueuedMessages = maxQueuedMessages;
             _threadPoolDispatcher = new ThreadPoolDispatcher(_log);
-            _freeWorkers = new List<MessageHandlerWorker>();
             _dedicatedWorkers = new ConcurrentDictionary<int, MessageHandlerWorker>();
             _detachedContexts = new ConcurrentDictionary<int, IWorkerContext>();
             _registeredThreads = new ConcurrentDictionary<int, RegisteredManagedThread>();
-            _freeWorkerContext = InitializeFreeWorkers(numFreeWorkers);
+
+            var freeWorkers = new List<MessageHandlerWorker>();
+            _freeWorkerContext = InitializeFreeWorkers(numFreeWorkers, freeWorkers);
+            _freeWorkers = freeWorkers;
         }
 
         public int NumberOfRunningFreeWorkers => _freeWorkers.Count;
@@ -132,7 +134,6 @@ namespace Acquaintance.Threading
             // Cleanup the free workers and their contexts
             foreach (var thread in _freeWorkers)
                 thread.Dispose();
-            _freeWorkers.Clear();
             _freeWorkerContext.Dispose();
 
             // Cleanup dedicated workers and their contexts
@@ -165,7 +166,7 @@ namespace Acquaintance.Threading
             }
         }
 
-        private IWorkerContext InitializeFreeWorkers(int numFreeWorkers)
+        private IWorkerContext InitializeFreeWorkers(int numFreeWorkers, List<MessageHandlerWorker> freeWorkers)
         {
             if (numFreeWorkers <= 0)
                 return null;
@@ -174,7 +175,7 @@ namespace Acquaintance.Threading
             for (int i = 0; i < numFreeWorkers; i++)
             {
                 var thread = new MessageHandlerWorker(freeWorkerContext, $"AcquaintanceFW{i}");
-                _freeWorkers.Add(thread);
+                freeWorkers.Add(thread);
                 thread.Start();
             }
             return freeWorkerContext;
