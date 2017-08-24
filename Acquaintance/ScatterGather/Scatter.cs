@@ -54,7 +54,7 @@ namespace Acquaintance.ScatterGather
                         return default(TResponse);
 
                     response.ThrowExceptionIfPresent();
-                    return response.Response;
+                    return response.Value;
                 }, token)
                 .ConfigureAwait(false);
         }
@@ -126,6 +126,7 @@ namespace Acquaintance.ScatterGather
         public void CompleteWithNoResponse(Guid participantId)
         {
             Interlocked.Increment(ref _completedParticipants);
+            _responses.Add(new ScatterResponse<TResponse>(participantId));
             Interlocked.Decrement(ref _expectCount);
         }
 

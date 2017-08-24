@@ -31,7 +31,7 @@ namespace Acquaintance.Tests.ScatterGather
 
             var response = target.Scatter<TestRequestWithResponse, TestResponse>(new TestRequestWithResponse { Text = "x" })
                 .GatherResponses(5)
-                .Select(r => r.Response.Text)
+                .Select(r => r.Value.Text)
                 .OrderBy(s=> s);
 
             var reduced = string.Join("", response);

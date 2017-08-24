@@ -22,11 +22,11 @@ namespace Acquaintance.Tests.ScatterGather
                 .When(e => e % 2 == 0, "Evens")
                 .When(e => e % 2 == 1, "Odds"));
 
-            target.Scatter<int, int>(1).GatherResponses(1).First().Response.Should().Be(100);
-            target.Scatter<int, int>(2).GatherResponses(1).First().Response.Should().Be(20);
-            target.Scatter<int, int>(3).GatherResponses(1).First().Response.Should().Be(300);
-            target.Scatter<int, int>(4).GatherResponses(1).First().Response.Should().Be(40);
-            target.Scatter<int, int>(5).GatherResponses(1).First().Response.Should().Be(500);
+            target.Scatter<int, int>(1).GatherResponses(1).First().Value.Should().Be(100);
+            target.Scatter<int, int>(2).GatherResponses(1).First().Value.Should().Be(20);
+            target.Scatter<int, int>(3).GatherResponses(1).First().Value.Should().Be(300);
+            target.Scatter<int, int>(4).GatherResponses(1).First().Value.Should().Be(40);
+            target.Scatter<int, int>(5).GatherResponses(1).First().Value.Should().Be(500);
         }
 
         [Test]
@@ -44,11 +44,11 @@ namespace Acquaintance.Tests.ScatterGather
                 .When(e => e % 2 == 0, "Evens")
                 .Else("Odds"));
 
-            target.Scatter<int, int>(1).GatherResponses(1).First().Response.Should().Be(100);
-            target.Scatter<int, int>(2).GatherResponses(1).First().Response.Should().Be(20);
-            target.Scatter<int, int>(3).GatherResponses(1).First().Response.Should().Be(300);
-            target.Scatter<int, int>(4).GatherResponses(1).First().Response.Should().Be(40);
-            target.Scatter<int, int>(5).GatherResponses(1).First().Response.Should().Be(500);
+            target.Scatter<int, int>(1).GatherResponses(1).First().Value.Should().Be(100);
+            target.Scatter<int, int>(2).GatherResponses(1).First().Value.Should().Be(20);
+            target.Scatter<int, int>(3).GatherResponses(1).First().Value.Should().Be(300);
+            target.Scatter<int, int>(4).GatherResponses(1).First().Value.Should().Be(40);
+            target.Scatter<int, int>(5).GatherResponses(1).First().Value.Should().Be(500);
         }
     }
 }

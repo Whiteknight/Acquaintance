@@ -1,5 +1,6 @@
 ﻿using Acquaintance.Threading;
 using System;
+using Acquaintance.Common;
 using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
@@ -19,6 +20,7 @@ namespace Acquaintance.ScatterGather
         private Func<TRequest, bool> _filter;
         private bool _useDedicatedThread;
         private Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> _modify;
+        private CircuitBreaker _circuitBreaker;
 
         public ParticipantBuilder(IScatterGatherBus messageBus, IThreadPool threadPool)
         {
@@ -141,6 +143,14 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
+        public IDetailsParticipantBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs)
+        {
+            if (_circuitBreaker != null)
+                throw new Exception("Circuit breaker is already configured");
+            _circuitBreaker = new CircuitBreaker(breakMs, maxFailures);
+            return this;
+        }
+
         private void ValidateDoesNotAlreadyHaveAction()
         {
             if (_funcReference != null)
@@ -174,6 +184,8 @@ namespace Acquaintance.ScatterGather
 
         private IParticipant<TRequest, TResponse> WrapParticipant(IParticipant<TRequest, TResponse> participant, Func<TRequest, bool> filter, int maxRequests)
         {
+            if (_circuitBreaker != null)
+                participant = new CircuitBreakerParticipant<TRequest, TResponse>(participant, _circuitBreaker);
             if (filter != null)
                 participant = new FilteredParticipant<TRequest, TResponse>(participant, filter);
             if (maxRequests > 0)

@@ -112,5 +112,7 @@ namespace Acquaintance.ScatterGather
         /// <param name="modify"></param>
         /// <returns></returns>
         IDetailsParticipantBuilder<TRequest, TResponse> ModifyParticipant(Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> modify);
+
+        IDetailsParticipantBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs);
     }
 }

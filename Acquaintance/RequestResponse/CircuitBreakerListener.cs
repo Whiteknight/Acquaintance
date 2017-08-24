@@ -21,7 +21,11 @@ namespace Acquaintance.RequestResponse
         }
 
         public bool ShouldStopListening => _inner.ShouldStopListening;
-        public Guid Id { get; set; }
+        public Guid Id
+        {
+            get { return _inner.Id; }
+            set { _inner.Id = value; }
+        }
 
         public bool CanHandle(Envelope<TRequest> request)
         {

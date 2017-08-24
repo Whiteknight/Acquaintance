@@ -56,7 +56,7 @@ namespace Acquaintance.Tests.ScatterGather
                     .OnDedicatedThread());
                 var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
-                results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
+                results.GetNextResponse().Value.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
             }
             finally
@@ -77,7 +77,7 @@ namespace Acquaintance.Tests.ScatterGather
                     .OnThreadPool());
                 var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
-                results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
+                results.GetNextResponse().Value.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
             }
             finally
@@ -99,7 +99,7 @@ namespace Acquaintance.Tests.ScatterGather
                     .OnThread(threadId));
                 var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
-                results.GetNextResponse().Response.Text.Should().NotBeNullOrEmpty();
+                results.GetNextResponse().Value.Text.Should().NotBeNullOrEmpty();
                 token.Dispose();
             }
             finally

@@ -4,18 +4,26 @@ namespace Acquaintance.ScatterGather
 {
     public class ScatterResponse<TResponse>
     {
-        public ScatterResponse(TResponse response, Guid participantId, Exception errorInformation)
+        public ScatterResponse(TResponse value, Guid participantId, Exception errorInformation)
         {
-            Response = response;
+            Value = value;
             ParticipantId = participantId;
             ErrorInformation = errorInformation;
             Success = errorInformation == null;
         }
 
-        public TResponse Response { get; private set; }
+        public ScatterResponse(Guid participantId)
+        {
+            ParticipantId = participantId;
+            IsEmpty = true;
+            Success = true;
+        }
+
+        public TResponse Value { get; private set; }
         public Guid ParticipantId { get; }
         public bool Success { get; private set; }
         public Exception ErrorInformation { get; }
+        public bool IsEmpty { get; private set; }
 
         public void ThrowExceptionIfPresent()
         {

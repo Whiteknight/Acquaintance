@@ -206,12 +206,12 @@ namespace Acquaintance.RequestResponse
 
         private IListener<TRequest, TResponse> WrapListener(IListener<TRequest, TResponse> listener, Func<TRequest, bool> filter, int maxRequests)
         {
+            if (_circuitBreaker != null)
+                listener = new CircuitBreakerListener<TRequest, TResponse>(listener, _circuitBreaker);
             if (filter != null)
                 listener = new FilteredListener<TRequest, TResponse>(listener, filter);
             if (maxRequests > 0)
                 listener = new MaxRequestsListener<TRequest, TResponse>(listener, maxRequests);
-            if (_circuitBreaker != null)
-                listener = new CircuitBreakerListener<TRequest, TResponse>(listener, _circuitBreaker);
             if (_modify != null)
                 listener = _modify(listener);
             return listener;

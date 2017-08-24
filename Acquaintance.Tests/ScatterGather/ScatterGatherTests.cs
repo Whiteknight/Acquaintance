@@ -32,7 +32,7 @@ namespace Acquaintance.Tests.ScatterGather
             response.Should().NotBeNull();
             var responses = response.GatherResponses();
             responses.Should().HaveCount(1);
-            responses[0].Response.Text.Should().Be("RequestResponded");
+            responses[0].Value.Text.Should().Be("RequestResponded");
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace Acquaintance.Tests.ScatterGather
             var responses = response.GatherResponses();
             response.CompletedParticipants.Should().Be(1);
             responses.Should().HaveCount(1);
-            responses[0].Response.Should().Be(15);
+            responses[0].Value.Should().Be(15);
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace Acquaintance.Tests.ScatterGather
             response.Should().NotBeNull();
             var responses = response.GatherResponses();
             responses.Should().HaveCount(1);
-            responses[0].Response.Text.Should().Be("RequestResponded");
+            responses[0].Value.Text.Should().Be("RequestResponded");
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace Acquaintance.Tests.ScatterGather
 
             var response = target.Scatter<TestRequestWithResponse, TestResponse>(new TestRequestWithResponse { Text = "Request" }).GatherResponses(1);
             response.Should().HaveCount(1);
-            response[0].Response.Text.Should().Be("RequestResponded");
+            response[0].Value.Text.Should().Be("RequestResponded");
         }
 
         private class GenericRequest<T> { }
@@ -118,7 +118,7 @@ namespace Acquaintance.Tests.ScatterGather
             target.Participate<int, int>(l => l.WithTopic("Test.A").Invoke(req => 1));
             target.Participate<int, int>(l => l.WithTopic("Test.B").Invoke(req => 2));
             target.Participate<int, int>(l => l.WithTopic("Test.C").Invoke(req => 3));
-            var response = target.Scatter<int, int>("Test.*", 0).GatherResponses(3).Select(r => r.Response).ToArray();
+            var response = target.Scatter<int, int>("Test.*", 0).GatherResponses(3).Select(r => r.Value).ToArray();
             response.Should().BeEquivalentTo(1, 2, 3);
         }
 
@@ -179,7 +179,7 @@ namespace Acquaintance.Tests.ScatterGather
                 }));
             var response = target.Scatter<int, int>("Test", 5);
             response.TotalParticipants.Should().Be(1);
-            var values = response.GatherResponses(1).Select(r => r.Response).ToArray();
+            var values = response.GatherResponses(1).Select(r => r.Value).ToArray();
             response.CompletedParticipants.Should().Be(1);
             values.Length.Should().Be(1);
         }
