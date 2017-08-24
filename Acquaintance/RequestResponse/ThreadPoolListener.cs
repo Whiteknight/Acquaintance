@@ -23,7 +23,7 @@ namespace Acquaintance.RequestResponse
             return _func.IsAlive;
         }
 
-        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
+        public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
             var thread = _threadPool.GetThreadPoolActionDispatcher();
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, envelope, Id, request);

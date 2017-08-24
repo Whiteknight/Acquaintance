@@ -17,7 +17,7 @@ namespace Acquaintance.RequestResponse
         public abstract void ThrowExceptionIfError();
     }
 
-    public class Request<TResponse> : Request, IRequest<TResponse>
+    public class Request<TResponse> : Request, IRequest<TResponse>, IResponseReceiver<TResponse>
     {
         private readonly ManualResetEvent _resetEvent;
 

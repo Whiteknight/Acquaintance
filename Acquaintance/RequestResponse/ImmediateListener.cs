@@ -18,7 +18,7 @@ namespace Acquaintance.RequestResponse
             return _func.IsAlive;
         }
 
-        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
+        public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
             var value = _func.Invoke(envelope);
             request.SetResponse(value);

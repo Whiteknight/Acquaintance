@@ -23,7 +23,7 @@ namespace Acquaintance.RequestResponse
             return token;
         }
 
-        public void Request<TRequest, TResponse>(string topic, Envelope<TRequest> envelope, Request<TResponse> request)
+        public void Request<TRequest, TResponse>(string topic, Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
             Assert.ArgumentNotNull(envelope, nameof(envelope));
             Assert.ArgumentNotNull(request, nameof(request));

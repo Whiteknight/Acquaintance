@@ -24,7 +24,7 @@ namespace Acquaintance.RequestResponse
             return _inner.CanHandle(request) && _filter(request.Payload);
         }
 
-        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
+        public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
             _inner.Request(envelope, request);
         }

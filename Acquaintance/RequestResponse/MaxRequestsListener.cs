@@ -25,7 +25,7 @@ namespace Acquaintance.RequestResponse
             return _maxRequests > 0 || _inner.CanHandle(request);
         }
 
-        public void Request(Envelope<TRequest> envelope, Request<TResponse> request)
+        public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
             if (ShouldStopListening)
             {

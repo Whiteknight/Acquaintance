@@ -255,7 +255,7 @@ namespace Acquaintance.Tests.RequestResponse
                 return true;
             }
 
-            public void Request(Envelope<int> envelope, Request<int> request)
+            public void Request(Envelope<int> envelope, IResponseReceiver<int> request)
             {
                 request.SetError(new Exception("Should not get here"));
             }

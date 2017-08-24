@@ -7,9 +7,9 @@ namespace Acquaintance.RequestResponse
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
         private readonly Envelope<TRequest> _envelope;
-        private readonly Request<TResponse> _request;
+        private readonly IResponseReceiver<TResponse> _request;
 
-        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, Envelope<TRequest> envelope, Guid listenerId, Request<TResponse> request)
+        public DispatchableRequest(IListenerReference<TRequest, TResponse> func, Envelope<TRequest> envelope, Guid listenerId, IResponseReceiver<TResponse> request)
         {
             _func = func;
             _envelope = envelope;

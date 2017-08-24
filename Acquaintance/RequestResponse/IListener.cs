@@ -7,7 +7,7 @@ namespace Acquaintance.RequestResponse
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IListener<TRequest, TResponse>
+    public interface IListener<TRequest, out TResponse>
     {
         /// <summary>
         /// Determine if the listener can handle the request depending on the current state of the
@@ -23,8 +23,9 @@ namespace Acquaintance.RequestResponse
         /// ready.
         /// </summary>
         /// <param name="envelope"></param>
+        /// <param name="request"></param>
         /// <returns></returns>
-        void Request(Envelope<TRequest> envelope, Request<TResponse> request);
+        void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request);
 
         /// <summary>
         /// Whether the listener has satisfied all the requests it is able, and needs to be removed
