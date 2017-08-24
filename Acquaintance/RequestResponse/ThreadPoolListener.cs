@@ -27,7 +27,7 @@ namespace Acquaintance.RequestResponse
         {
             var thread = _threadPool.GetThreadPoolActionDispatcher();
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, envelope, Id, request);
-            thread.DispatchAction(responseWaiter); ;
+            thread.DispatchAction(responseWaiter); 
         }   
     }
 }

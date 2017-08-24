@@ -17,12 +17,12 @@ namespace Acquaintance.Routing
             _scatterRoutes = new ConcurrentDictionary<string, IScatterRouteRule>();
         }
 
-        private string GetKey<TPayload>(string topic)
+        private static string GetKey<TPayload>(string topic)
         {
             return $"{typeof(TPayload).FullName}:{topic}";
         }
 
-        private string GetKey<TRequest, TResponse>(string topic)
+        private static string GetKey<TRequest, TResponse>(string topic)
         {
             return $"{typeof(TRequest).FullName}:{typeof(TResponse).FullName}:{topic}";
         }

@@ -70,7 +70,6 @@ namespace Acquaintance.Threading
             bool ok = _dedicatedWorkers.TryGetValue(threadId, out MessageHandlerThread worker);
             if (ok)
                 return worker.Context;
-
             
             if (allowAutoCreate)
                 return _detachedContexts.GetOrAdd(threadId, id => CreateDetachedContext());

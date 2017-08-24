@@ -15,17 +15,19 @@ namespace Acquaintance.Threading
 
         public void DispatchAction(IThreadAction action)
         {
-            Task.Factory.StartNew(() =>
-            {
-                try
+            Task.Factory
+                .StartNew(() =>
                 {
-                    action.Execute();
-                }
-                catch (Exception e)
-                {
-                    _log.Warn("Unhandled exception in threadpool dispatcher: {0}\n{1}", e.Message, e.StackTrace);
-                }
-            });
+                    try
+                    {
+                        action.Execute();
+                    }
+                    catch (Exception e)
+                    {
+                        _log.Warn("Unhandled exception in threadpool dispatcher: {0}\n{1}", e.Message, e.StackTrace);
+                    }
+                })
+                .ConfigureAwait(false);
         }
     }
 }

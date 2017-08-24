@@ -9,7 +9,7 @@ namespace Acquaintance.Routing
     public class RoundRobinDistributeRule<T> : IPublishRouteRule<T>, IRequestRouteRule<T>
     {
         private readonly string[] _topics;
-        private int _idx;
+        private volatile int _idx;
 
         public RoundRobinDistributeRule(IEnumerable<string> topics)
         {
@@ -36,7 +36,6 @@ namespace Acquaintance.Routing
         {
             int idx = Interlocked.Increment(ref _idx);
             idx = idx % _topics.Length;
-
             return _topics[idx];
         }
     }

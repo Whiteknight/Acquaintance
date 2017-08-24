@@ -83,7 +83,7 @@ namespace Acquaintance.Testing
         {
         }
 
-        private void DefaultOnError(string[] errors)
+        private static void DefaultOnError(string[] errors)
         {
             throw new ExpectationFailedException(errors);
         }

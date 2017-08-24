@@ -44,9 +44,9 @@ namespace Acquaintance.ScatterGather
 
         private IParticipant<TRequest, TResponse> BuildParticipantInternal()
         {
-            if (_funcReference != null)
-                return CreateParticipant(_funcReference, _dispatchType, _threadId);
-            throw new Exception("No actions defined");
+            if (_funcReference == null)
+                throw new Exception("No actions defined");
+            return CreateParticipant(_funcReference, _dispatchType, _threadId);
         }
 
         public IDisposable WrapToken(IDisposable token)

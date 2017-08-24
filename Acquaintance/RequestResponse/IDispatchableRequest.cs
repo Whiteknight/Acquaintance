@@ -1,4 +1,3 @@
-using Acquaintance.Common;
 using System;
 
 namespace Acquaintance.RequestResponse

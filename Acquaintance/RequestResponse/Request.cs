@@ -47,27 +47,25 @@ namespace Acquaintance.RequestResponse
         public void SetResponse(TResponse response)
         {
             var canSet = Interlocked.Increment(ref _timesSet);
-            if (canSet == 1)
-            {
-                _response = response;
-                _isComplete = true;
-                _hasResponse = true;
-                _exception = null;
-                _resetEvent.Set();
-            }
+            if (canSet != 1)
+                return;
+            _response = response;
+            _isComplete = true;
+            _hasResponse = true;
+            _exception = null;
+            _resetEvent.Set();
         }
 
         public void SetError(Exception e)
         {
             var canSet = Interlocked.Increment(ref _timesSet);
-            if (canSet == 1)
-            {
-                _response = default(TResponse);
-                _exception = e;
-                _isComplete = true;
-                _hasResponse = true;
-                _resetEvent.Set();
-            }
+            if (canSet != 1)
+                return;
+            _response = default(TResponse);
+            _exception = e;
+            _isComplete = true;
+            _hasResponse = true;
+            _resetEvent.Set();
         }
 
         public override bool WaitForResponse(TimeSpan timeout)
