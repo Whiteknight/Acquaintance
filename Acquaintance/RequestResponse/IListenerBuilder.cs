@@ -133,5 +133,7 @@ namespace Acquaintance.RequestResponse
         /// <param name="modify"></param>
         /// <returns></returns>
         IDetailsListenerBuilder<TRequest, TResponse> ModifyListener(Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> modify);
+
+        IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs);
     }
 }

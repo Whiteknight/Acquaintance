@@ -1,5 +1,6 @@
 ﻿using Acquaintance.Threading;
 using System;
+using Acquaintance.Common;
 using Acquaintance.Utility;
 
 namespace Acquaintance.RequestResponse
@@ -20,6 +21,7 @@ namespace Acquaintance.RequestResponse
         private Func<TRequest, bool> _filter;
         private bool _useDedicatedThread;
         private Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> _modify;
+        private CircuitBreaker _circuitBreaker;
 
         public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
         {
@@ -163,6 +165,14 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
+        public IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs)
+        {
+            if (_circuitBreaker != null)
+                throw new Exception("Already has a circuit breaker configured");
+            _circuitBreaker = new CircuitBreaker(breakMs, maxFailures);
+            return this;
+        }
+
         private void ValidateDoesNotAlreadyHaveDispatchType()
         {
             if (_dispatchType != DispatchThreadType.NoPreference)
@@ -200,6 +210,8 @@ namespace Acquaintance.RequestResponse
                 listener = new FilteredListener<TRequest, TResponse>(listener, filter);
             if (maxRequests > 0)
                 listener = new MaxRequestsListener<TRequest, TResponse>(listener, maxRequests);
+            if (_circuitBreaker != null)
+                listener = new CircuitBreakerListener<TRequest, TResponse>(listener, _circuitBreaker);
             if (_modify != null)
                 listener = _modify(listener);
             return listener;
