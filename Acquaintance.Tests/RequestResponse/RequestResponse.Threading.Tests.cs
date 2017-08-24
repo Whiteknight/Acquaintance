@@ -24,7 +24,7 @@ namespace Acquaintance.Tests.RequestResponse
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(null, 1)
+                WorkerPool = new WorkerPool(null, 1)
             });
             try
             {
@@ -86,7 +86,7 @@ namespace Acquaintance.Tests.RequestResponse
         public void ListenRequestAndResponse_OnThread()
         {
             var target = new MessageBus();
-            int threadId = target.ThreadPool.StartDedicatedWorker().ThreadId;
+            int threadId = target.WorkerPool.StartDedicatedWorker().ThreadId;
             try
             {
                 target.Listen<int, int>(l => l

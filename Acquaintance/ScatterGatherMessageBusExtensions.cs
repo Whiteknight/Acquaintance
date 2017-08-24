@@ -22,7 +22,7 @@ namespace Acquaintance
         public static IDisposable Participate<TRequest, TResponse>(this IScatterGatherBus messageBus, Action<ITopicParticipantBuilder<TRequest, TResponse>> build)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            var builder = new ParticipantBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
+            var builder = new ParticipantBuilder<TRequest, TResponse>(messageBus, messageBus.WorkerPool);
             build(builder);
             var participant = builder.BuildParticipant();
             var token = messageBus.Participate(builder.Topic, participant);

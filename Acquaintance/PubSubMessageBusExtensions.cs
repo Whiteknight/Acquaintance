@@ -80,7 +80,7 @@ namespace Acquaintance
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(build, nameof(build));
 
-            var builder = new SubscriptionBuilder<TPayload>(messageBus, messageBus.ThreadPool);
+            var builder = new SubscriptionBuilder<TPayload>(messageBus, messageBus.WorkerPool);
             build(builder);
             var subscription = builder.BuildSubscription();
 

@@ -13,7 +13,7 @@ namespace Acquaintance
         /// <summary>
         /// The threadpool which holds worker threads for dispatching requests and events
         /// </summary>
-        IThreadPool ThreadPool { get; }
+        IWorkerPool WorkerPool { get; }
 
         /// <summary>
         /// Factory for creating envelopes

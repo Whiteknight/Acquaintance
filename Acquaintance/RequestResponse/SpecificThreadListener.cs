@@ -7,13 +7,13 @@ namespace Acquaintance.RequestResponse
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
         private readonly int _threadId;
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
 
-        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, IThreadPool threadPool)
+        public SpecificThreadListener(IListenerReference<TRequest, TResponse> func, int threadId, IWorkerPool workerPool)
         {
             _func = func;
             _threadId = threadId;
-            _threadPool = threadPool;
+            _workerPool = workerPool;
         }
 
         public Guid Id { get; set; }
@@ -25,7 +25,7 @@ namespace Acquaintance.RequestResponse
 
         public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
-            var thread = _threadPool.GetThreadDispatcher(_threadId, false);
+            var thread = _workerPool.GetDispatcher(_threadId, false);
             if (thread == null)
             {
                 request.SetNoResponse();

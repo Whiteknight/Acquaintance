@@ -11,7 +11,7 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload>
     {
         private readonly IPubSubBus _messageBus;
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
 
         private ISubscriberReference<TPayload> _actionReference;
         private DispatchThreadType _dispatchType;
@@ -21,13 +21,13 @@ namespace Acquaintance.PubSub
         private bool _useDedicatedThread;
         private Func<ISubscription<TPayload>, ISubscription<TPayload>> _wrap;
 
-        public SubscriptionBuilder(IPubSubBus messageBus, IThreadPool threadPool)
+        public SubscriptionBuilder(IPubSubBus messageBus, IWorkerPool workerPool)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            Assert.ArgumentNotNull(threadPool, nameof(threadPool));
+            Assert.ArgumentNotNull(workerPool, nameof(workerPool));
 
             _dispatchType = DispatchThreadType.NoPreference;
-            _threadPool = threadPool;
+            _workerPool = workerPool;
             _messageBus = messageBus;
         }
 
@@ -36,7 +36,7 @@ namespace Acquaintance.PubSub
         public ISubscription<TPayload> BuildSubscription()
         {
             if (_useDedicatedThread)
-                _threadId = _threadPool.StartDedicatedWorker().ThreadId;
+                _threadId = _workerPool.StartDedicatedWorker().ThreadId;
 
             var subscription = BuildSubscriptionInternal();
 
@@ -56,7 +56,7 @@ namespace Acquaintance.PubSub
             Assert.ArgumentNotNull(token, nameof(token));
 
             if (_useDedicatedThread)
-                return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
+                return new SubscriptionWithDedicatedWorkerToken(_workerPool, token, _threadId);
             return token;
         }
 
@@ -239,17 +239,17 @@ namespace Acquaintance.PubSub
             switch (dispatchType)
             {
                 case DispatchThreadType.NoPreference:
-                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
+                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _workerPool);
                 case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
+                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _workerPool);
                 case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadPubSubSubscription<TPayload>(actionReference, threadId, _threadPool);
+                    return new SpecificThreadPubSubSubscription<TPayload>(actionReference, threadId, _workerPool);
                 case DispatchThreadType.ThreadpoolThread:
-                    return new ThreadPoolThreadSubscription<TPayload>(_threadPool, actionReference);
+                    return new ThreadPoolThreadSubscription<TPayload>(_workerPool, actionReference);
                 case DispatchThreadType.Immediate:
                     return new ImmediatePubSubSubscription<TPayload>(actionReference);
                 default:
-                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _threadPool);
+                    return new AnyThreadPubSubSubscription<TPayload>(actionReference, _workerPool);
             }
         }
     }

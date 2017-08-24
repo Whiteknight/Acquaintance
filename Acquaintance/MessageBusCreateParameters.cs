@@ -6,7 +6,7 @@ namespace Acquaintance
     public class MessageBusCreateParameters
     {
         public bool AllowWildcards { get; set; }
-        public IThreadPool ThreadPool { get; set; }
+        public IWorkerPool WorkerPool { get; set; }
         public ILogger Logger { get; set; }
 
         public static MessageBusCreateParameters Default => new MessageBusCreateParameters();
@@ -28,9 +28,9 @@ namespace Acquaintance
 #endif
         }
 
-        public IThreadPool GetThreadPool(ILogger log)
+        public IWorkerPool GetThreadPool(ILogger log)
         {
-            return ThreadPool ?? new MessagingWorkerThreadPool(log, 2);
+            return WorkerPool ?? new WorkerPool(log, 2);
         }
     }
 }

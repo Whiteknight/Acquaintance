@@ -95,7 +95,7 @@ namespace Acquaintance
         public static IDisposable Listen<TRequest, TResponse>(this IReqResBus messageBus, Action<ITopicListenerBuilder<TRequest, TResponse>> build)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            var builder = new ListenerBuilder<TRequest, TResponse>(messageBus, messageBus.ThreadPool);
+            var builder = new ListenerBuilder<TRequest, TResponse>(messageBus, messageBus.WorkerPool);
             build(builder);
             var listener = builder.BuildListener();
             var token = messageBus.Listen(builder.Topic, listener);

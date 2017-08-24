@@ -3,12 +3,12 @@ using System.Threading;
 
 namespace Acquaintance.Threading
 {
-    public class MessageHandlerThread : IDisposable
+    public class MessageHandlerWorker : IDisposable
     {
         private readonly Thread _thread;
         private bool _started;
 
-        public MessageHandlerThread(IMessageHandlerThreadContext context, string name)
+        public MessageHandlerWorker(IWorkerContext context, string name)
         {
             _thread = new Thread(HandlerThreadFunc)
             {
@@ -18,7 +18,7 @@ namespace Acquaintance.Threading
             Context = context;
         }
 
-        public IMessageHandlerThreadContext Context { get; }
+        public IWorkerContext Context { get; }
 
         public int ThreadId => _thread.ManagedThreadId;
 
@@ -41,7 +41,7 @@ namespace Acquaintance.Threading
 
         private static void HandlerThreadFunc(object contextObject)
         {
-            var context = contextObject as IMessageHandlerThreadContext;
+            var context = contextObject as IWorkerContext;
             if (context == null)
                 return;
 

@@ -2,9 +2,9 @@
 
 namespace Acquaintance.Threading
 {
-    public class DummyMessageHandlerThreadContext : IMessageHandlerThreadContext
+    public class DummyWorkerContext : IWorkerContext
     {
-        public DummyMessageHandlerThreadContext(ILogger log)
+        public DummyWorkerContext(ILogger log)
         {
             Log = log;
         }

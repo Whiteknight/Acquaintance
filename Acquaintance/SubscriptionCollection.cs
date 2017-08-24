@@ -22,7 +22,7 @@ namespace Acquaintance
         {
             _messageBus = messageBus;
             _subscriptions = new DisposableCollection();
-            ThreadPool = new DisposableThreadPool(messageBus.ThreadPool, _subscriptions);
+            WorkerPool = new DisposableWorkerPool(messageBus.WorkerPool, _subscriptions);
             _router = new DisposableTopicRouter(messageBus.PublishRouter, messageBus.RequestRouter, messageBus.ScatterRouter, _subscriptions);
         }
 
@@ -30,7 +30,7 @@ namespace Acquaintance
         public IRequestTopicRouter RequestRouter => _router;
         public IScatterTopicRouter ScatterRouter => _router;
 
-        public IThreadPool ThreadPool { get; }
+        public IWorkerPool WorkerPool { get; }
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
@@ -132,12 +132,12 @@ namespace Acquaintance
             }
         }
 
-        private class DisposableThreadPool : IThreadPool
+        private class DisposableWorkerPool : IWorkerPool
         {
-            private readonly IThreadPool _inner;
+            private readonly IWorkerPool _inner;
             private readonly DisposableCollection _tokens;
 
-            public DisposableThreadPool(IThreadPool inner, DisposableCollection tokens)
+            public DisposableWorkerPool(IWorkerPool inner, DisposableCollection tokens)
             {
                 _inner = inner;
                 _tokens = tokens;
@@ -150,7 +150,7 @@ namespace Acquaintance
                 return _inner.GetThreadReport();
             }
 
-            public ThreadToken StartDedicatedWorker()
+            public WorkerToken StartDedicatedWorker()
             {
                 var token = _inner.StartDedicatedWorker();
                 _tokens.Add(token);
@@ -162,24 +162,24 @@ namespace Acquaintance
                 _inner.StopDedicatedWorker(threadId);
             }
 
-            public IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate)
+            public IActionDispatcher GetDispatcher(int threadId, bool allowAutoCreate)
             {
-                return _inner.GetThreadDispatcher(threadId, allowAutoCreate);
+                return _inner.GetDispatcher(threadId, allowAutoCreate);
             }
 
-            public IActionDispatcher GetFreeWorkerThreadDispatcher()
+            public IActionDispatcher GetFreeWorkerDispatcher()
             {
-                return _inner.GetFreeWorkerThreadDispatcher();
+                return _inner.GetFreeWorkerDispatcher();
             }
 
-            public IActionDispatcher GetThreadPoolActionDispatcher()
+            public IActionDispatcher GetThreadPoolDispatcher()
             {
-                return _inner.GetThreadPoolActionDispatcher();
+                return _inner.GetThreadPoolDispatcher();
             }
 
-            public IActionDispatcher GetAnyThreadDispatcher()
+            public IActionDispatcher GetAnyWorkerDispatcher()
             {
-                return _inner.GetAnyThreadDispatcher();
+                return _inner.GetAnyWorkerDispatcher();
             }
 
             public IActionDispatcher GetCurrentThreadDispatcher()
@@ -187,7 +187,7 @@ namespace Acquaintance
                 return _inner.GetCurrentThreadDispatcher();
             }
 
-            public IMessageHandlerThreadContext GetCurrentThreadContext()
+            public IWorkerContext GetCurrentThreadContext()
             {
                 return _inner.GetCurrentThreadContext();
             }

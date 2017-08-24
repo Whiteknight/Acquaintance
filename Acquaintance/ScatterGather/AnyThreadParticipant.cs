@@ -11,12 +11,12 @@ namespace Acquaintance.ScatterGather
     public class AnyThreadParticipant<TRequest, TResponse> : IParticipant<TRequest, TResponse>
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
 
-        public AnyThreadParticipant(IParticipantReference<TRequest, TResponse> func, IThreadPool threadPool)
+        public AnyThreadParticipant(IParticipantReference<TRequest, TResponse> func, IWorkerPool workerPool)
         {
             _func = func;
-            _threadPool = threadPool;
+            _workerPool = workerPool;
         }
 
         public Guid Id { get; set; }
@@ -29,7 +29,7 @@ namespace Acquaintance.ScatterGather
 
         public void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
-            var thread = _threadPool.GetFreeWorkerThreadDispatcher();
+            var thread = _workerPool.GetFreeWorkerDispatcher();
             if (thread == null)
             { 
                 ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request.Payload, scatter);

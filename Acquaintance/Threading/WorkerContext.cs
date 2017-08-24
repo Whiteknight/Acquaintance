@@ -5,13 +5,13 @@ using Acquaintance.Logging;
 
 namespace Acquaintance.Threading
 {
-    public class MessageHandlerThreadContext : IMessageHandlerThreadContext
+    public class WorkerContext : IWorkerContext
     {
         private readonly BlockingCollection<IThreadAction> _queue;
         private int _disposing;
         private readonly int _maxQueuedMessages;
 
-        public MessageHandlerThreadContext(int maxQueuedMessages, ILogger log)
+        public WorkerContext(int maxQueuedMessages, ILogger log)
         {
             Log = log ?? new SilentLogger();
             _queue = new BlockingCollection<IThreadAction>();

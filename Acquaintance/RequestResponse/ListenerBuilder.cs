@@ -11,7 +11,7 @@ namespace Acquaintance.RequestResponse
         IThreadListenerBuilder<TRequest, TResponse>,
         IDetailsListenerBuilder<TRequest, TResponse>
     {
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
         private readonly IReqResBus _messageBus;
 
         private DispatchThreadType _dispatchType;
@@ -23,13 +23,13 @@ namespace Acquaintance.RequestResponse
         private Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> _modify;
         private CircuitBreaker _circuitBreaker;
 
-        public ListenerBuilder(IReqResBus messageBus, IThreadPool threadPool)
+        public ListenerBuilder(IReqResBus messageBus, IWorkerPool workerPool)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            Assert.ArgumentNotNull(threadPool, nameof(threadPool));
+            Assert.ArgumentNotNull(workerPool, nameof(workerPool));
 
             _messageBus = messageBus;
-            _threadPool = threadPool;
+            _workerPool = workerPool;
         }
 
         public string Topic { get; private set; }
@@ -52,7 +52,7 @@ namespace Acquaintance.RequestResponse
         {
             Assert.ArgumentNotNull(token, nameof(token));
             if (_useDedicatedThread)
-                return new SubscriptionWithDedicatedThreadToken(_threadPool, token, _threadId);
+                return new SubscriptionWithDedicatedWorkerToken(_workerPool, token, _threadId);
             return token;
         }
 
@@ -190,15 +190,15 @@ namespace Acquaintance.RequestResponse
             switch (dispatchType)
             {
                 case DispatchThreadType.NoPreference:
-                    return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool);
+                    return new AnyThreadListener<TRequest, TResponse>(reference, _workerPool);
                 case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadListener<TRequest, TResponse>(reference, _threadPool);
+                    return new AnyThreadListener<TRequest, TResponse>(reference, _workerPool);
                 case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _threadPool);
+                    return new SpecificThreadListener<TRequest, TResponse>(reference, threadId, _workerPool);
                 case DispatchThreadType.Immediate:
                     return new ImmediateListener<TRequest, TResponse>(reference);
                 case DispatchThreadType.ThreadpoolThread:
-                    return new ThreadPoolListener<TRequest, TResponse>(reference, _threadPool);
+                    return new ThreadPoolListener<TRequest, TResponse>(reference, _workerPool);
                 default:
                     return new ImmediateListener<TRequest, TResponse>(reference);
             }

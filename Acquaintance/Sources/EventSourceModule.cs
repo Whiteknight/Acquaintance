@@ -8,11 +8,11 @@ namespace Acquaintance.Sources
     public class EventSourceModule : IMessageBusModule, IThreadManager
     {
         private IMessageBus _messageBus;
-        private readonly ConcurrentDictionary<Guid, IEventSourceThread> _threads;
+        private readonly ConcurrentDictionary<Guid, IEventSourceWorker> _threads;
 
         public EventSourceModule()
         {
-            _threads = new ConcurrentDictionary<Guid, IEventSourceThread>();
+            _threads = new ConcurrentDictionary<Guid, IEventSourceWorker>();
         }
 
         public void Attach(IMessageBus messageBus)
@@ -39,32 +39,32 @@ namespace Acquaintance.Sources
         public IDisposable RunEventSource(IEventSource source)
         {
             IEventSourceContext context = new EventSourceContext(_messageBus);
-            var thread = new EventSourceThread(source, context);
+            var thread = new EventSourceWorker(source, context);
             bool ok = _threads.TryAdd(thread.Id, thread);
             if (!ok)
             {
                 // TODO: Handle the rare error
                 return null;
             }
-            _messageBus.ThreadPool.RegisterManagedThread(this, thread.ThreadId, "SourceModule thread " + thread.Id);
+            _messageBus.WorkerPool.RegisterManagedThread(this, thread.ThreadId, "SourceModule thread " + thread.Id);
             return new ThreadToken(this, thread, thread.Id);
         }
 
         private void RemoveThread(Guid id)
         {
-            _threads.TryRemove(id, out IEventSourceThread thread);
-            _messageBus.ThreadPool.UnregisterManagedThread(thread.ThreadId);
+            _threads.TryRemove(id, out IEventSourceWorker thread);
+            _messageBus.WorkerPool.UnregisterManagedThread(thread.ThreadId);
         }
 
         private class ThreadToken : IDisposable
         {
-            private readonly IEventSourceThread _thread;
+            private readonly IEventSourceWorker _worker;
             private readonly Guid _id;
             private readonly EventSourceModule _module;
 
-            public ThreadToken(EventSourceModule module, IEventSourceThread thread, Guid id)
+            public ThreadToken(EventSourceModule module, IEventSourceWorker worker, Guid id)
             {
-                _thread = thread;
+                _worker = worker;
                 _id = id;
                 _module = module;
             }
@@ -72,7 +72,7 @@ namespace Acquaintance.Sources
             public void Dispose()
             {
                 _module.RemoveThread(_id);
-                _thread.Dispose();
+                _worker.Dispose();
             }
         }
 

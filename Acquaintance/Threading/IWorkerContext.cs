@@ -3,7 +3,7 @@ using Acquaintance.Logging;
 
 namespace Acquaintance.Threading
 {
-    public interface IMessageHandlerThreadContext : IActionDispatcher, IDisposable
+    public interface IWorkerContext : IActionDispatcher, IDisposable
     {
         ILogger Log { get; }
         bool ShouldStop { get; }

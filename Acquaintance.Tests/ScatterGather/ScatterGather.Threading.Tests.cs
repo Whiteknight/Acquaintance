@@ -24,7 +24,7 @@ namespace Acquaintance.Tests.ScatterGather
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(null, 1)
+                WorkerPool = new WorkerPool(null, 1)
             });
 
             try
@@ -90,7 +90,7 @@ namespace Acquaintance.Tests.ScatterGather
         public void ParticipateScatterGather_OnThread()
         {
             var target = new MessageBus();
-            int threadId = target.ThreadPool.StartDedicatedWorker().ThreadId;
+            int threadId = target.WorkerPool.StartDedicatedWorker().ThreadId;
             try
             {
                 var token = target.Participate<TestRequestWithResponse, TestResponse>(builder => builder

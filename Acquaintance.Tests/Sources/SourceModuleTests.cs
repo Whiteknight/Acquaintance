@@ -118,7 +118,7 @@ namespace Acquaintance.Tests.Sources
             try
             {
                 token = messageBus.RunEventSource(target);
-                var report = messageBus.ThreadPool.GetThreadReport();
+                var report = messageBus.WorkerPool.GetThreadReport();
                 report.RegisteredThreads.Count.Should().Be(1);
                 var str = report.ToString();
             }
@@ -142,7 +142,7 @@ namespace Acquaintance.Tests.Sources
             try
             {
                 token = messageBus.RunEventSource(target);
-                var report = messageBus.ThreadPool.GetThreadReport();
+                var report = messageBus.WorkerPool.GetThreadReport();
                 report.RegisteredThreads.Count.Should().Be(1);
                 var str = report.ToString();
             }

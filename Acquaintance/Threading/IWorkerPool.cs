@@ -2,18 +2,18 @@ using System;
 
 namespace Acquaintance.Threading
 {
-    public interface IThreadPool
+    public interface IWorkerPool
     {
         int NumberOfRunningFreeWorkers { get; }
         ThreadReport GetThreadReport();
-        ThreadToken StartDedicatedWorker();
+        WorkerToken StartDedicatedWorker();
         void StopDedicatedWorker(int threadId);
-        IActionDispatcher GetThreadDispatcher(int threadId, bool allowAutoCreate);
-        IActionDispatcher GetFreeWorkerThreadDispatcher();
-        IActionDispatcher GetThreadPoolActionDispatcher();
-        IActionDispatcher GetAnyThreadDispatcher();
+        IActionDispatcher GetDispatcher(int threadId, bool allowAutoCreate);
+        IActionDispatcher GetFreeWorkerDispatcher();
+        IActionDispatcher GetThreadPoolDispatcher();
+        IActionDispatcher GetAnyWorkerDispatcher();
         IActionDispatcher GetCurrentThreadDispatcher();
-        IMessageHandlerThreadContext GetCurrentThreadContext();
+        IWorkerContext GetCurrentThreadContext();
 
         IDisposable RegisterManagedThread(IThreadManager manager, int threadId, string purpose);
         void UnregisterManagedThread(int threadId);

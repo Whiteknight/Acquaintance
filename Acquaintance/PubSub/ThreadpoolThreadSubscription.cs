@@ -6,15 +6,15 @@ namespace Acquaintance.PubSub
 {
     public class ThreadPoolThreadSubscription<TPayload> : ISubscription<TPayload>
     {
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
         private readonly ISubscriberReference<TPayload> _action;
 
-        public ThreadPoolThreadSubscription(IThreadPool threadPool, ISubscriberReference<TPayload> action)
+        public ThreadPoolThreadSubscription(IWorkerPool workerPool, ISubscriberReference<TPayload> action)
         {
-            Assert.ArgumentNotNull(threadPool, nameof(threadPool));
+            Assert.ArgumentNotNull(workerPool, nameof(workerPool));
             Assert.ArgumentNotNull(action, nameof(action));
 
-            _threadPool = threadPool;
+            _workerPool = workerPool;
             _action = action;
         }
 
@@ -24,7 +24,7 @@ namespace Acquaintance.PubSub
         public void Publish(Envelope<TPayload> message)
         {
             var action = new PublishEventThreadAction<TPayload>(_action, message);
-            var context = _threadPool.GetThreadPoolActionDispatcher();
+            var context = _workerPool.GetThreadPoolDispatcher();
             context.DispatchAction(action);
         }
     }

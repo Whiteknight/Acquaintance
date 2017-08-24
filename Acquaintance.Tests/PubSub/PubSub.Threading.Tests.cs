@@ -36,7 +36,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(null, 1)
+                WorkerPool = new WorkerPool(null, 1)
             });
             var resetEvent = new ManualResetEvent(false);
             try
@@ -83,7 +83,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
-            var id = target.ThreadPool.StartDedicatedWorker().ThreadId;
+            var id = target.WorkerPool.StartDedicatedWorker().ThreadId;
             try
             {
 
@@ -107,10 +107,10 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus();
             var resetEvent = new ManualResetEvent(false);
-            var id = target.ThreadPool.StartDedicatedWorker().ThreadId;
+            var id = target.WorkerPool.StartDedicatedWorker().ThreadId;
             try
             {
-                target.ThreadPool.StopDedicatedWorker(id);
+                target.WorkerPool.StopDedicatedWorker(id);
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
@@ -146,7 +146,7 @@ namespace Acquaintance.Tests.PubSub
         {
             var target = new MessageBus(new MessageBusCreateParameters
             {
-                ThreadPool = new MessagingWorkerThreadPool(null, 1)
+                WorkerPool = new WorkerPool(null, 1)
             });
             try
             {

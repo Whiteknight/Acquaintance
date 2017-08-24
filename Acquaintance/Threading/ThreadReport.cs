@@ -21,19 +21,19 @@ namespace Acquaintance.Threading
             var sb = new StringBuilder();
             const string separator = "-----------------------------------------------------------";
 
-            sb.AppendLine("Free Worker Threads:");
+            sb.AppendLine("Free Workers:");
             foreach (var thread in FreeWorkers)
                 sb.AppendLine("\tThreadId:" + thread);
 
             sb.AppendLine(separator);
 
-            sb.AppendLine("Dedicated Worker Threads:");
+            sb.AppendLine("Dedicated Workers:");
             foreach (var thread in DedicatedWorkers)
                 sb.AppendLine("\tThreadId:" + thread);
 
             sb.AppendLine(separator);
 
-            sb.AppendLine("Registered threads (managed externally)");
+            sb.AppendLine("Registered threads (managed externally):");
             foreach (var thread in RegisteredThreads)
             {
                 sb.AppendLine("\tThreadId:" + thread.ThreadId);

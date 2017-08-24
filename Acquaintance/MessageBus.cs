@@ -24,7 +24,7 @@ namespace Acquaintance
         {
             parameters = parameters ?? MessageBusCreateParameters.Default;
             var logger = parameters.GetLogger();
-            ThreadPool = parameters.GetThreadPool(logger);
+            WorkerPool = parameters.GetThreadPool(logger);
 
             Modules = new ModuleManager(this, logger);
             EnvelopeFactory = new EnvelopeFactory();
@@ -36,7 +36,7 @@ namespace Acquaintance
         }
 
         public IModuleManager Modules { get; }
-        public IThreadPool ThreadPool { get; }
+        public IWorkerPool WorkerPool { get; }
         public IPublishTopicRouter PublishRouter => _router;
         public IRequestTopicRouter RequestRouter => _router;
         public IScatterTopicRouter ScatterRouter => _router;
@@ -88,7 +88,7 @@ namespace Acquaintance
         {
             if (shouldStop == null)
                 shouldStop = () => false;
-            var threadContext = ThreadPool.GetCurrentThreadContext();
+            var threadContext = WorkerPool.GetCurrentThreadContext();
             while (!shouldStop() && !threadContext.ShouldStop)
             {
                 var action = threadContext.GetAction(timeoutMs);
@@ -98,7 +98,7 @@ namespace Acquaintance
 
         public void EmptyActionQueue(int max)
         {
-            var threadContext = ThreadPool.GetCurrentThreadContext();
+            var threadContext = WorkerPool.GetCurrentThreadContext();
             for (int i = 0; i < max; i++)
             {
                 var action = threadContext.GetAction();
@@ -114,7 +114,7 @@ namespace Acquaintance
             _requestDispatcher.Dispose();
             _participantDispatcher.Dispose();
 
-            (ThreadPool as IDisposable)?.Dispose();
+            (WorkerPool as IDisposable)?.Dispose();
             (Modules as IDisposable)?.Dispose();
         }
     }

@@ -2,7 +2,7 @@
 
 namespace Acquaintance.Threading
 {
-    public interface IEventSourceThread : IDisposable
+    public interface IEventSourceWorker : IDisposable
     {
         Guid Id { get; }
         int ThreadId { get; }

@@ -6,12 +6,12 @@ namespace Acquaintance.RequestResponse
     public class ThreadPoolListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly IListenerReference<TRequest, TResponse> _func;
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
 
-        public ThreadPoolListener(IListenerReference<TRequest, TResponse> func, IThreadPool threadPool)
+        public ThreadPoolListener(IListenerReference<TRequest, TResponse> func, IWorkerPool workerPool)
         {
             _func = func;
-            _threadPool = threadPool;
+            _workerPool = workerPool;
         }
 
         public bool ShouldStopListening => !_func.IsAlive;
@@ -25,7 +25,7 @@ namespace Acquaintance.RequestResponse
 
         public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
         {
-            var thread = _threadPool.GetThreadPoolActionDispatcher();
+            var thread = _workerPool.GetThreadPoolDispatcher();
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, envelope, Id, request);
             thread.DispatchAction(responseWaiter); 
         }   

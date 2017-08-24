@@ -20,7 +20,7 @@ namespace Acquaintance.Sources
 
         public bool IsComplete { get; private set; }
 
-        public IThreadPool ThreadPool => _messageBus.ThreadPool;
+        public IWorkerPool WorkerPool => _messageBus.WorkerPool;
 
         public void Complete()
         {

@@ -4,11 +4,11 @@ using Acquaintance.Logging;
 
 namespace Acquaintance.Threading
 {
-    public class ThreadPoolActionDispatcher : IActionDispatcher
+    public class ThreadPoolDispatcher : IActionDispatcher
     {
         private readonly ILogger _log;
 
-        public ThreadPoolActionDispatcher(ILogger log)
+        public ThreadPoolDispatcher(ILogger log)
         {
             _log = log;
         }

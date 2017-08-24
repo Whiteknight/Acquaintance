@@ -2,13 +2,13 @@ using System;
 
 namespace Acquaintance.Threading
 {
-    public class ThreadToken : IDisposable
+    public class WorkerToken : IDisposable
     {
-        private readonly IThreadPool _threadPool;
+        private readonly IWorkerPool _workerPool;
 
-        public ThreadToken(IThreadPool threadPool, int threadId)
+        public WorkerToken(IWorkerPool workerPool, int threadId)
         {
-            _threadPool = threadPool;
+            _workerPool = workerPool;
             ThreadId = threadId;
             IsSuccess = threadId > 0;
         }
@@ -18,7 +18,7 @@ namespace Acquaintance.Threading
 
         public void Dispose()
         {
-            _threadPool.StopDedicatedWorker(ThreadId);
+            _workerPool.StopDedicatedWorker(ThreadId);
         }
     }
 }

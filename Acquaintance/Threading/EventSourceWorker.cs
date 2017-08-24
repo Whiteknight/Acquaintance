@@ -5,7 +5,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
-    public class EventSourceThread : IEventSourceThread
+    public class EventSourceWorker : IEventSourceWorker
     {
         private const int DefaultIterationDelayMs = 1000;
 
@@ -14,7 +14,7 @@ namespace Acquaintance.Threading
         private readonly IEventSourceContext _context;
         private readonly CancellationTokenSource _tokenSource;
 
-        public EventSourceThread(IEventSource source, IEventSourceContext context)
+        public EventSourceWorker(IEventSource source, IEventSourceContext context)
         {
             Assert.ArgumentNotNull(source, nameof(source));
             Assert.ArgumentNotNull(context, nameof(context));
