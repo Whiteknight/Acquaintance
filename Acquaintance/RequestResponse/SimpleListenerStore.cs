@@ -21,7 +21,7 @@ namespace Acquaintance.RequestResponse
             listener.Id = id;
             if (!_listeners.TryAdd(key, listener))
                 throw new Exception("Cannot add a second listener to this channel");
-            return new Token<TRequest, TResponse>(this, topic, id);
+            return new Token<TRequest, TResponse>(this, typeof(TRequest).Name, typeof(TResponse).Name, topic, id);
         }
 
         public IListener<TRequest, TResponse> GetListener<TRequest, TResponse>(string topic)
@@ -48,12 +48,16 @@ namespace Acquaintance.RequestResponse
         private class Token<TRequest, TResponse> : IDisposable
         {
             private readonly SimpleListenerStore _store;
+            private readonly string _requestType;
+            private readonly string _responseType;
             private readonly string _topic;
             private readonly Guid _id;
 
-            public Token(SimpleListenerStore store, string topic, Guid id)
+            public Token(SimpleListenerStore store, string requestType, string responseType, string topic, Guid id)
             {
                 _store = store;
+                _requestType = requestType;
+                _responseType = responseType;
                 _topic = topic;
                 _id = id;
             }
@@ -61,6 +65,11 @@ namespace Acquaintance.RequestResponse
             public void Dispose()
             {
                 _store.RemoveListener<TRequest, TResponse>(_topic, _id);
+            }
+
+            public override string ToString()
+            {
+                return $"Listener Request={_requestType} Response={_responseType} Topic={_topic} Id={_id}";
             }
         }
 

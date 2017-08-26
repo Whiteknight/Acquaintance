@@ -75,6 +75,11 @@ namespace Acquaintance
             _subscriptions.Dispose();
         }
 
+        public string[] ReportContents()
+        {
+            return _subscriptions.ToStringArray();
+        }
+
         public void Dispose()
         {
             _subscriptions.Dispose();

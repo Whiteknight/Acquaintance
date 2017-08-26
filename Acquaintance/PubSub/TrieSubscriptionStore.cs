@@ -77,6 +77,11 @@ namespace Acquaintance.PubSub
             {
                 _store.Remove<TPayload>(_topic, _id);
             }
+
+            public override string ToString()
+            {
+                return $"Subscription Type={typeof(TPayload).Name} Topic={_topic} Id={_id}";
+            }
         }
 
         private class Channel<TPayload>

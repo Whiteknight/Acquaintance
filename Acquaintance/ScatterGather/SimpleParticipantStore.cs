@@ -23,7 +23,7 @@ namespace Acquaintance.ScatterGather
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TRequest, TResponse>)} but found {channelObj.GetType().FullName}");
             participant.Id = Guid.NewGuid();
             channel.Add(participant);
-            return new Token<TRequest, TResponse>(this, topic, participant.Id);
+            return new Token<TRequest, TResponse>(this, typeof(TRequest).Name, typeof(TResponse).Name, topic, participant.Id);
         }
 
         public IEnumerable<IParticipant<TRequest, TResponse>> GetParticipants<TRequest, TResponse>(string topic)
@@ -72,12 +72,16 @@ namespace Acquaintance.ScatterGather
         private class Token<TRequest, TResponse> : IDisposable
         {
             private readonly SimpleParticipantStore _store;
+            private readonly string _requestType;
+            private readonly string _responseType;
             private readonly string _topic;
             private readonly Guid _id;
 
-            public Token(SimpleParticipantStore store, string topic, Guid id)
+            public Token(SimpleParticipantStore store, string requestType, string responseType, string topic, Guid id)
             {
                 _store = store;
+                _requestType = requestType;
+                _responseType = responseType;
                 _topic = topic;
                 _id = id;
             }
@@ -85,6 +89,11 @@ namespace Acquaintance.ScatterGather
             public void Dispose()
             {
                 _store.Remove<TRequest, TResponse>(_topic, _id);
+            }
+
+            public override string ToString()
+            {
+                return $"Participant Request={_requestType} Response={_responseType} Topic={_topic} Id={_id}";
             }
         }
 

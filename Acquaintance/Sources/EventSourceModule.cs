@@ -47,7 +47,7 @@ namespace Acquaintance.Sources
                 return null;
             }
             _messageBus.WorkerPool.RegisterManagedThread(this, thread.ThreadId, "SourceModule thread " + thread.Id);
-            return new ThreadToken(this, thread, thread.Id);
+            return new WorkerToken(this, thread, thread.Id);
         }
 
         private void RemoveThread(Guid id)
@@ -56,13 +56,13 @@ namespace Acquaintance.Sources
             _messageBus.WorkerPool.UnregisterManagedThread(thread.ThreadId);
         }
 
-        private class ThreadToken : IDisposable
+        private class WorkerToken : IDisposable
         {
             private readonly IEventSourceWorker _worker;
             private readonly Guid _id;
             private readonly EventSourceModule _module;
 
-            public ThreadToken(EventSourceModule module, IEventSourceWorker worker, Guid id)
+            public WorkerToken(EventSourceModule module, IEventSourceWorker worker, Guid id)
             {
                 _worker = worker;
                 _id = id;
@@ -73,6 +73,11 @@ namespace Acquaintance.Sources
             {
                 _module.RemoveThread(_id);
                 _worker.Dispose();
+            }
+
+            public override string ToString()
+            {
+                return $"EventSourceWorker Id={_id} ThreadId={_worker.ThreadId}";
             }
         }
 

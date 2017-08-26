@@ -105,6 +105,11 @@ namespace Acquaintance.PubSub
             {
                 _store.Unsubscribe<TPayload>(_topic, _id);
             }
+
+            public override string ToString()
+            {
+                return $"Subscription Type={typeof(TPayload).Name} Topic={_topic} Id={_id}";
+            }
         }
     }
 }

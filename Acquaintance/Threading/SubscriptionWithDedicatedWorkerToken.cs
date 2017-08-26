@@ -5,20 +5,24 @@ namespace Acquaintance.Threading
     public sealed class SubscriptionWithDedicatedWorkerToken : IDisposable
     {
         private readonly IWorkerPool _workerPool;
-        private readonly IDisposable _token;
-        private readonly int _threadId;
+        private readonly IDisposable _subscriptionToken;
+        private readonly WorkerToken _workerToken;
 
-        public SubscriptionWithDedicatedWorkerToken(IWorkerPool workerPool, IDisposable token, int threadId)
+        public SubscriptionWithDedicatedWorkerToken(IWorkerPool workerPool, IDisposable subscriptionToken, int threadId)
         {
-            _workerPool = workerPool;
-            _token = token;
-            _threadId = threadId;
+            _workerToken = new WorkerToken(workerPool, threadId);
+            _subscriptionToken = subscriptionToken;
         }
 
         public void Dispose()
         {
-            _token.Dispose();
-            _workerPool.StopDedicatedWorker(_threadId);
+            _subscriptionToken.Dispose();
+            _workerToken.Dispose();
+        }
+
+        public override string ToString()
+        {
+            return _subscriptionToken.ToString() + "\n" + _workerToken.ToString();
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Acquaintance.Modules
 
             _logger.Debug("Starting module Id={0} Type={1}", id, module.GetType().Name);
             module.Start();
-            return new ModuleToken(this, id);
+            return new ModuleToken(this, module.GetType().Name, id);
         }
 
         public IEnumerable<TModule> Get<TModule>()
@@ -62,17 +62,24 @@ namespace Acquaintance.Modules
         private class ModuleToken : IDisposable
         {
             private readonly ModuleManager _manager;
+            private readonly string _moduleName;
             private readonly Guid _moduleId;
 
-            public ModuleToken(ModuleManager manager, Guid moduleId)
+            public ModuleToken(ModuleManager manager, string moduleName, Guid moduleId)
             {
                 _manager = manager;
+                _moduleName = moduleName;
                 _moduleId = moduleId;
             }
 
             public void Dispose()
             {
                 _manager.RemoveModule(_moduleId);
+            }
+
+            public override string ToString()
+            {
+                return $"Module Id={_moduleId} Name={_moduleName}";
             }
         }
     }

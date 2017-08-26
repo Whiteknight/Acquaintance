@@ -20,5 +20,10 @@ namespace Acquaintance.Threading
         {
             _workerPool.StopDedicatedWorker(ThreadId);
         }
+
+        public override string ToString()
+        {
+            return $"Worker Thread ThreadId={ThreadId}";
+        }
     }
 }

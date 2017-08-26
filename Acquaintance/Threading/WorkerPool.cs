@@ -164,6 +164,11 @@ namespace Acquaintance.Threading
             {
                 _workerPool.UnregisterManagedThread(_threadId);
             }
+
+            public override string ToString()
+            {
+                return $"Explicitly managed thread ThreadId={_threadId}";
+            }
         }
 
         private IWorkerContext InitializeFreeWorkers(int numFreeWorkers, List<MessageHandlerWorker> freeWorkers)

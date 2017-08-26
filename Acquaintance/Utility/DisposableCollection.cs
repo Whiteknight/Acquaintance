@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace Acquaintance.Utility
@@ -41,6 +43,19 @@ namespace Acquaintance.Utility
                 return;
             foreach (var disposable in _disposables)
                 disposable.Dispose();
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            foreach (var disposable in _disposables)
+                sb.AppendLine(disposable.ToString());
+            return sb.ToString();
+        }
+
+        public string[] ToStringArray()
+        {
+            return _disposables.Select(d => d.ToString()).ToArray();
         }
     }
 }
