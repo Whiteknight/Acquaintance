@@ -75,6 +75,7 @@
     <Compile Include="RequestResponse\RequestResponse.Threading.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Transform.Tests.cs" />
     <Compile Include="RequestResponse\RequestResponse.Wrap.Tests.cs" />
+    <Compile Include="Sagas\SagasTests.cs" />
     <Compile Include="ScatterGather\ScatterGather.CircuitBreaker.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Router.Tests.cs" />
     <Compile Include="ScatterGather\ScatterGather.Filter.Tests.cs" />
