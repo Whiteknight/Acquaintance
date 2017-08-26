@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -6,17 +7,19 @@ namespace Acquaintance.Utility
 {
     public sealed class DisposableCollection : IDisposable
     {
-        private readonly List<IDisposable> _disposables;
-        private int _isDisposed;
+        private readonly ConcurrentBag<IDisposable> _disposables;
+        private volatile int _isDisposed;
 
         public DisposableCollection()
         {
-            _disposables = new List<IDisposable>();
+            _disposables = new ConcurrentBag<IDisposable>();
             _isDisposed = 0;
         }
 
         public void Add(IDisposable disposable)
         {
+            if (_isDisposed > 0)
+                throw new ObjectDisposedException("This DisposableCollection has already been disposed");
             if (disposable != null)
                 _disposables.Add(disposable);
         }
@@ -25,7 +28,10 @@ namespace Acquaintance.Utility
         {
             if (disposables == null)
                 return;
-            _disposables.AddRange(disposables);
+            if (_isDisposed > 0)
+                throw new ObjectDisposedException("This DisposableCollection has already been disposed");
+            foreach (var disposable in disposables)
+                _disposables.Add(disposable);
         }
 
         public void Dispose()
