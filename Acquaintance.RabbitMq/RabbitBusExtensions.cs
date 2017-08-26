@@ -31,7 +31,7 @@ namespace Acquaintance.RabbitMq
         {
             var module = messageBus.Modules.Get<RabbitModule>(_id);
             if (module == null)
-                throw new Exception("RabbitMQ is not initialized");
+                throw new Exception($"RabbitMQ is not initialized. Call .{nameof(InitializeRabbitMq)}() first.");
             return module;
         }
     }
