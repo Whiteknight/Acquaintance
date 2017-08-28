@@ -286,5 +286,25 @@ namespace Acquaintance.Tests.RequestResponse
             var response = target.Request<int, int>(5).GetResponseAsync().Result;
             response.Should().Be(15);
         }
+
+        public class TestService
+        {
+            public int GetLength(string i)
+            {
+                return i.Length;
+            }
+        }
+
+        [Test]
+        public void RequestResponse_ActivateAndInvoke()
+        {
+            var target = new MessageBus();
+            target.Listen<string, int>(b => b
+                .WithDefaultTopic()
+                .ActivateAndInvoke(i => new TestService(), (service, i) => service.GetLength(i))
+                .Immediate());
+
+            target.RequestWait<string, int>("test").Should().Be(4);
+        }
     }
 }

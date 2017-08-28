@@ -110,6 +110,15 @@ namespace Acquaintance.RequestResponse
             });
         }
 
+        public IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler)
+        {
+            Assert.ArgumentNotNull(createService, nameof(createService));
+            Assert.ArgumentNotNull(handler, nameof(handler));
+            ValidateDoesNotAlreadyHaveAction();
+            _funcReference = new ActivatedListenerReference<TRequest, TResponse, TService>(createService, handler);
+            return this;
+        }
+
         public IDetailsListenerBuilder<TRequest, TResponse> Immediate()
         {
             ValidateDoesNotAlreadyHaveDispatchType();

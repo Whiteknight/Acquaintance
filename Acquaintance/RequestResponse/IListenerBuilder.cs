@@ -64,6 +64,8 @@ namespace Acquaintance.RequestResponse
         /// <param name="transform"></param>
         /// <returns></returns>
         IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceTopic, Func<TSource, TResponse> transform);
+
+        IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler);
     }
 
     /// <summary>
