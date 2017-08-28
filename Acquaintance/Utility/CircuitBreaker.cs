@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-namespace Acquaintance.Common
+namespace Acquaintance.Utility
 {
     public class CircuitBreaker
     {
