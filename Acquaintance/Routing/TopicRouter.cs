@@ -32,7 +32,7 @@ namespace Acquaintance.Routing
             topic = topic ?? string.Empty;
             var key = GetKey<TPayload>(topic);
             if (!_publishRoutes.TryGetValue(key, out IPublishRouteRule rule))
-                return new [] {topic };
+                return new [] { topic };
             var typedRule = rule as IPublishRouteRule<TPayload>;
             return typedRule?.GetRoute(topic, envelope) ?? new[] { topic };
         }

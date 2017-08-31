@@ -65,6 +65,13 @@ namespace Acquaintance.RequestResponse
         /// <returns></returns>
         IThreadListenerBuilder<TRequest, TResponse> TransformResponseFrom<TSource>(string sourceTopic, Func<TSource, TResponse> transform);
 
+        /// <summary>
+        /// Create a service instance to handle the request
+        /// </summary>
+        /// <typeparam name="TService"></typeparam>
+        /// <param name="createService"></param>
+        /// <param name="handler"></param>
+        /// <returns></returns>
         IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler);
     }
 
@@ -136,6 +143,14 @@ namespace Acquaintance.RequestResponse
         /// <returns></returns>
         IDetailsListenerBuilder<TRequest, TResponse> ModifyListener(Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> modify);
 
+        /// <summary>
+        /// Use a circuit breaker for this listener. Breaks the connection after
+        /// a certain number of failures and remains broken for a timeout/cooldown
+        /// period.s
+        /// </summary>
+        /// <param name="maxFailures"></param>
+        /// <param name="breakMs"></param>
+        /// <returns></returns>
         IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs);
     }
 }

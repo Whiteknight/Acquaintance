@@ -1,5 +1,5 @@
 ﻿using System;
-using Acquaintance.Common;
+using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {

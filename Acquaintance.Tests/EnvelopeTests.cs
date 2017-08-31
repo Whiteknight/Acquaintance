@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Acquaintance.Common;
+using Acquaintance.Utility;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -26,7 +26,7 @@ namespace Acquaintance.Tests
         [Test]
         public void HasMetadataFromFactory()
         {
-            var target = new EnvelopeFactory().Create<int>("test", 5, new Dictionary<string, string>
+            var target = new EnvelopeFactory().Create("test", 5, new Dictionary<string, string>
             {
                 { "value1", "result1" }
             });

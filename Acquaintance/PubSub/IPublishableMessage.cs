@@ -9,6 +9,10 @@ namespace Acquaintance.PubSub
     /// </summary>
     public interface IPublishableMessage
     {
+        /// <summary>
+        /// Forward this message to the given message bus
+        /// </summary>
+        /// <param name="messageBus"></param>
         void PublishTo(IPublishable messageBus);
     }
 

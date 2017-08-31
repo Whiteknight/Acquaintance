@@ -21,7 +21,9 @@ namespace Acquaintance.PubSub
                 if (method.IsGenericMethod || method.IsAbstract)
                     continue;
 
-                var attrs = method.GetCustomAttributes(typeof(SubscriptionAttribute)).OfType<SubscriptionAttribute>().ToArray();
+                var attrs = method.GetCustomAttributes(typeof(SubscriptionAttribute))
+                    .OfType<SubscriptionAttribute>()
+                    .ToArray();
                 if (attrs.Length == 0)
                     continue;
 

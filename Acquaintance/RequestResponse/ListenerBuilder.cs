@@ -1,6 +1,5 @@
 ﻿using Acquaintance.Threading;
 using System;
-using Acquaintance.Common;
 using Acquaintance.Utility;
 
 namespace Acquaintance.RequestResponse

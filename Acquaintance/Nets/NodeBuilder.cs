@@ -50,11 +50,8 @@ namespace Acquaintance.Nets
 
         public NodeBuilder<TInput> Transform<TOut>(Func<TInput, TOut> transform)
         {
-            if (transform == null)
-                throw new ArgumentNullException(nameof(transform));
-
-            if (_action != null)
-                throw new Exception("Node already has a handler defined");
+            Assert.ArgumentNotNull(transform, nameof(transform));
+            ValidateDoesNotAlreadyHaveAction();
 
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
@@ -78,9 +75,7 @@ namespace Acquaintance.Nets
         public NodeBuilder<TInput> TransformMany<TOut>(Func<TInput, IEnumerable<TOut>> handler)
         {
             Assert.ArgumentNotNull(handler, nameof(handler));
-
-            if (_action != null)
-                throw new Exception("Node already has a handler defined");
+            ValidateDoesNotAlreadyHaveAction();
 
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
@@ -103,8 +98,7 @@ namespace Acquaintance.Nets
         public NodeBuilder<TInput> Handle(Action<TInput> action)
         {
             Assert.ArgumentNotNull(action, nameof(action));
-            if (_action != null || _handler != null)
-                throw new Exception("Node already has a handler defined");
+            ValidateDoesNotAlreadyHaveAction();
 
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
@@ -126,18 +120,16 @@ namespace Acquaintance.Nets
         public NodeBuilder<TInput> Handle(ISubscriptionHandler<TInput> handler)
         {
             Assert.ArgumentNotNull(handler, nameof(handler));
-            if (_action != null || _handler != null)
-                throw new Exception("Node already has a handler defined");
+            ValidateDoesNotAlreadyHaveAction();
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
             _handler = new NodeRepublishSubscriptionHandler<TInput>(handler, _messageBus, _key, outputTopic, errorTopic);
             return this;
-        }
+        }        
 
         public NodeBuilder<TInput> ReadInput()
         {
-            if (!string.IsNullOrEmpty(_topic))
-                throw new Exception("Node can only read from a single input");
+            ValidateDoesNotAlreadyHaveTopic();
             if (_readErrors)
                 throw new Exception("Cannot read errors from Net input");
             _topic = Net.NetworkInputTopic;
@@ -147,8 +139,7 @@ namespace Acquaintance.Nets
         public NodeBuilder<TInput> ReadOutputFrom(string nodeName)
         {
             Assert.ArgumentNotNull(nodeName, nameof(nodeName));
-            if (!string.IsNullOrEmpty(_topic))
-                throw new Exception("Node can only read from a single input");
+            ValidateDoesNotAlreadyHaveTopic();
 
             string key = nodeName.ToLowerInvariant();
             _topic = _readErrors ? ErrorTopic(key) : OutputTopic(key);
@@ -175,6 +166,18 @@ namespace Acquaintance.Nets
 
             _onDedicatedThreads = numThreads;
             return this;
+        }
+
+        private void ValidateDoesNotAlreadyHaveAction()
+        {
+            if (_action != null || _handler != null)
+                throw new Exception("Node already has a handler defined");
+        }
+
+        private void ValidateDoesNotAlreadyHaveTopic()
+        {
+            if (!string.IsNullOrEmpty(_topic))
+                throw new Exception("Node can only read from a single input");
         }
 
         private static string OutputTopic(string key)

@@ -1,5 +1,4 @@
-﻿using Acquaintance.Common;
-using Acquaintance.Modules;
+﻿using Acquaintance.Modules;
 using Acquaintance.PubSub;
 using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
