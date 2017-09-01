@@ -5,7 +5,7 @@
     <AssemblyName>Acquaintance</AssemblyName>
     <RootNamespace>Acquaintance</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.0.0-alpha1</Version>
+    <Version>2.0.0-alpha2</Version>
     <Authors>Andrew F. Whitworth</Authors>
     <Company />
     <Description>Internal messaging for loosely-coupled applications</Description>
