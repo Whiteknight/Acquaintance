@@ -72,7 +72,7 @@ namespace Acquaintance
 
         public void Clear()
         {
-            _subscriptions.Dispose();
+            _subscriptions.Clear();
         }
 
         public string[] ReportContents()

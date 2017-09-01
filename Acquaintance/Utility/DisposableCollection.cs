@@ -36,13 +36,18 @@ namespace Acquaintance.Utility
                 _disposables.Add(disposable);
         }
 
+        public void Clear()
+        {
+            while (!_disposables.IsEmpty && _disposables.TryTake(out IDisposable disposable))
+                disposable.Dispose();
+        }
+
         public void Dispose()
         {
             var isDisposed = Interlocked.CompareExchange(ref _isDisposed, 1, 0);
             if (isDisposed != 0)
                 return;
-            foreach (var disposable in _disposables)
-                disposable.Dispose();
+            Clear();
         }
 
         public override string ToString()
