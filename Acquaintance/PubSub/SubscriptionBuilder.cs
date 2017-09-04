@@ -152,7 +152,7 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread()
+        public IDetailsSubscriptionBuilder<TPayload> OnDedicatedWorker()
         {
             ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.SpecificThread;

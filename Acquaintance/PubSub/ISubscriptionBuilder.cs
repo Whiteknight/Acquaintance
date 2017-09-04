@@ -96,7 +96,7 @@ namespace Acquaintance.PubSub
         /// exclusively on that thread.
         /// </summary>
         /// <returns>The builder</returns>
-        IDetailsSubscriptionBuilder<TPayload> OnDedicatedThread();
+        IDetailsSubscriptionBuilder<TPayload> OnDedicatedWorker();
     }
 
     public interface IDetailsSubscriptionBuilder<TPayload>
