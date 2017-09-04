@@ -64,7 +64,7 @@ namespace Acquaintance.Tests.PubSub
                 var token = target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
-                    .OnDedicatedThread());
+                    .OnDedicatedWorker());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(5000).Should().BeTrue();
 
