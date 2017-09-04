@@ -35,17 +35,26 @@ namespace Acquaintance.PubSub
 
                 foreach (var attr in attrs)
                 {
-                    if (parameters[0].ParameterType.IsAssignableFrom(attr.Type))
+                    Type payloadType = attr.Type;
+                    if (attr.Type != null)
                     {
-                        var token = messageBus.SubscribeUntyped(attr.Type, attr.Topics, obj, method);
-                        tokens.Add(token);
-                        continue;
+                        if (parameters[0].ParameterType.IsAssignableFrom(attr.Type))
+                        {
+                            var token = messageBus.SubscribeUntyped(attr.Type, attr.Topics, obj, method);
+                            tokens.Add(token);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        payloadType = parameters[0].ParameterType;
                     }
 
-                    var envelopeType = typeof(Envelope<>).MakeGenericType(attr.Type);
+
+                    var envelopeType = typeof(Envelope<>).MakeGenericType(payloadType);
                     if (parameters[0].ParameterType.IsAssignableFrom(envelopeType))
                     {
-                        var token = messageBus.SubscribeEnvelopeUntyped(attr.Type, attr.Topics, obj, method);
+                        var token = messageBus.SubscribeEnvelopeUntyped(payloadType, attr.Topics, obj, method);
                         tokens.Add(token);
                         continue;
                     }
