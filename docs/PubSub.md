@@ -115,11 +115,11 @@ Next specify an action with one of these methods:
     .TransformTo<MyOtherMessage>(payload => new MyOtherMessage(), "newTopic")
 ```
 
-Optionally specify how you want the action dispatched
+Optionally specify how you want the action dispatched using one of the [Threading Options](Threads.md):
 
 ```csharp
     // On an Acquaintance worker thread (Default)
-    .OnWorkerThread()
+    .OnWorker()
 
     // Immediately on the publisher thread (not recommended)
     .Immediate()
@@ -148,6 +148,37 @@ Finally, if you still have more things to specify, you can put in a few other op
 ```
 
 The subscription builder uses segregated interfaces to help protect you for specifying conflicting options. At each step, only a few methods will be available to you to choose. Don't fight it. Setup things in order and you'll avoid whole classes of potential bugs.
+
+#### Unsubscribing
+
+Acquaintance uses the Disposable object pattern for unsubscribing. Every `.Subscribe` method variant returns an `IDisposable` token. Disposing this token removes the subscription from the channel:
+
+```csharp
+var token = messageBus.Subscribe<int>(b => { ... });
+token.Dispose();
+```
+
+Disposing the subscription token removes the subscription from the channel and cleans up all related resources. If you specified the `.OnDedicatedWorker()` option, disposing the token will also stop and cleanup the worker thread.
+
+#### Errors
+
+Exceptions thrown from the subscriber are not passed back to the publisher thread. These exceptions are caught and logged internally to Acquaintance. If you want to see these errors, setup a logger when you create the message bus:
+
+```csharp
+var messageBus = new MessageBus(new MessageBusCreateParameters {
+    Logger = ...
+});
+```
+
+By default Acquaintance does not log anywhere, but you can easily create your own logger. It would be easy to adapt `Common.Logging`, `log4net` another logging tool to work with Acquaintance.
+
+For simple purposes, you can just call a delegate with log messages to dump to the console, the debug window, or a file somewhere;
+
+```csharp
+var messageBus = new MessageBus(new MessageBusCreateParameters {
+    Logger = new DelegateLogger(s => System.Console.WriteLine(s));
+});
+```
 
 #### Autosubscribing
 
@@ -199,3 +230,16 @@ string topic = info.Topic
 
 If you're passing actions around, this is a way to use Acquaintance internally without having to change your signatures.
 
+### Examples
+
+#### Shared Log File
+
+I have multiple worker threads who all want to log to a single log file. I only want to log events of a high severity. I can use a dedicated worker thread to make all requests to the shared log file happen on a single thread to avoid data corruption, locking or deadlocks:
+
+```csharp
+var token = messageBus.Subscribe<LogData>(builder => builder
+    .WithTopic("Log")
+    .Invoke(data => File.AppendAllText(fileName, data.ToString()))
+    .OnDedicatedWorker()
+    .WithFilter(data => data.Severity >= Severity.Error));
+```

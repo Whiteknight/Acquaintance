@@ -28,7 +28,7 @@ When you're ready to code, create a message bus:
     
 ## Request/Response
 
-Request/Response is essentially an abstracted method call or local RPC mechanism. One part of your code makes a request and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain an object hierarchy to calculate that result.
+[Request/Response](ReqRes.md) is essentially an abstracted method call or local RPC mechanism. One part of your code makes a request and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain an object hierarchy to calculate that result.
 
 ```csharp
     // Setup a Listener
