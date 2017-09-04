@@ -30,7 +30,7 @@ namespace Acquaintance.Tests.PubSub
                     if (c >= numEvents)
                         resetEvent.Set();
                 })
-                .OnWorkerThread());
+                .OnWorker());
             for (int i = 0; i < numEvents; i++)
                 target.Publish("Test", new TestPubSubStressEvent());
 
@@ -56,7 +56,7 @@ namespace Acquaintance.Tests.PubSub
                     if (c >= numEvents)
                         resetEvent.Set();
                 })
-                .OnWorkerThread());
+                .OnWorker());
             for (int i = 0; i < numEvents; i++)
                 target.Publish("Test.*", new TestPubSubStressEvent());
 

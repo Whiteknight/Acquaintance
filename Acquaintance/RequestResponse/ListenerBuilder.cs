@@ -133,7 +133,7 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread()
+        public IDetailsListenerBuilder<TRequest, TResponse> OnWorker()
         {
             ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.AnyWorkerThread;
@@ -147,7 +147,7 @@ namespace Acquaintance.RequestResponse
             return this;
         }
 
-        public IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread()
+        public IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedWorker()
         {
             ValidateDoesNotAlreadyHaveDispatchType();
             _dispatchType = DispatchThreadType.ThreadpoolThread;

@@ -30,7 +30,7 @@ namespace Acquaintance.Tests.RequestResponse
                 target.Listen<TestRequestWithResponse, TestResponse>(l => l
                     .WithTopic("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
-                    .OnWorkerThread());
+                    .OnWorker());
                 var response = target.Request<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
 
                 response.Should().NotBeNull();
@@ -50,7 +50,7 @@ namespace Acquaintance.Tests.RequestResponse
                 target.Listen<int, int>(l => l
                     .WithDefaultTopic()
                     .Invoke(req => req * 5)
-                    .OnDedicatedThread());
+                    .OnDedicatedWorker());
                 var response = target.RequestWait<int, int>(1);
 
                 response.Should().Be(5);

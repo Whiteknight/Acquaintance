@@ -92,7 +92,7 @@ namespace Acquaintance.RequestResponse
         /// Create a dedicated worker thread and dispatch all requests to that thread
         /// </summary>
         /// <returns></returns>
-        IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedThread();
+        IDetailsListenerBuilder<TRequest, TResponse> OnDedicatedWorker();
 
         /// <summary>
         /// Dispatch all requests to the thread with the given thread ID
@@ -111,7 +111,7 @@ namespace Acquaintance.RequestResponse
         /// Dispatch the request to the Acquaintance managed thread pool
         /// </summary>
         /// <returns></returns>
-        IDetailsListenerBuilder<TRequest, TResponse> OnWorkerThread();
+        IDetailsListenerBuilder<TRequest, TResponse> OnWorker();
     }
 
     /// <summary>

@@ -68,7 +68,7 @@ namespace Acquaintance.PubSub
         /// Execute the subscriber on a managed worker thread
         /// </summary>
         /// <returns>The builder</returns>
-        IDetailsSubscriptionBuilder<TPayload> OnWorkerThread();
+        IDetailsSubscriptionBuilder<TPayload> OnWorker();
 
         /// <summary>
         /// Execute the subscriber on the thread where the payload is published. This turns the

@@ -207,7 +207,7 @@ namespace Acquaintance.Nets
 
                 var b3 = _handler == null ? b2.Invoke(_action) : b2.Invoke(_handler);
 
-                var b4 = useDedicatedThread ? b3.OnDedicatedWorker() : b3.OnWorkerThread();
+                var b4 = useDedicatedThread ? b3.OnDedicatedWorker() : b3.OnWorker();
 
                 if (_predicate != null)
                     b4.WithFilter(_predicate);

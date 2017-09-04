@@ -43,7 +43,7 @@ namespace Acquaintance.Tests.PubSub
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
-                    .OnWorkerThread());
+                    .OnWorker());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(5000).Should().BeTrue();
             }
@@ -153,7 +153,7 @@ namespace Acquaintance.Tests.PubSub
                 target.Subscribe<TestPubSubEvent>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => resetEvent.Set())
-                    .OnWorkerThread());
+                    .OnWorker());
                 target.Publish("Test", new TestPubSubEvent("Test"));
                 resetEvent.WaitOne(2000).Should().BeTrue();
             }

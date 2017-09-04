@@ -123,7 +123,7 @@ namespace Acquaintance.PubSub
             });
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> OnWorkerThread()
+        public IDetailsSubscriptionBuilder<TPayload> OnWorker()
         {
             ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.AnyWorkerThread;

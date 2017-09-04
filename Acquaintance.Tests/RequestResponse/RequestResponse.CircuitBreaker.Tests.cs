@@ -22,7 +22,7 @@ namespace Acquaintance.Tests.RequestResponse
                         throw new Exception("test");
                     return i * 10;
                 })
-                .OnWorkerThread()
+                .OnWorker()
                 .WithCircuitBreaker(1, 500));
 
             // First request fails. This trips the circuit breaker
