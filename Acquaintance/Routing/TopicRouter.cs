@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using Acquaintance.Utility;
 
 namespace Acquaintance.Routing
 {
     public class TopicRouter : IPublishTopicRouter, IRequestTopicRouter, IScatterTopicRouter
     {
-        private readonly ConcurrentDictionary<string, IPublishRouteRule> _publishRoutes;
-        private readonly ConcurrentDictionary<string, IRequestRouteRule> _requestRoutes;
-        private readonly ConcurrentDictionary<string, IScatterRouteRule> _scatterRoutes;
+        private readonly ConcurrentDictionary<string, IRouteRule> _publishRoutes;
+        private readonly ConcurrentDictionary<string, IRouteRule> _requestRoutes;
+        private readonly ConcurrentDictionary<string, IRouteRule> _scatterRoutes;
 
         public TopicRouter()
         {
-            _publishRoutes = new ConcurrentDictionary<string, IPublishRouteRule>();
-            _requestRoutes = new ConcurrentDictionary<string, IRequestRouteRule>();
-            _scatterRoutes = new ConcurrentDictionary<string, IScatterRouteRule>();
+            _publishRoutes = new ConcurrentDictionary<string, IRouteRule>();
+            _requestRoutes = new ConcurrentDictionary<string, IRouteRule>();
+            _scatterRoutes = new ConcurrentDictionary<string, IRouteRule>();
         }
 
         private static string GetKey<TPayload>(string topic)
@@ -31,9 +32,9 @@ namespace Acquaintance.Routing
         {
             topic = topic ?? string.Empty;
             var key = GetKey<TPayload>(topic);
-            if (!_publishRoutes.TryGetValue(key, out IPublishRouteRule rule))
+            if (!_publishRoutes.TryGetValue(key, out IRouteRule rule))
                 return new [] { topic };
-            var typedRule = rule as IPublishRouteRule<TPayload>;
+            var typedRule = rule as IRouteRule<TPayload>;
             return typedRule?.GetRoute(topic, envelope) ?? new[] { topic };
         }
 
@@ -41,20 +42,20 @@ namespace Acquaintance.Routing
         {
             topic = topic ?? string.Empty;
             var key = GetKey<TRequest, TResponse>(topic);
-            if (!_requestRoutes.TryGetValue(key, out IRequestRouteRule rule))
+            if (!_requestRoutes.TryGetValue(key, out IRouteRule rule))
                 return topic;
-            var typedRule = rule as IRequestRouteRule<TRequest>;
-            return typedRule?.GetRoute(topic, envelope) ?? topic;
+            var typedRule = rule as IRouteRule<TRequest>;
+            return typedRule?.GetRoute(topic, envelope)?.FirstOrDefault() ?? topic;
         }
 
         public string RouteScatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
         {
             topic = topic ?? string.Empty;
             var key = GetKey<TRequest, TResponse>(topic);
-            if (!_scatterRoutes.TryGetValue(key, out IScatterRouteRule rule))
+            if (!_scatterRoutes.TryGetValue(key, out IRouteRule rule))
                 return topic;
-            var typedRule = rule as IScatterRouteRule<TRequest>;
-            return typedRule?.GetRoute(topic, envelope) ?? topic;
+            var typedRule = rule as IRouteRule<TRequest>;
+            return typedRule?.GetRoute(topic, envelope)?.FirstOrDefault() ?? topic;
         }
 
         private class NoRouteToken : IDisposable
@@ -77,11 +78,11 @@ namespace Acquaintance.Routing
 
             public void Dispose()
             {
-                _router._publishRoutes.TryRemove(_route, out IPublishRouteRule rule);
+                _router._publishRoutes.TryRemove(_route, out IRouteRule rule);
             }
         }
 
-        public IDisposable AddRule<TPayload>(string topic, IPublishRouteRule<TPayload> rule)
+        IDisposable IPublishTopicRouter.AddRule<TPayload>(string topic, IRouteRule<TPayload> rule)
         {
             Assert.ArgumentNotNull(rule, nameof(rule));
             var key = GetKey<TPayload>(topic ?? string.Empty);
@@ -102,11 +103,11 @@ namespace Acquaintance.Routing
 
             public void Dispose()
             {
-                _router._requestRoutes.TryRemove(_route, out IRequestRouteRule rule);
+                _router._requestRoutes.TryRemove(_route, out IRouteRule rule);
             }
         }
 
-        public IDisposable AddRule<TRequest, TResponse>(string topic, IRequestRouteRule<TRequest> rule)
+        IDisposable IRequestTopicRouter.AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
         {
             Assert.ArgumentNotNull(rule, nameof(rule));
             var key = GetKey<TRequest, TResponse>(topic ?? string.Empty);
@@ -127,11 +128,11 @@ namespace Acquaintance.Routing
 
             public void Dispose()
             {
-                _router._scatterRoutes.TryRemove(_route, out IScatterRouteRule rule);
+                _router._scatterRoutes.TryRemove(_route, out IRouteRule rule);
             }
         }
 
-        public IDisposable AddRule<TRequest, TResponse>(string topic, IScatterRouteRule<TRequest> rule)
+        IDisposable IScatterTopicRouter.AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
         {
             Assert.ArgumentNotNull(rule, nameof(rule));
             var key = GetKey<TRequest, TResponse>(topic ?? string.Empty);

@@ -51,5 +51,29 @@ namespace Acquaintance
             var rule = new RoundRobinDistributeRule<TRequest>(topics);
             return messageBus.RequestRouter.AddRule<TRequest, TResponse>(topic, rule);
         }
+
+        public static IDisposable SetupPublishByExamination<TPayload>(this IPubSubBus messageBus, string topic, Func<TPayload, string> getTopic)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(getTopic, nameof(getTopic));
+            var rule = new PayloadExamineRule<TPayload>(getTopic);
+            return messageBus.PublishRouter.AddRule<TPayload>(topic, rule);
+        }
+
+        public static IDisposable SetupRequestByExamination<TRequest, TResponse>(this IReqResBus messageBus, string topic, Func<TRequest, string> getTopic)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(getTopic, nameof(getTopic));
+            var rule = new PayloadExamineRule<TRequest>(getTopic);
+            return messageBus.RequestRouter.AddRule<TRequest, TResponse>(topic, rule);
+        }
+
+        public static IDisposable SetupScatterByExamination<TRequest, TResponse>(this IScatterGatherBus messageBus, string topic, Func<TRequest, string> getTopic)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(getTopic, nameof(getTopic));
+            var rule = new PayloadExamineRule<TRequest>(getTopic);
+            return messageBus.ScatterRouter.AddRule<TRequest, TResponse>(topic, rule);
+        }
     }
 }

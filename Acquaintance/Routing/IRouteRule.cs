@@ -1,9 +1,9 @@
 namespace Acquaintance.Routing
 {
-    public interface IPublishRouteRule
+    public interface IRouteRule
     {
     }
-    public interface IPublishRouteRule<TPayload> : IPublishRouteRule
+    public interface IRouteRule<TPayload> : IRouteRule
     {
         string[] GetRoute(string topic, Envelope<TPayload> envelope);
     }

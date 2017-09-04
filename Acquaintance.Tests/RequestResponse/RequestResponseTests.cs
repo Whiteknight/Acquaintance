@@ -205,11 +205,11 @@ namespace Acquaintance.Tests.RequestResponse
             result.GetResponse().Should().Be(default(int));
         }
 
-        private class ReturnsNullRouteRule : IRequestRouteRule<int>
+        private class ReturnsNullRouteRule : IRouteRule<int>
         {
-            public string GetRoute(string topic, Envelope<int> envelope)
+            public string[] GetRoute(string topic, Envelope<int> envelope)
             {
-                return null;
+                return new string[0];
             }
         }
 

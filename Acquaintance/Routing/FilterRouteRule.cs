@@ -4,7 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Routing
 {
-    public class FilterRouteRule<T> : IPublishRouteRule<T>, IRequestRouteRule<T>, IScatterRouteRule<T>
+    public class FilterRouteRule<T> : IRouteRule<T>
     {
         private readonly EventRoute<T>[] _routes;
         private readonly string _defaultRouteOrNull;
@@ -16,7 +16,7 @@ namespace Acquaintance.Routing
             _defaultRouteOrNull = defaultRouteOrNull;
         }
 
-        string[] IPublishRouteRule<T>.GetRoute(string topic, Envelope<T> envelope)
+        public string[] GetRoute(string topic, Envelope<T> envelope)
         {
             var route = _routes.FirstOrDefault(r => r.Predicate(envelope.Payload));
             if (route != null)
@@ -25,22 +25,6 @@ namespace Acquaintance.Routing
             if (_defaultRouteOrNull != null)
                 return new[] { _defaultRouteOrNull };
             return new string[0];
-        }
-
-        string IRequestRouteRule<T>.GetRoute(string topic, Envelope<T> envelope)
-        {
-            return GetRouteInternal(topic, envelope.Payload);
-        }
-
-        string IScatterRouteRule<T>.GetRoute(string topic, Envelope<T> envelope)
-        {
-            return GetRouteInternal(topic, envelope.Payload);
-        }
-
-        private string GetRouteInternal(string topic, T payload)
-        {
-            var route = _routes.FirstOrDefault(r => r.Predicate(payload));
-            return route != null ? route.Topic : _defaultRouteOrNull;
         }
     }
 }
