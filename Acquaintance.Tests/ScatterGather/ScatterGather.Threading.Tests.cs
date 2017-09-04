@@ -31,8 +31,7 @@ namespace Acquaintance.Tests.ScatterGather
                 target.Participate<TestRequestWithResponse, TestResponse>(l => l
                     .WithTopic("Test")
                     .Invoke(req => new TestResponse { Text = req.Text + "Responded" + Thread.CurrentThread.ManagedThreadId })
-                    .OnWorkerThread()
-                    .WithTimeout(2000));
+                    .OnWorker());
                 var response = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Request" });
 
                 response.Should().NotBeNull();
@@ -52,7 +51,7 @@ namespace Acquaintance.Tests.ScatterGather
                 var token = target.Participate<TestRequestWithResponse, TestResponse>(builder => builder
                     .WithTopic("Test")
                     .Invoke(e => new TestResponse { Text = Thread.CurrentThread.ManagedThreadId.ToString() })
-                    .OnDedicatedThread());
+                    .OnDedicatedWorker());
                 var results = target.Scatter<TestRequestWithResponse, TestResponse>("Test", new TestRequestWithResponse { Text = "Test" });
 
                 results.GetNextResponse().Value.Text.Should().NotBeNullOrEmpty();

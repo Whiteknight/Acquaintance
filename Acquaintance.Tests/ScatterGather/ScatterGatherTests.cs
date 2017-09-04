@@ -129,7 +129,7 @@ namespace Acquaintance.Tests.ScatterGather
             target.Participate<int, int>(l => l
                 .WithDefaultTopic()
                 .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
-                .OnWorkerThread());
+                .OnWorker());
 
             var response = target.Scatter<int, int>(1).GetNextResponse();
             Action act = () => response.ThrowExceptionIfPresent();

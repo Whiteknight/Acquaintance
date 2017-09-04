@@ -47,7 +47,7 @@ When you're ready to code, create a message bus:
 
 ## Scatter/Gather
 
-Scatter/Gather is conceptually similar to Request/Response except the channel may have many listeners or *participants*.  Internally and in terms of API the two are significantly different, however. Because scatter/gather requests must wait on an unknown number of participants providing responses asynchronously, waiting and timeouts can become an issue. For best performance, when you do scatter/gather make sure you know how many responses you'd like to receive and how long are you willing to wait to get them.
+[Scatter/Gather](ScatterGather.md) is conceptually similar to Request/Response except the channel may have many listeners or *participants*.  Internally and in terms of API the two are significantly different, however. Because scatter/gather requests must wait on an unknown number of participants providing responses asynchronously, waiting and timeouts can become an issue. For best performance, when you do scatter/gather make sure you know how many responses you'd like to receive and how long are you willing to wait to get them.
 
 ```csharp
     // Setup a Participant

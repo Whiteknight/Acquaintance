@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{221C8162-6
 		docs\index.md = docs\index.md
 		docs\PubSub.md = docs\PubSub.md
 		docs\ReqRes.md = docs\ReqRes.md
+		docs\ScatterGather.md = docs\ScatterGather.md
 		docs\Threads.md = docs\Threads.md
 	EndProjectSection
 EndProject

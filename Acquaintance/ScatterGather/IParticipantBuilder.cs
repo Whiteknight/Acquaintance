@@ -69,13 +69,13 @@ namespace Acquaintance.ScatterGather
         /// Execute on the Acquaintance threadpool
         /// </summary>
         /// <returns></returns>
-        IDetailsParticipantBuilder<TRequest, TResponse> OnWorkerThread();
+        IDetailsParticipantBuilder<TRequest, TResponse> OnWorker();
 
         /// <summary>
         /// Create a dedicated worker thread and execute the participant on it.
         /// </summary>
         /// <returns></returns>
-        IDetailsParticipantBuilder<TRequest, TResponse> OnDedicatedThread();
+        IDetailsParticipantBuilder<TRequest, TResponse> OnDedicatedWorker();
     }
 
     /// <summary>
@@ -98,13 +98,6 @@ namespace Acquaintance.ScatterGather
         /// <param name="filter"></param>
         /// <returns></returns>
         IDetailsParticipantBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter);
-
-        /// <summary>
-        /// Specify a maximum timeout before the sender stops waiting for the response
-        /// </summary>
-        /// <param name="timeoutMs"></param>
-        /// <returns></returns>
-        IDetailsParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs);
 
         /// <summary>
         /// Make custom modifications to the IParticipant before it is added to the message bus

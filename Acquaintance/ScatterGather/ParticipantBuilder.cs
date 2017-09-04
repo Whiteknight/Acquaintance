@@ -96,7 +96,7 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
-        public IDetailsParticipantBuilder<TRequest, TResponse> OnWorkerThread()
+        public IDetailsParticipantBuilder<TRequest, TResponse> OnWorker()
         {
             ValidateDoesNotReadyHaveDispatchType();
             _dispatchType = DispatchThreadType.AnyWorkerThread;
@@ -110,17 +110,11 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
-        public IDetailsParticipantBuilder<TRequest, TResponse> OnDedicatedThread()
+        public IDetailsParticipantBuilder<TRequest, TResponse> OnDedicatedWorker()
         {
             ValidateDoesNotReadyHaveDispatchType();
             _dispatchType = DispatchThreadType.SpecificThread;
             _useDedicatedThread = true;
-            return this;
-        }
-
-        public IDetailsParticipantBuilder<TRequest, TResponse> WithTimeout(int timeoutMs)
-        {
-            Assert.IsInRange(timeoutMs, nameof(timeoutMs), 1, int.MaxValue);
             return this;
         }
 
