@@ -230,6 +230,41 @@ string topic = info.Topic
 
 If you're passing actions around, this is a way to use Acquaintance internally without having to change your signatures.
 
+### Routing 
+
+Acquaintance allows you to setup routing rules on a topic, so that the message can be dispatched to other topics. The most straight-forward but least used method for this is `.AddRule()`:
+
+```csharp
+var token = messageBus.PublishRouter.AddRule("topic", rule);
+```
+
+There are other methods which simplify the creation of routing rules, which you should probably use instead.
+
+As with all other places in Acquaintance, the `token` can be disposed to remove the rule from the router.
+
+#### Predicate-Based Routing 
+
+You can setup predicates to determine which message to dispatch to which topic: 
+
+```csharp
+var token = messageBus.SetupPublishRouting<MyMessage>("topic", builder => builder
+    .When(payload => IsAMessage(payload), "TopicA")
+    .When(payload => IsBMessage(payload), "TopicB")
+    
+    // Else clause is optional and can only be specified once
+    .Else("TopicC"));
+```
+
+If routing is set up for a topic, none of the predicates match and there is no default, the publish will be ignored.
+
+#### Distribution
+
+Similar to routing, you can setup a round-robin distribution rule which will pick from a list of provided topics using a round-robin algorithm:
+
+```csharp
+var token = messageBus.SetupPublishDistribution("topic", new[] { "TopicA", "TopicB", "TopicC" });
+```
+
 ### Examples
 
 #### Shared Log File
@@ -242,4 +277,54 @@ var token = messageBus.Subscribe<LogData>(builder => builder
     .Invoke(data => File.AppendAllText(fileName, data.ToString()))
     .OnDedicatedWorker()
     .WithFilter(data => data.Severity >= Severity.Error));
+```
+
+#### Multiple Log Files
+
+I have several shared log files, similar to the example above, but I want to send log events to different files depending on the source of the event: I would like all log events to use a single thread for writing:
+
+```csharp
+// Create a single thread to handle all logging
+var workerToken = messageBus.ThreadPool.StartDedicatedWorker();
+
+// Setup topics for each module
+var tokenA = messageBus.Subscribe<LogData>(builder => builder
+    .WithTopic("ModuleA")
+    .Invoke(data => File.AppendAllText(fileNameA, data.ToString()))
+    .OnThread(workerToken.ThreadId));
+var tokenB = messageBus.Subscribe<LogData>(builder => builder
+    .WithTopic("ModuleB")
+    .Invoke(data => File.AppendAllText(fileNameA, data.ToString()))
+    .OnThread(workerToken.ThreadId));
+
+// Setup a routing rule to forward a log request to the appropriate topic
+var routeToken = messageBus.SetupPublishRouting<LogData>("", builder => builder
+    .When(d => d.Module == "A", "ModuleA")
+    .When(d => d.Module == "B", "ModuleB"));
+
+// Now publish a log message and it will go to the correct file
+messageBus.Publish<LogData>(new LogData {
+    Module = "A",
+    ...
+});
+```
+
+#### Load-Balanced Web Service
+
+I have two instances of a Web Service in my network, and I would like my application to automatically load balance my requests to all available servers:
+
+```csharp
+// Subscribe two topics, one for server A and one for server B
+var serverAToken = messageBus.Subscribe<MyEvent>(builder => builder
+    .WithTopic("ServerA")
+    .Invoke(e => sendTo(serverAUrl, e)));
+var serverBToken = messageBus.Subscribe<MyEvent>(builder => builder
+    .WithTopic("ServerB")
+    .Invoke(e => sendTo(serverBUrl, e)));
+
+// Setup round-robin distribution to both topics
+var routeToken = messagebus.SetupPublishDistribution<MyEvent>("", new[] { "ServerA", "ServerB" });
+
+// Now publish an event, and it will automatically go to one of the two servers:
+messageBus.Publish<MyEvent>(myEvent);
 ```
