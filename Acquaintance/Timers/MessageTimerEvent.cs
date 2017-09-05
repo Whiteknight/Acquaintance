@@ -2,8 +2,6 @@
 {
     public class MessageTimerEvent
     {
-        public const string EventName = "Tick";
-
         public MessageTimerEvent(string timerName, long id)
         {
             Id = id;
