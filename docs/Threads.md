@@ -62,5 +62,24 @@ The runloop does allow a callback to exit the loop:
 messageBus.RunEventLoop(() => shouldStop);
 ```
 
-### Managed Threads
+### Thread Reporting
+
+It can be useful to know how many threads are being used by the Acquaintance worker pool. To get a report of threads, call the `.GetThreadReport()` method and call `.ToString()` on the resulting object:
+
+```csharp
+var report = messageBus.WorkerPool.GetThreadReport();
+Console.WriteLine(report.ToString());
+```
+
+#### Managed Threads
+
+In some limited situations, specially for `IMessageBusModule` developers, it may be necessary to allocate Threads separate from the WorkerPool. In these cases, there is a mechanism to register a thread with the WorkerPool so that they will be included in the `ThreadReport`:
+
+```csharp
+var token = messageBus.WorkerPool.RegisterManagedThread("owner", threadId, "purpose");
+```
+
+The WorkerPool won't do anything with these threads, but will include mention of them in the ThreadReport for debugging and auditing purposes.
+
+
 
