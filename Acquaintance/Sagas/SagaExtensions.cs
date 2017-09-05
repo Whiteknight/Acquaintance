@@ -6,7 +6,7 @@ namespace Acquaintance.Sagas
 {
     public static class SagaExtensions
     {
-        public static IDisposable InitializeSagas(this IMessageBus messageBus, int numberOfThreads)
+        public static IDisposable InitializeSagas(this IMessageBus messageBus, int numberOfThreads = 1)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var existing = messageBus.Modules.Get<SagasModule>().FirstOrDefault();

@@ -265,6 +265,16 @@ Similar to routing, you can setup a round-robin distribution rule which will pic
 var token = messageBus.SetupPublishDistribution("topic", new[] { "TopicA", "TopicB", "TopicC" });
 ```
 
+#### Route By Examination
+
+Sometimes the payload object contains the information needed for its own routing. You can derive the topic to use by examining the payload object:
+
+```csharp
+var token = messageBus.SetupPublishByExamination("topic", payload => "newTopic");
+```
+
+If the payload object returns null the message will not be routed or published. Otherwise the string returned will be used as the new topic to publish.
+
 ### Examples
 
 #### Shared Log File

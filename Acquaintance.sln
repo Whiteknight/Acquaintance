@@ -20,11 +20,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{221C8162-6AFB-4660-B14A-6A0E41EBB356}"
 	ProjectSection(SolutionItems) = preProject
+		docs\EventSources.md = docs\EventSources.md
 		docs\index.md = docs\index.md
+		docs\MessageBus.md = docs\MessageBus.md
+		docs\Modules.md = docs\Modules.md
+		docs\Nets.md = docs\Nets.md
 		docs\PubSub.md = docs\PubSub.md
 		docs\ReqRes.md = docs\ReqRes.md
+		docs\Sagas.md = docs\Sagas.md
 		docs\ScatterGather.md = docs\ScatterGather.md
+		docs\Testing.md = docs\Testing.md
 		docs\Threads.md = docs\Threads.md
+		docs\Timer.md = docs\Timer.md
 	EndProjectSection
 EndProject
 Global

@@ -62,3 +62,5 @@ The runloop does allow a callback to exit the loop:
 messageBus.RunEventLoop(() => shouldStop);
 ```
 
+### Managed Threads
+

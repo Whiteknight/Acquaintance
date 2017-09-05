@@ -6,19 +6,19 @@ namespace Acquaintance.Testing
 {
     public static class TestingExtensions
     {
-        public static PublishExpectation<TPayload> ExpectPublish<TPayload>(this IMessageBus messageBus, string name, Func<TPayload, bool> filter = null, string description = null)
+        public static PublishExpectation<TPayload> ExpectPublish<TPayload>(this IMessageBus messageBus, string topic, Func<TPayload, bool> filter = null, string description = null)
         {
-            return GetTestingModule(messageBus).ExpectPublish(name, filter, description);
+            return GetTestingModule(messageBus).ExpectPublish(topic, filter, description);
         }
 
-        public static RequestExpectation<TRequest, TResponse> ExpectRequest<TRequest, TResponse>(this IMessageBus messageBus, string name, Func<TRequest, bool> filter = null, string description = null)
+        public static RequestExpectation<TRequest, TResponse> ExpectRequest<TRequest, TResponse>(this IMessageBus messageBus, string topic, Func<TRequest, bool> filter = null, string description = null)
         {
-            return GetTestingModule(messageBus).ExpectRequest<TRequest, TResponse>(name, filter, description);
+            return GetTestingModule(messageBus).ExpectRequest<TRequest, TResponse>(topic, filter, description);
         }
 
-        public static ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(this IMessageBus messageBus, string name, Func<TRequest, bool> filter = null, string description = null)
+        public static ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(this IMessageBus messageBus, string topic, Func<TRequest, bool> filter = null, string description = null)
         {
-            return GetTestingModule(messageBus).ExpectScatter<TRequest, TResponse>(name, filter, description);
+            return GetTestingModule(messageBus).ExpectScatter<TRequest, TResponse>(topic, filter, description);
         }
 
         public static void VerifyAllExpectations(this IMessageBus messageBus, Action<string[]> onError = null)

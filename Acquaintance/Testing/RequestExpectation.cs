@@ -75,6 +75,8 @@ namespace Acquaintance.Testing
             return this;
         }
 
+        // TODO: Method to throw an exception
+
         public RequestExpectation<TRequest, TResponse> Callback(Action<TRequest, TResponse> callback)
         {
             _actions.Add(callback);
