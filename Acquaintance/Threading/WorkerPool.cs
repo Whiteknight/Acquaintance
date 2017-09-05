@@ -109,14 +109,14 @@ namespace Acquaintance.Threading
             return GetThreadContext(currentThreadId, true);
         }
 
-        public IDisposable RegisterManagedThread(IThreadManager manager, int threadId, string purpose)
+        public IDisposable RegisterManagedThread(string owner, int threadId, string purpose)
         {
-            var registration = new RegisteredManagedThread(manager, threadId, purpose);
+            var registration = new RegisteredManagedThread(owner, threadId, purpose);
             _registeredThreads.TryAdd(threadId, registration);
             return new ManagedThreadToken(this, threadId);
         }
 
-        public void UnregisterManagedThread(int threadId)
+        private void UnregisterManagedThread(int threadId)
         {
             _registeredThreads.TryRemove(threadId, out RegisteredManagedThread registration);
         }
@@ -151,10 +151,10 @@ namespace Acquaintance.Threading
 
         private class ManagedThreadToken : IDisposable
         {
-            private readonly IWorkerPool _workerPool;
+            private readonly WorkerPool _workerPool;
             private readonly int _threadId;
 
-            public ManagedThreadToken(IWorkerPool workerPool, int threadId)
+            public ManagedThreadToken(WorkerPool workerPool, int threadId)
             {
                 _workerPool = workerPool;
                 _threadId = threadId;

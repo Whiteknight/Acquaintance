@@ -32,7 +32,7 @@ namespace Acquaintance.Timers
             return messageBus.Subscribe<MessageTimerEvent>(builder =>
             {
                 var b2 = builder.WithTopic(topic);
-                build(b2);
+                build?.Invoke(b2);
                 var b3 = b2 as IDetailsSubscriptionBuilder<MessageTimerEvent>;
                 b3?.WithFilter(t => t.Id % multiple == 0);
             });

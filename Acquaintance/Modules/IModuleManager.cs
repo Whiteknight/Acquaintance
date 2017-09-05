@@ -22,6 +22,5 @@ namespace Acquaintance.Modules
         /// <returns></returns>
         TModule Get<TModule>()
             where TModule : class, IMessageBusModule;
-
     }
 }

@@ -37,7 +37,7 @@ namespace Acquaintance.Threading
             foreach (var thread in RegisteredThreads)
             {
                 sb.AppendLine("\tThreadId:" + thread.ThreadId);
-                sb.AppendLine("\t\tOwner:" + thread.Manager.GetType().FullName);
+                sb.AppendLine("\t\tOwner:" + thread.Owner);
                 sb.AppendLine("\t\tPurpose:" + thread.Purpose);
             }
 

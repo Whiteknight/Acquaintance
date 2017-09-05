@@ -15,7 +15,6 @@ namespace Acquaintance.Threading
         IActionDispatcher GetCurrentThreadDispatcher();
         IWorkerContext GetCurrentThreadContext();
 
-        IDisposable RegisterManagedThread(IThreadManager manager, int threadId, string purpose);
-        void UnregisterManagedThread(int threadId);
+        IDisposable RegisterManagedThread(string owner, int threadId, string purpose);
     }
 }

@@ -197,16 +197,11 @@ namespace Acquaintance
                 return _inner.GetCurrentThreadContext();
             }
 
-            public IDisposable RegisterManagedThread(IThreadManager manager, int threadId, string purpose)
+            public IDisposable RegisterManagedThread(string owner, int threadId, string purpose)
             {
-                var token = _inner.RegisterManagedThread(manager, threadId, purpose);
+                var token = _inner.RegisterManagedThread(owner, threadId, purpose);
                 _tokens.Add(token);
                 return token;
-            }
-
-            public void UnregisterManagedThread(int threadId)
-            {
-                _inner.UnregisterManagedThread(threadId);
             }
         }
     }

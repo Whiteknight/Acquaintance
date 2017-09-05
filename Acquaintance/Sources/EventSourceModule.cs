@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Acquaintance.Sources
 {
-    public class EventSourceModule : IMessageBusModule, IThreadManager
+    public class EventSourceModule : IMessageBusModule
     {
         private IMessageBus _messageBus;
         private readonly ConcurrentDictionary<Guid, IEventSourceWorker> _threads;
@@ -46,31 +46,33 @@ namespace Acquaintance.Sources
                 // TODO: Handle the rare error
                 return null;
             }
-            _messageBus.WorkerPool.RegisterManagedThread(this, thread.ThreadId, "SourceModule thread " + thread.Id);
-            return new WorkerToken(this, thread, thread.Id);
+            var threadToken = _messageBus.WorkerPool.RegisterManagedThread("Event Source Module", thread.ThreadId, "SourceModule thread " + thread.Id);
+            return new WorkerToken(this, thread, thread.Id, threadToken);
         }
 
         private void RemoveThread(Guid id)
         {
             _threads.TryRemove(id, out IEventSourceWorker thread);
-            _messageBus.WorkerPool.UnregisterManagedThread(thread.ThreadId);
         }
 
         private class WorkerToken : IDisposable
         {
             private readonly IEventSourceWorker _worker;
             private readonly Guid _id;
+            private readonly IDisposable _threadToken;
             private readonly EventSourceModule _module;
 
-            public WorkerToken(EventSourceModule module, IEventSourceWorker worker, Guid id)
+            public WorkerToken(EventSourceModule module, IEventSourceWorker worker, Guid id, IDisposable threadToken)
             {
                 _worker = worker;
                 _id = id;
+                _threadToken = threadToken;
                 _module = module;
             }
 
             public void Dispose()
             {
+                _threadToken.Dispose();
                 _module.RemoveThread(_id);
                 _worker.Dispose();
             }

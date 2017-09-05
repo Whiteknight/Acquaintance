@@ -2,14 +2,14 @@ namespace Acquaintance.Threading
 {
     public class RegisteredManagedThread
     {
-        public RegisteredManagedThread(IThreadManager manager, int threadId, string purpose)
+        public RegisteredManagedThread(string owner, int threadId, string purpose)
         {
-            Manager = manager;
+            Owner = owner;
             ThreadId = threadId;
             Purpose = purpose;
         }
 
-        public IThreadManager Manager { get; }
+        public string Owner { get; }
         public int ThreadId { get; }
         public string Purpose { get; }
     }
