@@ -1,6 +1,5 @@
 ﻿using Acquaintance.PubSub;
 using System;
-using System.Linq;
 using Acquaintance.Utility;
 
 namespace Acquaintance.Timers
@@ -41,7 +40,7 @@ namespace Acquaintance.Timers
 
         private static MessageTimerModule GetModule(IMessageBus messageBus)
         {
-            var module = messageBus.Modules.Get<MessageTimerModule>().FirstOrDefault();
+            var module = messageBus.Modules.Get<MessageTimerModule>();
             if (module == null)
                 throw new Exception($"Message Timer module is not initialized. Call .{nameof(InitializeMessageTimer)}() first");
             return module;

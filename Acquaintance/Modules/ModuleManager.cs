@@ -1,8 +1,7 @@
 ﻿using Acquaintance.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 
 namespace Acquaintance.Modules
 {
@@ -10,35 +9,46 @@ namespace Acquaintance.Modules
     {
         private readonly IMessageBus _messageBus;
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<Guid, IMessageBusModule> _modules;
+        private readonly ConcurrentDictionary<string, IMessageBusModule> _modules;
 
         public ModuleManager(IMessageBus messageBus, ILogger logger)
         {
             _messageBus = messageBus;
             _logger = logger;
-            _modules = new ConcurrentDictionary<Guid, IMessageBusModule>();
+            _modules = new ConcurrentDictionary<string, IMessageBusModule>();
         }
 
-        public IDisposable Add(IMessageBusModule module)
+        public IDisposable Add<TModule>(TModule module)
+            where TModule : class, IMessageBusModule
         {
-            var id = Guid.NewGuid();
-            _logger.Debug("Adding module Id={0} Type={1}", id, module.GetType().Name);
+            var key = GetKey<TModule>();
+            if (_modules.ContainsKey(key))
+                throw new Exception($"A module of type {typeof(TModule).FullName} has already been added.");
+
+            _logger.Debug($"Adding module Type={module.GetType().Name}");
             module.Attach(_messageBus);
-            if (!_modules.TryAdd(id, module))
+            if (!_modules.TryAdd(key, module))
             {
                 _logger.Error($"Could not add module of type {module.GetType().Name} for unknown reasons");
-                return null;
+                throw new Exception($"Could not add module of type {typeof(TModule).FullName}. You may be trying to add another copy of it on a separate thread");
             }
 
-            _logger.Debug("Starting module Id={0} Type={1}", id, module.GetType().Name);
+            _logger.Debug($"Starting module Type={module.GetType().Name}");
             module.Start();
-            return new ModuleToken(this, module.GetType().Name, id);
+            return new ModuleToken(this, key, module.GetType().Name);
         }
 
-        public IEnumerable<TModule> Get<TModule>()
-            where TModule : IMessageBusModule
+        public TModule Get<TModule>()
+            where TModule : class, IMessageBusModule
         {
-            return _modules.Values.OfType<TModule>().ToList();
+            var key = GetKey<TModule>();
+            bool ok = _modules.TryGetValue(key, out IMessageBusModule module);
+            if (!ok || module == null)
+                return null;
+            var typedModule = module as TModule;
+            if (typedModule == null)
+                throw new Exception($"Module type mismatch. Expected {typeof(TModule).FullName} but found {module.GetType().FullName}");
+            return typedModule;
         }
 
         public void Dispose()
@@ -48,38 +58,47 @@ namespace Acquaintance.Modules
             _modules.Clear();
         }
 
-        private void RemoveModule(Guid id)
+        private void RemoveModule(string key)
         {
-            _modules.TryRemove(id, out IMessageBusModule module);
+            _modules.TryRemove(key, out IMessageBusModule module);
 
-            _logger.Debug("Stopping module Id={0} Type={1}", id, module.GetType().Name);
+            _logger.Debug($"Stopping module Type={module.GetType().Name}");
             module.Stop();
 
-            _logger.Debug("Removing module Id={0} Type={1}", id, module.GetType().Name);
+            _logger.Debug($"Removing module Type={module.GetType().Name}");
             module.Unattach();
+        }
+
+        private static string GetKey<TModule>()
+        {
+            return typeof(TModule).FullName;
         }
 
         private class ModuleToken : IDisposable
         {
             private readonly ModuleManager _manager;
+            private readonly string _key;
             private readonly string _moduleName;
-            private readonly Guid _moduleId;
+            private int _isDisposed;
 
-            public ModuleToken(ModuleManager manager, string moduleName, Guid moduleId)
+            public ModuleToken(ModuleManager manager, string key, string moduleName)
             {
                 _manager = manager;
+                _key = key;
                 _moduleName = moduleName;
-                _moduleId = moduleId;
+                _isDisposed = 0;
             }
 
             public void Dispose()
             {
-                _manager.RemoveModule(_moduleId);
+                var isDisposed = Interlocked.Increment(ref _isDisposed);
+                if (isDisposed == 1)
+                    _manager.RemoveModule(_key);
             }
 
             public override string ToString()
             {
-                return $"Module Id={_moduleId} Name={_moduleName}";
+                return $"Module Name={_moduleName}";
             }
         }
     }

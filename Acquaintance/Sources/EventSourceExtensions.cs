@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using Acquaintance.Utility;
 
@@ -33,7 +32,7 @@ namespace Acquaintance.Sources
 
         private static EventSourceModule GetModule(IMessageBus messageBus)
         {
-            var module = messageBus.Modules.Get<EventSourceModule>().FirstOrDefault();
+            var module = messageBus.Modules.Get<EventSourceModule>();
             if (module == null)
                 throw new Exception($"EventSource module is not enabled. Call .{nameof(InitializeEventSources)}() first");
             return module;

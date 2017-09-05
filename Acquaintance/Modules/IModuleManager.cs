@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Acquaintance.Modules
 {
@@ -13,15 +12,16 @@ namespace Acquaintance.Modules
         /// </summary>
         /// <param name="module"></param>
         /// <returns>A token which can be disposed to remove the module</returns>
-        IDisposable Add(IMessageBusModule module);
+        IDisposable Add<TModule>(TModule module)
+            where TModule : class, IMessageBusModule;
 
         /// <summary>
-        /// Get all existing instances of this module type from the message bus.
+        /// Get existing instance of this module type from the message bus or null
         /// </summary>
         /// <typeparam name="TModule"></typeparam>
         /// <returns></returns>
-        IEnumerable<TModule> Get<TModule>()
-            where TModule : IMessageBusModule;
+        TModule Get<TModule>()
+            where TModule : class, IMessageBusModule;
 
     }
 }

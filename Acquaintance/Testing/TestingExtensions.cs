@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Acquaintance.Utility;
 
 namespace Acquaintance.Testing
@@ -34,7 +33,7 @@ namespace Acquaintance.Testing
 
         private static TestingModule GetTestingModule(IMessageBus messageBus)
         {
-            var module = messageBus.Modules.Get<TestingModule>().FirstOrDefault();
+            var module = messageBus.Modules.Get<TestingModule>();
             if (module == null)
                 throw new Exception($"Testing module is not initialized. Call .{nameof(InitializeTesting)}() first");
             return module;
