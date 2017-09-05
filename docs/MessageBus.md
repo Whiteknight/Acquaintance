@@ -38,6 +38,20 @@ collection.Dispose();
 
 ### Segregated Buses
 
-Consider the case of a loosely-coupled modular system. A Module can be added to the system and unloaded from the system, and Modules use the MessageBus to communicate with each other. When a module is unloaded, we want to terminate all resources of the module, including Subscribers, Listeners, Participants, Threads, Modules, etc.
+Consider the case of a loosely-coupled modular system. A Module can be added to the system and unloaded from the system, and Modules use the MessageBus to communicate with each other. When a module is unloaded, we want to terminate all resources of the module, including Subscribers, Listeners, Participants, Routes, Threads, etc.
 
-The `SubscriptionCollection` is a wrapper around `DisposableCollection` and the `messageBus` which implements the `IMessageBus` interface. All resources allocated through the `SubscriptionCollection` are kept together, and when the collection is disposed, all those resources are removed from the bus at once.
+The `SubscriptionCollection` is a wrapper around `DisposableCollection` and the `messageBus` which implements the majority of the `IMessageBus` interface. All resources allocated through the `SubscriptionCollection` are kept together, and when the collection is disposed, all those resources are removed from the bus at once.
+
+```csharp
+var bus = new SubscriptionCollection(messageBus);
+
+// Setup several handlers and allocate resources
+bus.Subscribe<MyEvent>(b => { ... });
+bus.Listen<MyRequest, MyResponse>(b => { ... });
+bus.Participate<MyRequest, MyResponse>(b => { ... });
+bus.WorkerPool.StartDedicatedWorker();
+
+// Dispose all handlers and allocated resources at once
+bus.Dispose();
+```
+

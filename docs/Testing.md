@@ -25,7 +25,8 @@ messageBus.VerifyAllExpectations(onError);
 
 ```csharp
 // Create the expectation
-var expectation = messageBus.ExpectPublish<MyEvent>("topic", filterPredicate);
+var expectation = messageBus.ExpectPublish<MyEvent>(
+    "topic", filterPredicate);
 
 // Optionally execute a callback when the expectation is met
 expectation.Callback(payload => { ... });
@@ -35,7 +36,8 @@ expectation.Callback(payload => { ... });
 
 ```csharp
 // Create the expectation
-var expectation = messageBus.ExpectRequest<MyRequest, MyResponse>("topic", filterPredicate);
+var expectation = messageBus.ExpectRequest<MyRequest, MyResponse>(
+    "topic", filterPredicate);
 
 // Specify what response to return
 expectation.WillReturn(response);
@@ -49,7 +51,8 @@ expectation.Callback(request => { ... });
 
 ```csharp
 // Create the expectation
-var expectation = messageBus.ExpectScatter<MyRequest, MyResponse>("topic", filterPredicate);
+var expectation = messageBus.ExpectScatter<MyRequest, MyResponse>(
+    "topic", filterPredicate);
 
 // Specify what response to return
 expectation.WillReturn(response);

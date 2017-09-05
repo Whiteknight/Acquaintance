@@ -6,7 +6,7 @@ Get Acquaintance from nuget:
 
     Install-Package Acquaintance
 
-When you're ready to code, create a message bus:
+When you're ready to code, create a [Message Bus](MessageBus.md):
 
     var messageBus = new MessageBus();
 
@@ -39,9 +39,8 @@ When you're ready to code, create a message bus:
         }));
     
     // Send a request and wait for the response
-    var response = messageBus.RequestWait<MyRequest, MyResponse>("test", new MyRequest {
-        Message = "World"
-    });
+    var response = messageBus.RequestWait<MyRequest, MyResponse>("test", 
+        new MyRequest { Message = "World" });
     Console.WriteLine(response.Message);
 ```
 
@@ -58,9 +57,8 @@ When you're ready to code, create a message bus:
         }}));
     
     // Scatter the request message to all participants
-    var scatter = messageBus.Scatter<MyRequest, MyResponse>("test", new MyRequest {
-        Message = "World"
-    });
+    var scatter = messageBus.Scatter<MyRequest, MyResponse>("test", 
+        new MyRequest { Message = "World" });
 
     var responses = scatter.GatherResponses();
     foreach (var response in responses)

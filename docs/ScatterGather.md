@@ -23,12 +23,14 @@ Scatter/Gather does Wildcard topic matching similar to Request/Response.
 Scatter/Gather requests are more complicated than Request/Response requests, because there are potentially many participants on the channel and each of them may return responses at different times. Scatter/Gather requests are made using the `.Scatter()` method.
 
 ```csharp
-var scatter = messageBus.Scatter<MyRequest, MyResponse>("topic", request);
+var scatter = messageBus.Scatter<MyRequest, MyResponse>(
+    "topic", request);
 
 // Get the total number of participants (available immediately)
 var participants = scatter.TotalParticipants;
 
-// Wait for the next response using a default timeout (10 seconds) or an explicit timeout
+// Wait for the next response using a default timeout (10 seconds) 
+// or an explicit timeout
 var response = scatter.GetNextResponse();
 var response = scatter.GetNextResponse(timeout);
 
@@ -43,7 +45,8 @@ var task = scatter.GetNextResponseAsync(timeout, cancellationToken);
 task.Wait();
 var payload = task.Result;
 
-// Wait for several responses, using an optional timeout and/or a maximum number:
+// Wait for several responses, using an optional timeout and/or a 
+// maximum number:
 var responses = scatter.GatherResponses();
 var responses = scatter.GatherResponses(maxResponses);
 var responses = scatter.GatherResponses(timeout);
@@ -71,20 +74,23 @@ Setting up a Participant for Scatter/Gather is similar in complexity to setting 
 The most straight-forward but least common way to add a Participant to a channel is like this:
 
 ```csharp
-var token = messageBus.Participate<MyRequest, MyResponse>("topic", participant);
+var token = messageBus.Participate<MyRequest, MyResponse>(
+    "topic", participant);
 ```
 
 Creating a participant can be difficult, so a Builder object is provided to simplify. First, set your topic:
 
 ```csharp
-var token = messageBus.Participate<MyRequest, MyResponse>(builder => builder
-    // With the default topic
-    .WithDefaultTopic()
+var token = messageBus.Participate<MyRequest, MyResponse>(
+    builder => builder
+        // With the default topic
+        .WithDefaultTopic()
 
-    // Specify the topic explicitly
-    .WithTopic("topic")
+        // Specify the topic explicitly
+        .WithTopic("topic")
 
-    ...);
+        ...
+);
 ```
 
 Next, specify what you want to happen when the Request is received:
@@ -110,7 +116,8 @@ Optionally you can specify the way to dispatch the request on a thread:
     // On the .NET Threadpool (using System.Threading.Task)
     .OnThreadPool()
 
-    // Create a new worker thread, and use only that thread for this subscriber
+    // Create a new worker thread, and use only that thread for this 
+    // participant
     .OnDedicatedWorker()
 ```
 

@@ -60,7 +60,8 @@ This method calls into the normal publish methods using reflection and may incur
 Internally, Acquaintance wraps published messages in an `Envelope<T>` object. Envelopes contain the payload and topic information and also contain a unique ID and metadata about the message. You can create and publish envelopes manually:
 
 ```csharp
-var envelope = messageBus.EnvelopeFactory.Create<MyMessage>("topic", message);
+var envelope = messageBus.EnvelopeFactory
+    .Create<MyMessage>("topic", message);
 ```
 
 Most fields of the envelope are immutable, but it does contain a mechanism for attaching metadata to the envelope, which can be inspected later by the subscriber. Metadata is specified as a key/value pair with both key and value being strings:
@@ -109,10 +110,14 @@ Next specify an action with one of these methods:
     .Invoke(handler)
 
     // Instantiate a service to handle the message;
-    .ActivateAndInvoke(payload => new Service(), (payload, service) => { })
+    .ActivateAndInvoke(
+        payload => new Service(), 
+        (payload, service) => { ... })
 
     // Transform the message to a new type and publish on a new channel
-    .TransformTo<MyOtherMessage>(payload => new MyOtherMessage(), "newTopic")
+    .TransformTo<MyOtherMessage>(
+        payload => new MyOtherMessage(), 
+        "newTopic")
 ```
 
 Optionally specify how you want the action dispatched using one of the [Threading Options](Threads.md):
@@ -130,7 +135,8 @@ Optionally specify how you want the action dispatched using one of the [Threadin
     // On the .NET Threadpool (using System.Threading.Task)
     .OnThreadPool()
 
-    // Create a new worker thread, and use only that thread for this subscriber
+    // Create a new worker thread, and use only that thread for
+    // this subscriber
     .OnDedicatedWorker()
 ```
 
@@ -212,19 +218,20 @@ Sometimes you would like to take an existing `Action<T>` delegate and wrap it up
 
 ```csharp
 Action<int> original = i => Console.WriteLine(i);
-WrappedAction<int> info = messageBus.WrapAction<int>(original, builder => builder
+WrappedAction<int> info = messageBus.WrapAction<int>(original, b => b
     .OnDedicatedThread()
     .MaximumEvents(5));
 
-// The new delegate, which will execute the original delegate on a dedicated worker thread
+// The new delegate, which will execute the original delegate on a 
+// dedicated worker thread
 Action<int> wrapped = info.Action;
 
 // The subscription token. Disposing this cancels the subscription 
 // and causes the wrapped delegate to do nothing
 IDisposable token = info.Token;
 
-// The topic, which you can use to subscribe other listeners to the same
-// action invocation
+// The topic, which you can use to subscribe other listeners to the
+// same action invocation
 string topic = info.Topic
 ```
 
@@ -247,7 +254,7 @@ As with all other places in Acquaintance, the `token` can be disposed to remove 
 You can setup predicates to determine which message to dispatch to which topic: 
 
 ```csharp
-var token = messageBus.SetupPublishRouting<MyMessage>("topic", builder => builder
+var token = messageBus.SetupPublishRouting<MyMessage>("topic", b => b
     .When(payload => IsAMessage(payload), "TopicA")
     .When(payload => IsBMessage(payload), "TopicB")
     
@@ -262,7 +269,11 @@ If routing is set up for a topic, none of the predicates match and there is no d
 Similar to routing, you can setup a round-robin distribution rule which will pick from a list of provided topics using a round-robin algorithm:
 
 ```csharp
-var token = messageBus.SetupPublishDistribution("topic", new[] { "TopicA", "TopicB", "TopicC" });
+var token = messageBus.SetupPublishDistribution("topic", new[] { 
+    "TopicA", 
+    "TopicB", 
+    "TopicC" 
+});
 ```
 
 #### Route By Examination
@@ -270,7 +281,8 @@ var token = messageBus.SetupPublishDistribution("topic", new[] { "TopicA", "Topi
 Sometimes the payload object contains the information needed for its own routing. You can derive the topic to use by examining the payload object:
 
 ```csharp
-var token = messageBus.SetupPublishByExamination("topic", payload => "newTopic");
+var token = messageBus.SetupPublishByExamination("topic", 
+    payload => "newTopic");
 ```
 
 If the payload object returns null the message will not be routed or published. Otherwise the string returned will be used as the new topic to publish.
@@ -307,10 +319,12 @@ var tokenB = messageBus.Subscribe<LogData>(builder => builder
     .Invoke(data => File.AppendAllText(fileNameA, data.ToString()))
     .OnThread(workerToken.ThreadId));
 
-// Setup a routing rule to forward a log request to the appropriate topic
-var routeToken = messageBus.SetupPublishRouting<LogData>("", builder => builder
-    .When(d => d.Module == "A", "ModuleA")
-    .When(d => d.Module == "B", "ModuleB"));
+// Setup a routing rule to forward a log request to the appropriate
+// topic
+var routeToken = messageBus.SetupPublishRouting<LogData>("", 
+    builder => builder
+        .When(d => d.Module == "A", "ModuleA")
+        .When(d => d.Module == "B", "ModuleB"));
 
 // Now publish a log message and it will go to the correct file
 messageBus.Publish<LogData>(new LogData {
@@ -333,8 +347,14 @@ var serverBToken = messageBus.Subscribe<MyEvent>(builder => builder
     .Invoke(e => sendTo(serverBUrl, e)));
 
 // Setup round-robin distribution to both topics
-var routeToken = messagebus.SetupPublishDistribution<MyEvent>("", new[] { "ServerA", "ServerB" });
+var routeToken = messagebus.SetupPublishDistribution<MyEvent>("", 
+    new[] { 
+        "ServerA", 
+        "ServerB" 
+    }
+);
 
-// Now publish an event, and it will automatically go to one of the two servers:
+// Now publish an event, and it will automatically go to one of 
+// the two servers:
 messageBus.Publish<MyEvent>(myEvent);
 ```

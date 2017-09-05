@@ -24,7 +24,8 @@ With wildcards enabled, topic strings are parsed by separating on periods ('.') 
 
 ```csharp
 // Sends the Request to topics like 'A.B.C' and 'A.B.X'
-var response = messageBus.Request<MyRequest, MyResponse>("A.B.*", request);
+var response = messageBus.Request<MyRequest, MyResponse>(
+    "A.B.*", request);
 ```
 
 If a wildcard matches more than one channel, only a single Listener will be selected. Which one is selected should not be treated as deterministic or reliable.
@@ -48,10 +49,12 @@ The most simple way to make a request is to specify the channel, pass a request 
 var response = messageBus.RequestWait<MyRequest, MyResponse>(request);
 
 // Specify topic explicitly
-var response = messageBus.RequestWait<MyRequest, MyResponse>("topic", request);
+var response = messageBus.RequestWait<MyRequest, MyResponse>(
+    "topic", request);
 
 // Specify timeout explicitly
-var response = messageBus.RequestWait<MyRequest, MyResponse>("topic", request, timeout);
+var response = messageBus.RequestWait<MyRequest, MyResponse>(
+    "topic", request, timeout);
 ```
 
 `.RequestWait()` waits for the response up to a default timeout (10 Seconds). If there is an exception, it is thrown. Otherwise, the response payload (or a default value) is returned. If the request times out, the default value is returned.
@@ -65,7 +68,8 @@ var response = messageBus.RequestWait<MyRequest, MyResponse>("topic", request, t
 var task = messageBus.RequestAsync<MyRequest, MyResponse>(request);
 
 // Specify topic explicitly
-var task = messageBus.RequestAsync<MyRequest, MyResponse>("topic", request);
+var task = messageBus.RequestAsync<MyRequest, MyResponse>(
+    "topic", request);
 
 task.Wait();
 var response = task.Result;
@@ -82,9 +86,11 @@ To get the most control over the request, use the `.Request()` method:
 var request = messageBus.Request<MyRequest, MyResponse>(request);
 
 // Specify the topic explicitly
-var request = messageBus.Request<MyRequest, MyResponse>("topic", request);
+var request = messageBus.Request<MyRequest, MyResponse>(
+    "topic", request);
 
-// Wait for the response using a default timeout or specify one explicitly
+// Wait for the response using a default timeout or specify one 
+// explicitly
 request.WaitForResponse();
 request.WaitForResponse(timeout);
 
@@ -115,20 +121,23 @@ Making a request is relatively easy. Listeners contain most of the complexity an
 The most straight-forward but least common way to add a Listener to a channel is like this:
 
 ```csharp
-var token = messageBus.Listen<MyRequest, MyResponse>("topic", listener);
+var token = messageBus.Listen<MyRequest, MyResponse>(
+    "topic", listener);
 ```
 
 Creating a listener can be difficult, so a Builder object is provided to simplify. First, set your topic:
 
 ```csharp
-var token = messageBus.Listen<MyRequest, MyResponse>(builder => builder
-    // With the default topic
-    .WithDefaultTopic()
+var token = messageBus.Listen<MyRequest, MyResponse>(
+    builder => builder
+        // With the default topic
+        .WithDefaultTopic()
 
-    // Specify the topic explicitly
-    .WithTopic("topic")
+        // Specify the topic explicitly
+        .WithTopic("topic")
 
-    ...);
+        ...
+);
 ```
 
 Next, specify what you want to happen when the Request is received:
@@ -141,13 +150,16 @@ Next, specify what you want to happen when the Request is received:
     .InvokeEnvelope(envelope => new MyResponse())
 
     // Create a service to handle the request
-    .ActivateAndInvoke(request => new MyService(), (request, service) => service.GetResponse(request))
+    .ActivateAndInvoke(request => new MyService(), 
+        (request, service) => service.GetResponse(request))
 
     // Transform the request to a new type, and dispatch on a new channel
-    .TransformRequestTo<MyRequest2>("newTopic", request => new MyRequest2())
+    .TransformRequestTo<MyRequest2>("newTopic", 
+        request => new MyRequest2())
 
     // Redirect to a different channel, and transform the response
-    .TransformResponseFrom<MyResponse2>("newTopic", originalResponse => new MyResponse())
+    .TransformResponseFrom<MyResponse2>("newTopic", 
+        originalResponse => new MyResponse())
 ```
 
 Optionally you can specify the way to dispatch the request on a thread:
@@ -166,7 +178,8 @@ Optionally you can specify the way to dispatch the request on a thread:
     // On the .NET Threadpool (using System.Threading.Task)
     .OnThreadPool()
 
-    // Create a new worker thread, and use only that thread for this subscriber
+    // Create a new worker thread, and use only that thread for this 
+    // listener
     .OnDedicatedWorker()
 ```
 
@@ -215,15 +228,18 @@ var token1 = messageBus.Listen<MyRequest, string>(builder => builder
     .Invoke(request => webService.Request(request))
     .OnWorker()
     .WithCircuitBreaker(5, 10000));
-var token2 = messageBus.Listen<MyRequest, MyResponse>(builder => builder
-    .WithTopic("Parsed")
-    .TransformResponseFrom<string>("Raw", json => ParseJson<MyResponse>(json)));
+var token2 = messageBus.Listen<MyRequest, MyResponse>(
+    builder => builder
+        .WithTopic("Parsed")
+        .TransformResponseFrom<string>("Raw", 
+            json => ParseJson<MyResponse>(json)));
 ```
 
 Now I can make the request and get the required response:
 
 ```csharp
-var response = messageBus.RequestWait<MyRequest, MyResponse>("Parsed", request);
+var response = messageBus.RequestWait<MyRequest, MyResponse>(
+    "Parsed", request);
 if (response == null) {
     // The circuit breaker is probably tripped
 }
