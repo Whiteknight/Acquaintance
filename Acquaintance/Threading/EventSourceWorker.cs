@@ -2,6 +2,7 @@ using Acquaintance.Sources;
 using System;
 using System.Threading;
 using Acquaintance.Utility;
+using System.Threading.Tasks;
 
 namespace Acquaintance.Threading
 {
@@ -37,14 +38,14 @@ namespace Acquaintance.Threading
         {
             _tokenSource.Cancel();
             if (!_thread.Join(TimeSpan.FromSeconds(5)))
-                _thread.Abort();
-            _thread.Join();
+            {
+                // Log the error   
+            }
         }
 
         public void Dispose()
         {
-            _thread.Abort();
-            _thread.Join();
+            Stop();
         }
 
         private void ThreadFunction()
@@ -61,7 +62,11 @@ namespace Acquaintance.Threading
                 if (_context.IterationDelayMs < 0)
                     _context.IterationDelayMs = DefaultIterationDelayMs;
                 if (_context.IterationDelayMs > 0)
-                    Thread.Sleep(_context.IterationDelayMs);
+                {
+                    try {
+                        Task.Delay(_context.IterationDelayMs, token).Wait();
+                    } catch {}
+                }
             }
         }
     }
