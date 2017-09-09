@@ -1,20 +1,20 @@
-## The MessageBus
+# The MessageBus
 
 The `IMessageBus` object is the central component of Acquaintance. Almost all interactions with Acquaintance and all behaviors of Acquaintance are performed through the `IMessageBus`.
 
-### Creation Parameters
+## Creation Parameters
 
-### The WorkerPool
+## The WorkerPool
 
 See [Threading](Threads.md)
 
-### The Envelope Factory
+## The Envelope Factory
 
-### Modules
+## Modules
 
 See [Modules](Modules.md)
 
-### Tokens 
+## Tokens
 
 Acquaintance uses the `IDisposable` pattern throughout to manage resources. Almost every operation which allocates resources will return an `IDisposable` token. Disposing the token will free all the related resources.
 
@@ -36,7 +36,7 @@ var report = collection.ToString()
 collection.Dispose();
 ```
 
-### Segregated Buses
+## Segregated Buses
 
 Consider the case of a loosely-coupled modular system. A Module can be added to the system and unloaded from the system, and Modules use the MessageBus to communicate with each other. When a module is unloaded, we want to terminate all resources of the module, including Subscribers, Listeners, Participants, Routes, Threads, etc.
 

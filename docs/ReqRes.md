@@ -1,8 +1,8 @@
-## Request/Response
+# Request/Response
 
-**Request/Response** ("Req/Res") is another messaging pattern that might be more familiar to most programmers. It works like an indirect method call, an RPC method call, or something like an HTTP webservice call where there is a request and a response. A channel may have a single **Listener**, which responds to incoming requests. 
+**Request/Response** ("Req/Res") is another messaging pattern that might be more familiar to most programmers. It works like an indirect method call, an RPC method call, or something like an HTTP webservice call where there is a request and a response. A channel may have a single **Listener**, which responds to incoming requests.
 
-### Channels
+## Channels
 
 Req/Res channels are defined by three pieces of information: A **request type**, a **response type** and an optional **topic**. The default topic, if none is provided, is the empty string. Null topics are coalesced to the empty string.
 
@@ -10,7 +10,7 @@ Every Req/Res channel may have a single Listener. Attempting to add a second lis
 
 Acquaintance has two different ways to treat topics: First as literal strings and second parsed to allow wildcard behavior.
 
-#### Wildcards
+### Wildcards
 
 Wildcard topic matching is more flexible but also incurs a slight performance penalty. To enable wildcards, you must specify the option when you create the message bus:
 
@@ -32,7 +32,7 @@ If a wildcard matches more than one channel, only a single Listener will be sele
 
 Wildcard topics are only valid for Requests. You cannot add a Listener with a topic containing a wildcard.
 
-### Requests
+## Requests
 
 Requests are inherently an asynchronous operation, and a response may not be available immediately. There are a few different ways to make a request and wait for the response, depending on your needs.
 
@@ -40,7 +40,7 @@ Unlike Pub/Sub where errors are swallowed by the dispatcher and logged, Exceptio
 
 If a request is made on a channel with no Listener configured, the response will be a default value for that type and will be returned immediately. Depending on the method used to make the request, it may be possible to determine if there was a Listener or not.
 
-#### RequestWait
+### RequestWait
 
 The most simple way to make a request is to specify the channel, pass a request object, and call `.RequestWait()`:
 
@@ -59,7 +59,7 @@ var response = messageBus.RequestWait<MyRequest, MyResponse>(
 
 `.RequestWait()` waits for the response up to a default timeout (10 Seconds). If there is an exception, it is thrown. Otherwise, the response payload (or a default value) is returned. If the request times out, the default value is returned.
 
-#### RequestAsync
+### RequestAsync
 
 `.RequestAsync` is a simple request mechanism like `.RequestWait()` but it uses `System.Threading.Task<TResponse>`.  Use this if your system is making use of `async`/`await` and wants to chain Tasks together:
 
@@ -77,7 +77,7 @@ var response = task.Result;
 
 The task will communicate exceptions and completion information using the normal interface.
 
-#### Request
+### Request
 
 To get the most control over the request, use the `.Request()` method:
 
@@ -89,7 +89,7 @@ var request = messageBus.Request<MyRequest, MyResponse>(request);
 var request = messageBus.Request<MyRequest, MyResponse>(
     "topic", request);
 
-// Wait for the response using a default timeout or specify one 
+// Wait for the response using a default timeout or specify one
 // explicitly
 request.WaitForResponse();
 request.WaitForResponse(timeout);
@@ -110,11 +110,11 @@ request.ThrowExceptionIfError();
 var response = request.GetResponse();
 ```
 
-#### Anonymous Requests
+### Anonymous Requests
 
-#### Request Envelopes
+### Request Envelopes
 
-### Listeners
+## Listeners
 
 Making a request is relatively easy. Listeners contain most of the complexity and setting up a Listener is much more involved. A Listener is a Composite Object which encapsulates a number of options and behaviors.
 
@@ -150,15 +150,15 @@ Next, specify what you want to happen when the Request is received:
     .InvokeEnvelope(envelope => new MyResponse())
 
     // Create a service to handle the request
-    .ActivateAndInvoke(request => new MyService(), 
+    .ActivateAndInvoke(request => new MyService(),
         (request, service) => service.GetResponse(request))
 
     // Transform the request to a new type, and dispatch on a new channel
-    .TransformRequestTo<MyRequest2>("newTopic", 
+    .TransformRequestTo<MyRequest2>("newTopic",
         request => new MyRequest2())
 
     // Redirect to a different channel, and transform the response
-    .TransformResponseFrom<MyResponse2>("newTopic", 
+    .TransformResponseFrom<MyResponse2>("newTopic",
         originalResponse => new MyResponse())
 ```
 
@@ -178,7 +178,7 @@ Optionally you can specify the way to dispatch the request on a thread:
     // On the .NET Threadpool (using System.Threading.Task)
     .OnThreadPool()
 
-    // Create a new worker thread, and use only that thread for this 
+    // Create a new worker thread, and use only that thread for this
     // listener
     .OnDedicatedWorker()
 ```
@@ -195,13 +195,13 @@ Finally you can specify any additional details as necessary:
     // Use a CircuitBreaker pattern to handle errors
     .WithCircuitBreaker(numberOfErrors, timeoutMs)
 
-    // Modify the Listener 
+    // Modify the Listener
     .ModifyListener(listener => ...)
 ```
 
 The Listener Builder uses segregated interfaces to only provide certain methods at certain times to avoid conflicting settings. Don't fight it! If you don't see a method you want, keep configuring until you do see the correct methods.
 
-#### Stop Listening
+### Stop Listening
 
 The `.Listen()` method and all it's variants return a **Listener Token**. Disposing this token will remove the listener from the channel and cleanup all relevant resources.
 
@@ -210,15 +210,15 @@ var token = messageBus.Listen<int, string>(builder => ...);
 token.Dispose();
 ```
 
-#### Wrapping a Function
+### Wrapping a Function
 
-#### Circuit Breaker Pattern
+### Circuit Breaker Pattern
 
 The Circuit Breaker Pattern disconnects a resource when a certain number of consecutive errors has been reached, to prevent flooding. The resource will remain disconnected for a certain timeout, in hopes that normal operation can be restored.
 
-### Examples
+## Examples
 
-#### Fragile Web Service
+### Fragile Web Service
 
 I have to make a call to a fragile web service. The service may occasionally crash, requiring 10 seconds to reboot. This service returns a string of JSON, which we want to parse into a proper response object
 
@@ -231,7 +231,7 @@ var token1 = messageBus.Listen<MyRequest, string>(builder => builder
 var token2 = messageBus.Listen<MyRequest, MyResponse>(
     builder => builder
         .WithTopic("Parsed")
-        .TransformResponseFrom<string>("Raw", 
+        .TransformResponseFrom<string>("Raw",
             json => ParseJson<MyResponse>(json)));
 ```
 
@@ -244,4 +244,3 @@ if (response == null) {
     // The circuit breaker is probably tripped
 }
 ```
-

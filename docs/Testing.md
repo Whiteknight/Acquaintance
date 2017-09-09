@@ -1,8 +1,8 @@
-## Testing Module
+# Testing Module
 
-**The Testing module is experimental and changes to the API will be made in future versions**
+**Warning**: The Testing module is experimental and changes to the API will be made in future versions based on usage and feedback
 
-Acquaintance provides a module with unit testing tools to help in unit testing code which uses messaging patterns. The testing module works very similar to the Mock Object pattern: Expectations are setup before the test and are verified after the test has completed. 
+Acquaintance provides a module with unit testing tools to help in unit testing code which uses messaging patterns. The testing module works very similar to the Mock Object pattern: Expectations are setup before the test and are verified after the test has completed.
 
 First you must initialize the Testing module:
 
@@ -21,7 +21,7 @@ messageBus.VerifyAllExpectations();
 messageBus.VerifyAllExpectations(onError);
 ```
 
-### Pub/Sub Testing
+## Pub/Sub Testing
 
 ```csharp
 // Create the expectation
@@ -32,7 +32,7 @@ var expectation = messageBus.ExpectPublish<MyEvent>(
 expectation.Callback(payload => { ... });
 ```
 
-### Request/Response Testing
+## Request/Response Testing
 
 ```csharp
 // Create the expectation
@@ -47,7 +47,7 @@ expectation.WillReturn(request => response);
 expectation.Callback(request => { ... });
 ```
 
-### Scatter/Gather Testing
+## Scatter/Gather Testing
 
 ```csharp
 // Create the expectation

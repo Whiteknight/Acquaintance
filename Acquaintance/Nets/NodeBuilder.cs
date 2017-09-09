@@ -125,7 +125,7 @@ namespace Acquaintance.Nets
             string errorTopic = ErrorTopic(_key);
             _handler = new NodeRepublishSubscriptionHandler<TInput>(handler, _messageBus, _key, outputTopic, errorTopic);
             return this;
-        }        
+        }
 
         public NodeBuilder<TInput> ReadInput()
         {

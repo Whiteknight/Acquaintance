@@ -1,16 +1,16 @@
-## Publish/Subscribe
+# Publish/Subscribe
 
-Publish/Subscribe ("Pub/Sub") is a messaging pattern where a component publishes a message on a **channel** and all **subscribers** to that channel receive a copy of the message. 
+Publish/Subscribe ("Pub/Sub") is a messaging pattern where a component publishes a message on a **channel** and all **subscribers** to that channel receive a copy of the message.
 
-### Channels
+## Channels
 
 Acquaintance Pub/SubChannels are defined by two pieces of information: A payload **type** and a **topic**. The default topic, if none is provided, is the empty string.
 
-Subscribers subscribe to a particular channel and publishers publish messages to a particular channel. 
+Subscribers subscribe to a particular channel and publishers publish messages to a particular channel.
 
 Acquaintance has two modes of operation. The first treats topic strings as literals and makes a single match to the channel with the given topic. The second mode allows topic strings to contain **wildcards** and all channels are selected which match the pattern.
 
-#### Default Topic
+### Default Topic
 
 The default topic is an empty string. Null strings are coalesced to the empty string. These three calls are all equivalent:
 
@@ -20,7 +20,7 @@ messageBus.Publish<int>(null, 1);
 messageBus.Publish<int>(1);
 ```
 
-#### Wildcards
+### Wildcards
 
 Wildcard topic matching is more flexible but also incurs a slight performance penalty. To enable wildcards, you must specify the option when you create the message bus:
 
@@ -39,13 +39,13 @@ messageBus.Publish<MyMessage>("A.B.*", message);
 
 Wildcard topics are only valid for publishing. You cannot subscribe with a topic containing a wildcard.
 
-### Publishing
+## Publishing
 
 Acquaintance is optimized so that the common operations should be fast, while the uncommon operations do not need to be. Publishing is considered to be the most common operation in the Pub/Sub pattern and so more care has been taken to optimize that pathway than others.
 
 Publishing, as seen in examples above, can be done with a single method call and only requires specifying a message type, a topic and a message payload.
 
-#### Anonymous Publish
+### Anonymous Publish
 
 In some situations the type of the message payload will not be known at compile time. In these cases you can use an anonymous publish:
 
@@ -55,7 +55,7 @@ messageBus.Publish("topic", message.GetType(), message);
 
 This method calls into the normal publish methods using reflection and may incur a performance penalty.
 
-#### Envelopes
+### Envelopes
 
 Internally, Acquaintance wraps published messages in an `Envelope<T>` object. Envelopes contain the payload and topic information and also contain a unique ID and metadata about the message. You can create and publish envelopes manually:
 
@@ -72,7 +72,7 @@ envelope.SetMetadata("key", "value")
 
 Envelopes are passed between threads and the usual pattern for supporting this is the Immutable Object pattern. However metadata can and will change, so it requires explicit synchronization. If you use metadata, understand that there will be some overhead associated with it.
 
-### Subscribing
+## Subscribing
 
 Publishing is simple and straight-forward, but Subscribing is where the real complexity lies. A subscription is a Composite object which encapsulates a number of options and behaviors. The most simple subscription method looks like this:
 
@@ -111,12 +111,12 @@ Next specify an action with one of these methods:
 
     // Instantiate a service to handle the message;
     .ActivateAndInvoke(
-        payload => new Service(), 
+        payload => new Service(),
         (payload, service) => { ... })
 
     // Transform the message to a new type and publish on a new channel
     .TransformTo<MyOtherMessage>(
-        payload => new MyOtherMessage(), 
+        payload => new MyOtherMessage(),
         "newTopic")
 ```
 
@@ -155,7 +155,7 @@ Finally, if you still have more things to specify, you can put in a few other op
 
 The subscription builder uses segregated interfaces to help protect you for specifying conflicting options. At each step, only a few methods will be available to you to choose. Don't fight it. Setup things in order and you'll avoid whole classes of potential bugs.
 
-#### Unsubscribing
+### Unsubscribing
 
 Acquaintance uses the Disposable object pattern for unsubscribing. Every `.Subscribe` method variant returns an `IDisposable` token. Disposing this token removes the subscription from the channel:
 
@@ -166,7 +166,7 @@ token.Dispose();
 
 Disposing the subscription token removes the subscription from the channel and cleans up all related resources. If you specified the `.OnDedicatedWorker()` option, disposing the token will also stop and cleanup the worker thread.
 
-#### Errors
+### Errors
 
 Exceptions thrown from the subscriber are not passed back to the publisher thread. These exceptions are caught and logged internally to Acquaintance. If you want to see these errors, setup a logger when you create the message bus:
 
@@ -186,9 +186,9 @@ var messageBus = new MessageBus(new MessageBusCreateParameters {
 });
 ```
 
-#### Autosubscribing
+### Autosubscribing
 
-**This feature is currently experimental and is subject to change between versions**
+**Warning**: Autosubscribing is currently experimental and is subject to change between versions based on usage and feedback.
 
 If you don't need fine-tuned control over the options of your subscription, and would like them to be automatically created from attributes, you can use the autosubscription mechanism.
 
@@ -210,9 +210,9 @@ public void MyMethod(Envelope<MyMessage> envelope) { ... }
 
 The method currently must be public, must not be static, must return `void` and must take a single parameter of the correct type. If the scanner detects that any of these conditions are not satisfied, it will silently skip the method.
 
-You cannot currently specify complicated options such as dispatch thread, maximum events, or anything else. 
+You cannot currently specify complicated options such as dispatch thread, maximum events, or anything else.
 
-#### Wrapping an Action
+### Wrapping an Action
 
 Sometimes you would like to take an existing `Action<T>` delegate and wrap it up so that Acquaintance will dispatch the action using it's normal dispatch engine.
 
@@ -222,11 +222,11 @@ WrappedAction<int> info = messageBus.WrapAction<int>(original, b => b
     .OnDedicatedThread()
     .MaximumEvents(5));
 
-// The new delegate, which will execute the original delegate on a 
+// The new delegate, which will execute the original delegate on a
 // dedicated worker thread
 Action<int> wrapped = info.Action;
 
-// The subscription token. Disposing this cancels the subscription 
+// The subscription token. Disposing this cancels the subscription
 // and causes the wrapped delegate to do nothing
 IDisposable token = info.Token;
 
@@ -237,7 +237,7 @@ string topic = info.Topic
 
 If you're passing actions around, this is a way to use Acquaintance internally without having to change your signatures.
 
-### Routing 
+## Routing
 
 Acquaintance allows you to setup routing rules on a topic, so that the message can be dispatched to other topics. The most straight-forward but least used method for this is `.AddRule()`:
 
@@ -249,47 +249,47 @@ There are other methods which simplify the creation of routing rules, which you 
 
 As with all other places in Acquaintance, the `token` can be disposed to remove the rule from the router.
 
-#### Predicate-Based Routing 
+### Predicate-Based Routing
 
-You can setup predicates to determine which message to dispatch to which topic: 
+You can setup predicates to determine which message to dispatch to which topic:
 
 ```csharp
 var token = messageBus.SetupPublishRouting<MyMessage>("topic", b => b
     .When(payload => IsAMessage(payload), "TopicA")
     .When(payload => IsBMessage(payload), "TopicB")
-    
+
     // Else clause is optional and can only be specified once
     .Else("TopicC"));
 ```
 
 If routing is set up for a topic, none of the predicates match and there is no default, the publish will be ignored.
 
-#### Distribution
+### Distribution
 
 Similar to routing, you can setup a round-robin distribution rule which will pick from a list of provided topics using a round-robin algorithm:
 
 ```csharp
-var token = messageBus.SetupPublishDistribution("topic", new[] { 
-    "TopicA", 
-    "TopicB", 
-    "TopicC" 
+var token = messageBus.SetupPublishDistribution("topic", new[] {
+    "TopicA",
+    "TopicB",
+    "TopicC"
 });
 ```
 
-#### Route By Examination
+### Route By Examination
 
 Sometimes the payload object contains the information needed for its own routing. You can derive the topic to use by examining the payload object:
 
 ```csharp
-var token = messageBus.SetupPublishByExamination("topic", 
+var token = messageBus.SetupPublishByExamination("topic",
     payload => "newTopic");
 ```
 
 If the payload object returns null the message will not be routed or published. Otherwise the string returned will be used as the new topic to publish.
 
-### Examples
+## Examples
 
-#### Shared Log File
+### Shared Log File
 
 I have multiple worker threads who all want to log to a single log file. I only want to log events of a high severity. I can use a dedicated worker thread to make all requests to the shared log file happen on a single thread to avoid data corruption, locking or deadlocks:
 
@@ -301,7 +301,7 @@ var token = messageBus.Subscribe<LogData>(builder => builder
     .WithFilter(data => data.Severity >= Severity.Error));
 ```
 
-#### Multiple Log Files
+### Multiple Log Files
 
 I have several shared log files, similar to the example above, but I want to send log events to different files depending on the source of the event: I would like all log events to use a single thread for writing:
 
@@ -321,7 +321,7 @@ var tokenB = messageBus.Subscribe<LogData>(builder => builder
 
 // Setup a routing rule to forward a log request to the appropriate
 // topic
-var routeToken = messageBus.SetupPublishRouting<LogData>("", 
+var routeToken = messageBus.SetupPublishRouting<LogData>("",
     builder => builder
         .When(d => d.Module == "A", "ModuleA")
         .When(d => d.Module == "B", "ModuleB"));
@@ -333,7 +333,7 @@ messageBus.Publish<LogData>(new LogData {
 });
 ```
 
-#### Load-Balanced Web Service
+### Load-Balanced Web Service
 
 I have two instances of a Web Service in my network, and I would like my application to automatically load balance my requests to all available servers:
 
@@ -347,14 +347,14 @@ var serverBToken = messageBus.Subscribe<MyEvent>(builder => builder
     .Invoke(e => sendTo(serverBUrl, e)));
 
 // Setup round-robin distribution to both topics
-var routeToken = messagebus.SetupPublishDistribution<MyEvent>("", 
-    new[] { 
-        "ServerA", 
-        "ServerB" 
+var routeToken = messagebus.SetupPublishDistribution<MyEvent>("",
+    new[] {
+        "ServerA",
+        "ServerB"
     }
 );
 
-// Now publish an event, and it will automatically go to one of 
+// Now publish an event, and it will automatically go to one of
 // the two servers:
 messageBus.Publish<MyEvent>(myEvent);
 ```

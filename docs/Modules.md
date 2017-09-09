@@ -1,4 +1,4 @@
-## Modules
+# Modules
 
 Modules are extension points for the Acquaintance MessageBus which add new functionality. Some of these are straight-forward applications of the existing messaging patterns, while others add completely new behavior.
 

@@ -1,6 +1,6 @@
-## Sagas Module
+# Sagas Module
 
-**Sagas are an experimental feature and will change in future versions**
+**Warning**: Sagas are an experimental feature and will change in future versions based on usage and feedback.
 
 Sagas perform event aggregation for pub/sub messages. A saga is started by receiving a specific type of message and is continued by receiving zero or more additional follow-up messages. When all messages in the saga have been received a final completion action will be executed.
 
@@ -12,7 +12,7 @@ First, start by initializing the Sagas module. Specify the number of threads to 
 var token = messageBus.InitializeSagas(numberOfThreads);
 ```
 
-### Create a Saga
+## Create a Saga
 
 ```csharp
 var token = messageBus.CreateSaga<MyState, MyKey>(builder => builder
@@ -41,16 +41,16 @@ After specifying a start message, you can choose to continue the saga with any n
     .ContinueWith<MyMessage2>("topic", payload => key, (context => { ... })
 ```
 
-Finally you can specify a callback action to be executed when the saga is marked complete using the `context.Complete()` method described above. This method takes a reference to both a limited messageBus for publishing result messages and the state object with all the final state data. At this point you may choose to publish result messages or take other actions appropriate for your application. 
+Finally you can specify a callback action to be executed when the saga is marked complete using the `context.Complete()` method described above. This method takes a reference to both a limited messageBus for publishing result messages and the state object with all the final state data. At this point you may choose to publish result messages or take other actions appropriate for your application.
 
 ```csharp
     .WhenComplete((bus, state) => { ... })
 );
 ```
 
-### Examples
+## Examples
 
-#### New User Account
+### New User Account
 
 My system is creating a new user account. Each user has a unique UserId that I can use to correlate messages together. When the user creates the account we receive a message that the account has been created, which several other subsystems are also subscribed to. When we create the account we need to wait for confirmation that necessary records have been created in other subsystems: The billing system needs to setup an automatic invoice schedule and the security system which must allocate a first-time password for the user. When these things are both done, we can send a notification message to the user that they are ready to log in with the new password.
 
@@ -79,7 +79,7 @@ var token = messageBus.CreateSaga<NewUserState, int>(builder => builder
             context.Abort();
             return;
         }
-        
+
         context.State.SecurityInfo = m.Info;
         if (context.State.BillingInfo != null && context.State.SecurityInfo != null)
             context.Complete();

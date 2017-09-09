@@ -1,4 +1,4 @@
-## Acquaintance Overview
+# Acquaintance
 
 Acquaintance is a .NET library for intra-process communications. It's like an in-memory message bus that loosely-coupled parts of your application can use to communicate with each other. At the heart, Acquaintance implements 3 basic communication patterns: **Publish/Subscribe**, **Request/Response** and **Scatter/Gather**. In addition to these three basic patterns, Acquaintance has a few other tricks and features which can help some medium to large applications stay organized and safe.
 
@@ -55,7 +55,7 @@ When you're ready to code, create a [Message Bus](MessageBus.md):
         .Invoke(req => new[] { new MyResponse { 
             Message = "Hello " + req.Message"
         }}));
-    
+
     // Scatter the request message to all participants
     var scatter = messageBus.Scatter<MyRequest, MyResponse>("test", 
         new MyRequest { Message = "World" });
@@ -70,30 +70,30 @@ When you're ready to code, create a [Message Bus](MessageBus.md):
 Here are some common use-cases which Acquaintance was explicitly designed to handle:
 
 1. Simplifying complex constructor signatures which may arise from use of Dependency Injection, and avoiding the creation of many redundant adaptor types.
-2. Providing serialized access to resources which are not intrinsically thread-safe, such as sockets and files
-3. Round-Robin dispatch and predicate-based routing of events and requests to multiple handlers
-4. Serving as an easy wiring mechanism for loosely-coupled and plugin-based applications
-5. Serving as an intermediate step for monolithic applications which are in the process of being decomposed into microservices
-6. Serving as an easy bridge for external resources, queues and Enterprise Service Buses
-7. Acting as the communication mechanism for domain events in a Domain-Driven solution
-8. Simplify the distribution of work among many threads while avoiding many common pitfalls of multi-threaded programming
+1. Providing serialized access to resources which are not intrinsically thread-safe, such as sockets and files
+1. Round-Robin dispatch and predicate-based routing of events and requests to multiple handlers
+1. Serving as an easy wiring mechanism for loosely-coupled and plugin-based applications
+1. Serving as an intermediate step for monolithic applications which are in the process of being decomposed into microservices
+1. Serving as an easy bridge for external resources, queues and Enterprise Service Buses
+1. Acting as the communication mechanism for domain events in a Domain-Driven solution
+1. Simplify the distribution of work among many threads while avoiding many common pitfalls of multi-threaded programming
 
 ## Additional Features
 
 Acquaintance provides several features which are extensions of the three basic messaging patterns above:
 
 1. Unit testing with built-in ability to mock channels and expect messages
-2. Message timer to generate application heartbeats on a set schedule
-3. Automatic polling of asynchronous event sources
+1. Message timer to generate application heartbeats on a set schedule
+1. Automatic polling of asynchronous event sources
 
 ## Contraindications
 
 Acquaintance is not a silver-bullet solution, and comparing it to other solutions and patterns is going to yield some positive and some negative points. It is important to consider the specific needs of your application before deciding whether to use Acquaintance or an alternative pattern or library. Some portions of Acquaintance may be desireable and others may be undesireable, depending on your particular solution.
 
-At it's heart, Acquaintance runs contrary to some important Object-Oriented Programming principles and ideas. It conflicts with Dependency Injection, for example, and it suffers from the same discoverability problems that often make "Service Locator" an anti-pattern. Using Acquaintance for too much runs the risk of your message bus looking like a "God Object", and loose-coupling of this sort can make your code impervious to code analysis and refactoring tools. Adding Acquaintance into software which is a big mess and doesn't follow good OOP design best practices might just make things worse. Look for places in your system which demand loose-coupling and require one or more of the use-cases described above. 
+At it's heart, Acquaintance runs contrary to some important Object-Oriented Programming principles and ideas. It conflicts with Dependency Injection, for example, and it suffers from the same discoverability problems that often make "Service Locator" an anti-pattern. Using Acquaintance for too much runs the risk of your message bus looking like a "God Object", and loose-coupling of this sort can make your code impervious to code analysis and refactoring tools. Adding Acquaintance into software which is a big mess and doesn't follow good OOP design best practices might just make things worse. Look for places in your system which demand loose-coupling and require one or more of the use-cases described above.
 
 Message-passing in Acquaintance is cheaper than making a remote call to a separate service, but it's much more expensive than passing a message in a language like Objective-C or Erlang. You don't want to use Acquaintance for every single method call, and you want to keep performance in mind whenever you employ it. Acquaintance works best for passing messages between subsystems or modules, and is not intended to faciliate communication between classes in the same subsystem or module.
 
 Acquaintance works with threading primitives to provide a variety of dispatching behaviors, and it is entirely possible for you to configure Acquaintance to produce bottlenecks, resource starvation and soft-deadlocks if you are not paying enough attention to system design. Acquaintance may try to detect some of the most obvious issues, but it is ultimately your responsibility to keep your process running smoothly.
 
-All this being said, there are many situations where Acquaintance can be much more help than hinderance, and many teams which can find real benefit in it's features. 
+All this being said, there are many situations where Acquaintance can be much more help than hinderance, and many teams which can find real benefit in it's features.

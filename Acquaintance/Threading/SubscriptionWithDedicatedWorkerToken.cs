@@ -4,7 +4,6 @@ namespace Acquaintance.Threading
 {
     public sealed class SubscriptionWithDedicatedWorkerToken : IDisposable
     {
-        private readonly IWorkerPool _workerPool;
         private readonly IDisposable _subscriptionToken;
         private readonly WorkerToken _workerToken;
 

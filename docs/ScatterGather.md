@@ -1,24 +1,24 @@
-## Scatter/Gather
+# Scatter/Gather
 
-The third major pattern supported by Acquaintance is **Scatter/Gather**. Scatter/Gather is like a combination of Pub/Sub and Request/Response patterns: Many listeners or "Participants" can be attached to a channel and each of them is able to reply to a request. 
+The third major pattern supported by Acquaintance is **Scatter/Gather**. Scatter/Gather is like a combination of Pub/Sub and Request/Response patterns: Many listeners or "Participants" can be attached to a channel and each of them is able to reply to a request.
 
-Scatter/Gather is significantly more complex than either Pub/Sub or Request/Response, and there are more gotchas and pitfalls to be aware of. 
+Scatter/Gather is significantly more complex than either Pub/Sub or Request/Response, and there are more gotchas and pitfalls to be aware of.
 
-### Use-Cases
+## Use-Cases
 
 Scatter/Gather is useful for a few broad use-cases:
 
 1. Bidding. Many components bid to produce a "best" answer, and the caller selects the best one from the list.
-2. Map/Reduce. Many components each return a partial answer, and these partial answers are combined together to form a single complete answer.
-3. Pub/Sub with Receipt. For cases where it's not good enough to simply publish a message and forget it. Scatter/Gather allows you to receive confirmation that all recipients received and acted upon the event information.
+1. Map/Reduce. Many components each return a partial answer, and these partial answers are combined together to form a single complete answer.
+1. Pub/Sub with Receipt. For cases where it's not good enough to simply publish a message and forget it. Scatter/Gather allows you to receive confirmation that all recipients received and acted upon the event information.
 
-### Channels
+## Channels
 
 Like Request/Response, Scatter/Gather channels are defined by three pieces of information: The **Request Type**, the **Response Type** and a string **Topic**. The default topic is the empty string. Null topics are coalesced to the empty string.
 
 Scatter/Gather does Wildcard topic matching similar to Request/Response.
 
-### Requests
+## Requests
 
 Scatter/Gather requests are more complicated than Request/Response requests, because there are potentially many participants on the channel and each of them may return responses at different times. Scatter/Gather requests are made using the `.Scatter()` method.
 
@@ -29,7 +29,7 @@ var scatter = messageBus.Scatter<MyRequest, MyResponse>(
 // Get the total number of participants (available immediately)
 var participants = scatter.TotalParticipants;
 
-// Wait for the next response using a default timeout (10 seconds) 
+// Wait for the next response using a default timeout (10 seconds)
 // or an explicit timeout
 var response = scatter.GetNextResponse();
 var response = scatter.GetNextResponse(timeout);
@@ -45,7 +45,7 @@ var task = scatter.GetNextResponseAsync(timeout, cancellationToken);
 task.Wait();
 var payload = task.Result;
 
-// Wait for several responses, using an optional timeout and/or a 
+// Wait for several responses, using an optional timeout and/or a
 // maximum number:
 var responses = scatter.GatherResponses();
 var responses = scatter.GatherResponses(maxResponses);
@@ -67,7 +67,7 @@ if (responses.Count > scatter.CompletedParticipants) {
 
 The call to `scatter.GatherResponses()` may return with responses before the value `scatter.CompletedParticipants` has had time to update. You may be able to read more responses than the system thinks are available. `scatter.CompletedParticiants` should be used more as a guideline, keeping in mind the nature of multi-threaded logic.
 
-### Participants
+## Participants
 
 Setting up a Participant for Scatter/Gather is similar in complexity to setting up a Listener for Request/Response. Many of the same patterns and methods are available for both.
 
@@ -102,7 +102,6 @@ Next, specify what you want to happen when the Request is received:
 
 Optionally you can specify the way to dispatch the request on a thread:
 
-
 ```csharp
     // On an Acquaintance worker thread (Default)
     .OnWorker()
@@ -116,7 +115,7 @@ Optionally you can specify the way to dispatch the request on a thread:
     // On the .NET Threadpool (using System.Threading.Task)
     .OnThreadPool()
 
-    // Create a new worker thread, and use only that thread for this 
+    // Create a new worker thread, and use only that thread for this
     // participant
     .OnDedicatedWorker()
 ```
@@ -135,13 +134,13 @@ Finally you can specify any additional details as necessary:
     // Use a CircuitBreaker pattern to handle errors
     .WithCircuitBreaker(numberOfErrors, timeoutMs)
 
-    // Modify the Participant 
+    // Modify the Participant
     .ModifyParticipant(participant => ...)
 ```
 
 The Participant Builder uses segregated interfaces to only provide certain methods at certain times to avoid conflicting settings. Don't fight it! If you don't see a method you want, keep configuring until you do see the correct methods.
 
-#### Stop Participating
+### Stop Participating
 
 The `.Participate()` method and all it's variants return a **Participant Token**. Disposing this token will remove the participant from the channel and cleanup all relevant resources.
 
@@ -150,6 +149,6 @@ var token = messageBus.Participate<int, string>(builder => ...);
 token.Dispose();
 ```
 
-#### Circuit Breaker Pattern
+### Circuit Breaker Pattern
 
-### Examples
+## Examples
