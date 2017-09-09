@@ -2,6 +2,8 @@
 
 The `IMessageBus` object is the central component of Acquaintance. Almost all interactions with Acquaintance and all behaviors of Acquaintance are performed through the `IMessageBus`.
 
+It is a good idea to make use of the Composition Root pattern when setting up your MessageBus. It is probably a good idea to set up your MessageBus in the same place as you set up a Dependency Injection container for your application.
+
 ## Creation Parameters
 
 ## The WorkerPool
@@ -13,6 +15,30 @@ See [Threading](Threads.md)
 ## Modules
 
 See [Modules](Modules.md)
+
+## Logging
+
+The MessageBus provides a simple logging abstraction that can be used to get insight into what is happening inside the MessageBus. Acquaintance does not use an existing logging library such as `Microsoft.Extensions.Logging` or `Common.Logging`, but it should be very simple to create an adaptor from either one of those to the Acquaintance logger.
+
+Most logging which Acquaintance will do is for basic information (subscriptions added and removed, etc) and for errors in user code. For example, if a Subscription throws an unhandled exception, Acquaintance will catch it and log it. Either you can set up try/catch blocks in your own Subscriber or you can add a logger to get that information.
+
+By default Acquaintance only provides two loggers: One that invokes a delegate and one that is silent. The silent one is used by default. All other implementations must be provided by the user.
+
+To set a logger which dumps to the Debug window in VisualStudio:
+
+```csharp
+var messageBus = new MessageBus(new MessageBusCreateParameters {
+    Logger = new DelegateLogger(s => System.Diagnostics.Debug.WriteLine(s))
+});
+```
+
+To set your own logger:
+
+```csharp
+var messageBus = new MessageBus(new MessageBusCreateParameters {
+    Logger = new MyLogger()
+});
+```
 
 ## Tokens
 
@@ -54,4 +80,3 @@ bus.WorkerPool.StartDedicatedWorker();
 // Dispose all handlers and allocated resources at once
 bus.Dispose();
 ```
-
