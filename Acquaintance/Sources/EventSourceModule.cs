@@ -9,10 +9,12 @@ namespace Acquaintance.Sources
     {
         private IMessageBus _messageBus;
         private readonly ConcurrentDictionary<Guid, IEventSourceWorker> _threads;
+        private readonly ConcurrentDictionary<Guid, IDisposable> _tokens;
 
         public EventSourceModule()
         {
             _threads = new ConcurrentDictionary<Guid, IEventSourceWorker>();
+            _tokens = new ConcurrentDictionary<Guid, IDisposable>();
         }
 
         public void Attach(IMessageBus messageBus)
@@ -26,6 +28,10 @@ namespace Acquaintance.Sources
 
         public void Stop()
         {
+            foreach (var token in _tokens.Values.ToList())
+                token.Dispose();
+            _tokens.Clear();
+
             foreach (var thread in _threads.Values.ToList())
                 thread.Dispose();
             _threads.Clear();
@@ -47,11 +53,14 @@ namespace Acquaintance.Sources
                 return null;
             }
             var threadToken = _messageBus.WorkerPool.RegisterManagedThread("Event Source Module", thread.ThreadId, "SourceModule thread " + thread.Id);
-            return new WorkerToken(this, thread, thread.Id, threadToken);
+            var workerToken = new WorkerToken(this, thread, thread.Id, threadToken);
+            _tokens.TryAdd(thread.Id, workerToken);
+            return workerToken;
         }
 
         private void RemoveThread(Guid id)
         {
+            _tokens.TryRemove(id, out IDisposable token);
             _threads.TryRemove(id, out IEventSourceWorker thread);
         }
 

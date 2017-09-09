@@ -35,7 +35,10 @@ namespace Acquaintance.Tests.Sources
             IDisposable token = null;
             var messageBus = new MessageBus();
             messageBus.InitializeEventSources();
-            messageBus.Subscribe<int>(b => b.WithDefaultTopic().Invoke(i => sum += i).Immediate());
+            messageBus.Subscribe<int>(b => b
+                .WithDefaultTopic()
+                .Invoke(i => sum += i)
+                .Immediate());
             var resetEvent = new ManualResetEvent(false);
             var target = new TestEventSource1(resetEvent);
 
