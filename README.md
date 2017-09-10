@@ -10,6 +10,12 @@ Acquaintance implements several messaging patterns: **Publish/Subscribe**, **Req
 
 See the [Project Website](https://Whiteknight.github.com/Acquaintance/) for detailed documentation and examples.
 
+## Installation
+
+If your project supports .NET Standard 2.0.0 (.NET Framework 4.6.1 or better, .NET Core 2.0.0 or better, etc) you can install Acquaintance with nuget:
+
+    PM> Install-Package Acquaintance -Version 2.0.0
+
 ## Status
 
 Current Version: **2.0.0**
