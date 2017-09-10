@@ -74,26 +74,22 @@ namespace Acquaintance.Modules
             return typeof(TModule).FullName;
         }
 
-        private class ModuleToken : IDisposable
+        private class ModuleToken : Utility.DisposeOnceToken
         {
             private readonly ModuleManager _manager;
             private readonly string _key;
             private readonly string _moduleName;
-            private int _isDisposed;
 
             public ModuleToken(ModuleManager manager, string key, string moduleName)
             {
                 _manager = manager;
                 _key = key;
                 _moduleName = moduleName;
-                _isDisposed = 0;
             }
 
-            public void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                var isDisposed = Interlocked.Increment(ref _isDisposed);
-                if (isDisposed == 1)
-                    _manager.RemoveModule(_key);
+                _manager.RemoveModule(_key);
             }
 
             public override string ToString()
