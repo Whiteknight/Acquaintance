@@ -12,7 +12,11 @@ See the [Project Website](https://Whiteknight.github.com/Acquaintance/) for deta
 
 ## Status
 
+Current Version: **2.0.0**
+
 Acquaintance 2.0.0 is the most recent major version. It contains several breaking changes from version 1.0.0.
+
+Acquaintace 2.0.0 targets .NET Standard 2.0.
 
 Active development is underway for version 2.1.0 (backwards compatible with 2.0.0) and 3.0.0 (which will include breaking changes).
 
