@@ -37,3 +37,10 @@ builder.AddErrorNode<string>("fourth")
 ```
 
 By stringing together nodes like this with explicit dependencies, Acquaintance will be in charge of ordering operations and dispatching them across available worker threads.
+
+Finally, we can build our Net and start injecting values into it:
+
+```csharp
+var net = builder.BuildNet();
+net.Inject(5);
+```
