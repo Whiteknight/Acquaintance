@@ -13,7 +13,7 @@ namespace Acquaintance.PubSub
         {
             Assert.ArgumentNotNull(action, nameof(action));
             Assert.ArgumentNotNull(workerPool, nameof(workerPool));
-            
+
             _action = action;
             _workerPool = workerPool;
         }

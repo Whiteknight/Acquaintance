@@ -37,6 +37,8 @@ namespace Acquaintance.ScatterGather
         /// <param name="useWeakReference"></param>
         /// <returns></returns>
         IThreadParticipantBuilder<TRequest, TResponse> Invoke(Func<TRequest, TResponse> participant, bool useWeakReference = false);
+
+        // TODO: InvokeEnvelope()
     }
 
     /// <summary>

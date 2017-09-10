@@ -15,7 +15,7 @@ namespace Acquaintance.RequestResponse
 
         public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
         {
-            listener.Id = Guid.NewGuid(); 
+            listener.Id = Guid.NewGuid();
             var inserted = _listeners.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'), () => listener);
             if (inserted == null)
                 throw new Exception("Could not get channel");
@@ -27,7 +27,7 @@ namespace Acquaintance.RequestResponse
         public IListener<TRequest, TResponse> GetListener<TRequest, TResponse>(string topic)
         {
             var allListeners = _listeners.Get(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'))
-                .OfType< IListener<TRequest, TResponse>>()
+                .OfType<IListener<TRequest, TResponse>>()
                 .ToArray();
             var toRemove = allListeners.Where(l => l.ShouldStopListening).ToArray();
             foreach (var removeListener in toRemove)

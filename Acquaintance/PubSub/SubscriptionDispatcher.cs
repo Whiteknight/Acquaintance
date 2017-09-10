@@ -12,7 +12,7 @@ namespace Acquaintance.PubSub
         public SubscriptionDispatcher(ILogger log, bool allowWildcards)
         {
             _log = log;
-            _store = allowWildcards ? (ISubscriptionStore)new TrieSubscriptionStore() : new SimpleSubscriptionStore();
+            _store = CreateStore(allowWildcards);
         }
 
         public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
@@ -35,7 +35,7 @@ namespace Acquaintance.PubSub
 
         private void PublishTopic<TPayload>(Envelope<TPayload> envelope, string topic)
         {
-            var topicEnvelope = topic == envelope.Topic ? envelope : envelope.RedirectToTopic(topic);
+            var topicEnvelope = envelope.RedirectToTopic(topic);
             var subscriptions = _store.GetSubscriptions<TPayload>(topic);
             foreach (var subscription in subscriptions)
                 PublishSubscription(topic, subscription, topicEnvelope);
@@ -60,6 +60,13 @@ namespace Acquaintance.PubSub
             {
                 _log.Error($"Error on publish Type={typeof(TPayload).FullName} Subscription Id={subscription.Id}: {e.Message}\n{e.StackTrace}");
             }
+        }
+
+        private static ISubscriptionStore CreateStore(bool allowWildcards)
+        {
+            if (allowWildcards)
+                return new TrieSubscriptionStore();
+            return new SimpleSubscriptionStore();
         }
 
         public void Dispose()

@@ -14,6 +14,8 @@ namespace Acquaintance.RequestResponse
             _maxRequests = maxRequests;
         }
 
+        public bool ShouldStopListening { get; private set; }
+
         public Guid Id
         {
             get { return _inner.Id; }
@@ -42,7 +44,5 @@ namespace Acquaintance.RequestResponse
             ShouldStopListening = true;
             request.SetNoResponse();
         }
-
-        public bool ShouldStopListening { get; private set; }
     }
 }

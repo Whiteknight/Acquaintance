@@ -28,6 +28,11 @@ namespace Acquaintance.Nets
             return AddNodeInternal<T>(name, false);
         }
 
+        public NodeBuilder<NodeErrorMessage<T>> AddErrorNode<T>(string name)
+        {
+            return AddNodeInternal<NodeErrorMessage<T>>(name, true);
+        }
+
         private NodeBuilder<T> AddNodeInternal<T>(string name, bool readErrors)
         {
             string key = name.ToLowerInvariant();
@@ -36,11 +41,6 @@ namespace Acquaintance.Nets
             var builder = new NodeBuilder<T>(key, _messageBus, readErrors);
             _nodes.Add(key, builder);
             return builder;
-        }
-
-        public NodeBuilder<NodeErrorMessage<T>> AddErrorNode<T>(string name)
-        {
-            return AddNodeInternal<NodeErrorMessage<T>>(name, true);
         }
     }
 }

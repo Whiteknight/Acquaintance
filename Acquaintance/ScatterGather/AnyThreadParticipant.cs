@@ -31,7 +31,7 @@ namespace Acquaintance.ScatterGather
         {
             var thread = _workerPool.GetFreeWorkerDispatcher();
             if (thread == null)
-            { 
+            {
                 ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request.Payload, scatter);
                 return;
             }

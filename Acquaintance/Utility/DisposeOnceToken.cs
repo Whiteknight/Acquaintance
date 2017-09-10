@@ -23,7 +23,7 @@ namespace Acquaintance.Utility
         {
             var isDisposed = Interlocked.Increment(ref _isDisposed);
             if (isDisposed == 1)
-                Dispose();
+                Dispose(true);
             else if (isDisposed > 1 && _throwException)
                 throw new ObjectDisposedException("Token:" + ToString());
         }

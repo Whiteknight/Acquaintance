@@ -88,6 +88,6 @@ namespace Acquaintance.RequestResponse
         private static string GetKey(Type requestType, Type responseType, string name)
         {
             return $"Request={requestType.AssemblyQualifiedName}:Response={responseType.AssemblyQualifiedName}:Name={name ?? string.Empty}";
-        }   
+        }
     }
 }

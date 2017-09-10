@@ -33,7 +33,7 @@ namespace Acquaintance.Routing
             topic = topic ?? string.Empty;
             var key = GetKey<TPayload>(topic);
             if (!_publishRoutes.TryGetValue(key, out IRouteRule rule))
-                return new [] { topic };
+                return new[] { topic };
             var typedRule = rule as IRouteRule<TPayload>;
             return typedRule?.GetRoute(topic, envelope) ?? new[] { topic };
         }
@@ -65,7 +65,7 @@ namespace Acquaintance.Routing
             }
         }
 
-        private class PublishRouteToken : IDisposable
+        private class PublishRouteToken : Utility.DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -76,7 +76,7 @@ namespace Acquaintance.Routing
                 _route = route;
             }
 
-            public void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 _router._publishRoutes.TryRemove(_route, out IRouteRule rule);
             }
@@ -87,10 +87,10 @@ namespace Acquaintance.Routing
             Assert.ArgumentNotNull(rule, nameof(rule));
             var key = GetKey<TPayload>(topic ?? string.Empty);
             bool ok = _publishRoutes.TryAdd(key, rule);
-            return ok ? new PublishRouteToken(this, key) : (IDisposable) new NoRouteToken();
+            return ok ? new PublishRouteToken(this, key) : (IDisposable)new NoRouteToken();
         }
 
-        private class RequestRouteToken : IDisposable
+        private class RequestRouteToken : Utility.DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -101,7 +101,7 @@ namespace Acquaintance.Routing
                 _route = route;
             }
 
-            public void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 _router._requestRoutes.TryRemove(_route, out IRouteRule rule);
             }
@@ -115,7 +115,7 @@ namespace Acquaintance.Routing
             return ok ? new RequestRouteToken(this, key) : (IDisposable)new NoRouteToken();
         }
 
-        private class ScatterRouteToken : IDisposable
+        private class ScatterRouteToken : Utility.DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -126,7 +126,7 @@ namespace Acquaintance.Routing
                 _route = route;
             }
 
-            public void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 _router._scatterRoutes.TryRemove(_route, out IRouteRule rule);
             }

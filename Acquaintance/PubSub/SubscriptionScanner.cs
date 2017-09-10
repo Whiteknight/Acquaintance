@@ -7,6 +7,7 @@ namespace Acquaintance.PubSub
 {
     public class SubscriptionScanner
     {
+        // TODO: Clean this up and break it into smaller methods
         public IDisposable AutoSubscribe(IPubSubBus messageBus, object obj)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));

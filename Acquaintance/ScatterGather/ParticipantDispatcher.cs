@@ -12,7 +12,7 @@ namespace Acquaintance.ScatterGather
         public ParticipantDispatcher(ILogger log, bool allowWildcards)
         {
             _log = log;
-            _store = allowWildcards ? (IParticipantStore) new TrieParticipantStore() : new SimpleParticipantStore();
+            _store = CreateStore(allowWildcards);
         }
 
         public IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant)
@@ -28,7 +28,7 @@ namespace Acquaintance.ScatterGather
             Assert.ArgumentNotNull(envelope, nameof(envelope));
             Assert.ArgumentNotNull(scatter, nameof(scatter));
 
-            var topicEnvelope = topic == envelope.Topic ? envelope : envelope.RedirectToTopic(topic);
+            var topicEnvelope = envelope.RedirectToTopic(topic);
             var participants = _store.GetParticipants<TRequest, TResponse>(topic);
             _log.Debug("Scattering RequestType={0} ResponseType={1} Topic={2}", typeof(TRequest).FullName, typeof(TResponse).FullName, topic);
             foreach (var participant in participants)
@@ -50,6 +50,13 @@ namespace Acquaintance.ScatterGather
         public void Dispose()
         {
             (_store as IDisposable)?.Dispose();
+        }
+
+        private static IParticipantStore CreateStore(bool allowWildcards)
+        {
+            if (allowWildcards)
+                return new TrieParticipantStore();
+            return new SimpleParticipantStore();
         }
     }
 }

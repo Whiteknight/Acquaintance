@@ -21,6 +21,7 @@ namespace Acquaintance.RequestResponse
         }
 
         public bool ShouldStopListening => _inner.ShouldStopListening;
+
         public Guid Id
         {
             get { return _inner.Id; }

@@ -25,6 +25,7 @@ namespace Acquaintance.Nets
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents
         // and thread affinity. Review list of SubscriptionBuilder features for inclusion
+        // TODO: Interface segregation to avoid duplicate/conflicting method calls
 
         public NodeBuilder(string key, IMessageBus messageBus, bool readErrors)
         {

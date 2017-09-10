@@ -148,6 +148,7 @@ namespace Acquaintance.PubSub
 
         public IDetailsSubscriptionBuilder<TPayload> OnThreadPool()
         {
+            ValidateDoesNotHaveDispatchType();
             _dispatchType = DispatchThreadType.ThreadpoolThread;
             return this;
         }

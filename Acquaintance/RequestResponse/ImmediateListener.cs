@@ -11,6 +11,8 @@ namespace Acquaintance.RequestResponse
             _func = func;
         }
 
+        public bool ShouldStopListening => !_func.IsAlive;
+
         public Guid Id { get; set; }
 
         public bool CanHandle(Envelope<TRequest> request)
@@ -28,7 +30,5 @@ namespace Acquaintance.RequestResponse
         {
             return new ImmediateListener<TRequest, TResponse>(new PayloadStrongListenerReference<TRequest, TResponse>(func));
         }
-
-        public bool ShouldStopListening => !_func.IsAlive;
     }
 }

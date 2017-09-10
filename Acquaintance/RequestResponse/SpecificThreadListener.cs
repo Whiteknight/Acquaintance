@@ -16,6 +16,8 @@ namespace Acquaintance.RequestResponse
             _workerPool = workerPool;
         }
 
+        public bool ShouldStopListening => !_func.IsAlive;
+
         public Guid Id { get; set; }
 
         public bool CanHandle(Envelope<TRequest> request)
@@ -35,7 +37,5 @@ namespace Acquaintance.RequestResponse
             var responseWaiter = new DispatchableRequest<TRequest, TResponse>(_func, envelope, Id, request);
             thread.DispatchAction(responseWaiter);
         }
-
-        public bool ShouldStopListening => !_func.IsAlive;
     }
 }

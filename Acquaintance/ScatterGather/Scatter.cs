@@ -76,16 +76,16 @@ namespace Acquaintance.ScatterGather
 
             var endTime = DateTime.UtcNow + timeout;
             var responses = new List<ScatterResponse<TResponse>>();
-            while(timeout.TotalMilliseconds > 0)
+            while (timeout.TotalMilliseconds > 0)
             {
                 var response = GetNextResponse(timeout);
                 if (response == null)
                     break;
-                
+
                 responses.Add(response);
                 if (responses.Count >= max)
                     break;
-                
+
                 var now = DateTime.UtcNow;
                 if (now >= endTime)
                     break;

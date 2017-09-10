@@ -23,6 +23,8 @@ namespace Acquaintance
 
         public Envelope<TPayload> RedirectToTopic(string topic)
         {
+            if (topic == Topic)
+                return this;
             var envelope = new Envelope<TPayload>(Id, topic, Payload);
             if (_metadata != null)
                 envelope._metadata = new ConcurrentDictionary<string, string>(_metadata);

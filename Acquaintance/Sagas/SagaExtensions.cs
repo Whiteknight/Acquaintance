@@ -21,7 +21,7 @@ namespace Acquaintance.Sagas
 
             var module = messageBus.Modules.Get<SagasModule>();
             if (module == null)
-                throw new Exception("Must initialize the Sagas module first. Call .InitializeSagas()");
+                throw new Exception($"Must initialize the Sagas module first. Call .{nameof(InitializeSagas)}()");
             var builder = new SagaBuilder<TState, TKey>();
             build(builder);
             var saga = module.CreateSaga<TState, TKey>();

@@ -12,7 +12,7 @@ namespace Acquaintance.RequestResponse
         public RequestDispatcher(ILogger logger, bool allowWildcards)
         {
             _logger = logger;
-            _store = allowWildcards ? (IListenerStore)new TrieListenerStore() : new SimpleListenerStore();
+            _store = CreateStore(allowWildcards);
         }
 
         public IDisposable Listen<TRequest, TResponse>(string topic, IListener<TRequest, TResponse> listener)
@@ -28,7 +28,7 @@ namespace Acquaintance.RequestResponse
             Assert.ArgumentNotNull(envelope, nameof(envelope));
             Assert.ArgumentNotNull(request, nameof(request));
 
-            var topicEnvelope = topic == envelope.Topic ? envelope : envelope.RedirectToTopic(topic);
+            var topicEnvelope = envelope.RedirectToTopic(topic);
             var listener = _store.GetListener<TRequest, TResponse>(topic);
             if (listener == null || !listener.CanHandle(envelope))
             {
@@ -41,7 +41,7 @@ namespace Acquaintance.RequestResponse
             {
                 listener.Request(topicEnvelope, request);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _logger.Error($"Error on request Type={typeof(TRequest).FullName}, {typeof(TResponse).FullName} Topic={topic}, Listener Id={listener.Id}: {e.Message}\n{e.StackTrace}");
                 request.SetError(e);
@@ -54,6 +54,13 @@ namespace Acquaintance.RequestResponse
         public void Dispose()
         {
             (_store as IDisposable)?.Dispose();
+        }
+
+        private static IListenerStore CreateStore(bool allowWildcards)
+        {
+            if (allowWildcards)
+                return new TrieListenerStore();
+            return new SimpleListenerStore();
         }
     }
 }

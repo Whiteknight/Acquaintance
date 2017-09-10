@@ -13,6 +13,8 @@ namespace Acquaintance.RequestResponse
             _filter = filter;
         }
 
+        public bool ShouldStopListening => _inner.ShouldStopListening;
+
         public Guid Id
         {
             get { return _inner.Id; }
@@ -28,7 +30,5 @@ namespace Acquaintance.RequestResponse
         {
             _inner.Request(envelope, request);
         }
-
-        public bool ShouldStopListening => _inner.ShouldStopListening;
     }
 }

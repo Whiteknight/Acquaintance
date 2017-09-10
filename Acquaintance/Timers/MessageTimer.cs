@@ -4,7 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Timers
 {
-    public class MessageTimer 
+    public class MessageTimer
     {
         private readonly string _topic;
         private readonly IPublishable _messageBus;
@@ -24,12 +24,8 @@ namespace Acquaintance.Timers
             _messageId = 0;
             _topic = topic ?? string.Empty;
 
-            Id = Guid.NewGuid();
-
             _timer = new Timer(TimerTick, null, delayMs, intervalMs);
         }
-
-        public Guid Id { get; }
 
         public void Dispose()
         {
