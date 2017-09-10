@@ -80,3 +80,7 @@ bus.WorkerPool.StartDedicatedWorker();
 // Dispose all handlers and allocated resources at once
 bus.Dispose();
 ```
+
+## Federation
+
+See [Federation](Federation.md)
