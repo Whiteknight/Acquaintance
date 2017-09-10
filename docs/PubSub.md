@@ -287,6 +287,13 @@ var token = messageBus.SetupPublishByExamination("topic",
 
 If the payload object returns null the message will not be routed or published. Otherwise the string returned will be used as the new topic to publish.
 
+## Use Cases
+
+* Use Pub/Sub to implement the Domain Events pattern in a system with multiple bounded subdomains
+* Use Pub/Sub to remove long chains of `event`/`EventHandler<T>` where most handlers simply redirect to another handler. If you're using events to send a message up the call chain to a manager object and then using method calls to send the message down to where it's really needed, you should use Pub/Sub instead
+* Use Pub/Sub to send data to output streams such as files, sockets and logging systems. Acquaintance can automatically serialize these requests to a single thread if your communication mechanism isn't thread-safe
+* Use Pub/Sub along with the WorkerPool or .NET ThreadPool to distribute work to worker threads without having to implement and maintain your own work queues and thread management code.
+
 ## Examples
 
 ### Shared Log File

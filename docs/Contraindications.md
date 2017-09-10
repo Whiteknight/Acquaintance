@@ -27,3 +27,12 @@ Acquaintance works with threading primitives to provide a variety of dispatching
 * **Don't**: Make changes to the message/request object after it has been sent over the bus, or make changes to a message payload in a subscriber/listener/participant.
 
 All this being said, there are many situations where Acquaintance can be much more help than hinderance, and many teams which can find real benefit in it's features.
+
+## Alternatives
+
+There are a few other popular libraries which offer similar functionality to Acquaintance, though many of these have a very different focus and feature sets. Compare features to make sure Acquaintance is the right fit for your application:
+
+* [Postal.NET](https://github.com/rjperes/Postal.NET) Is based on the design for the Postal.JS JavaScript library, and is primarily a Pub/Sub engine. Postal implements Request/Response on top of Pub/Sub but does not seem to offer Scatter/Gather or many other features. It is a simpler design and a more light-weight library for use in simpler scenarios. If your application only needs light-weight pub/sub, Postal might be a better fit.
+* [MediatR](https://github.com/jbogard/MediatR) Offers similar Pub/Sub and Request/Response features but has more of a focus on implementing the Mediator pattern. MediatR tends to prefer using reflection to get handler objects and injecting them using a DI container. MediatR does not seem to support scatter/gather and does not support some of the configuration which Acquaintance has such as specifying thread dispatch.
+* [Akka.NET](http://getakka.net/) Is a .NET port of the Akka library in Java. It focuses on implementing the Actor pattern, with more attention paid to the threading/scheduling aspect, distribution and networking. Acquaintance Nets with worker threads start to approximate some of the behaviors of Akka Actors (though with significantly lower sophistication and performance).
+* [MassTransit](http://masstransit-project.com/) Is an implementation of an Enterprise Service Bus which uses the RabbitMq message queue to create a full-featured middleware for SOA and microservices. MassTransit is for programs over a network what Acquaintance is for modules in a single program. Acquaintance with optional federation extensions can start to approximate the core behaviors of MassTransit.

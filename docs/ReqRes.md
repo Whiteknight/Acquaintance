@@ -216,6 +216,13 @@ token.Dispose();
 
 The Circuit Breaker Pattern disconnects a resource when a certain number of consecutive errors has been reached, to prevent flooding. The resource will remain disconnected for a certain timeout, in hopes that normal operation can be restored.
 
+## Use Cases
+
+* Use Request/Response to get a calculation result directly instead of having to inject objects to do the calculations.
+* Use Request/Response with dedicated threads to write or read data from sources which are not thread-safe, such as files, sockets or pipes.
+* Use Request/Response as a Mediator, to get a response to an arbitrary user query without having to inject objects to handle all possible queries
+* Use Request/Response to poll for resources which may not be available or may be slow to initialize
+
 ## Examples
 
 ### Fragile Web Service

@@ -151,4 +151,41 @@ token.Dispose();
 
 ### Circuit Breaker Pattern
 
+## Use Cases
+
+* Use Scatter/Gather as a result aggregator, receiving responses from multiple data sources and combine those together into a single piece of complete data
+* Use Scatter/Gather for a bidding system, sending requests to multiple modules and using only the best response
+* Use Scatter/Gather to implement Map/Reduce, sending a problem out to multiple modules, and then combining partial data sets into a single complete data set.
+* Use Scatter/Gather to monitor health and status for multiple parts of your system
+* Use Scatter/Gather similarly to Pub/Sub with a read receipt. Make sure all parts of your system received your message and processed it successfully.
+
 ## Examples
+
+### Map/Reduce
+
+My system connects to three databases, each of which contains a subset of user event data. One holds security events such as password changes, one holds billing events, and one holds non-security profile change events. The user would like to see an ordered list of all events on their account.
+
+```csharp
+var scatter = messageBus.Scatter<UserEventRequest, List<UserEvent>>(new UserEventRequest(userId));
+
+// Get the events from the modules which successfully reply
+var events = scatter.GatherResults()
+    .Where(r => r.IsSuccess && !r.IsEmpty)
+    .SelectMany(r => r.Value);
+
+// Order those events by date, descending, and return a list
+return events
+    .OrderByDescending(e => e.EventDate)
+    .ToList();
+```
+
+Each module may define a participant like this, the specifics will depend on which data store or ORM you are using:
+
+```csharp
+messageBus.Participate<UserEventRequest, List<UserEvent>>(b => b
+    .WithDefaultTopic()
+    .Invoke(r => dataSource
+        .Query<UserEvent>()
+        .Where(ue => ue.UserId == r.UserId)
+        .ToList()));
+```
