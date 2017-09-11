@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Acquaintance", "Acquaintance\Acquaintance.csproj", "{CA9DEC40-5474-4E16-8599-E2AB68D421AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Acquaintance.Tests", "Acquaintance.Tests\Acquaintance.Tests.csproj", "{9871DFC8-A783-4B54-8A3E-B812574B2E76}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Acquaintance.Tests", "Acquaintance.Tests\Acquaintance.Tests.csproj", "{9871DFC8-A783-4B54-8A3E-B812574B2E76}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{38FBED11-DCDF-4077-AACA-B44215FB1369}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,7 +20,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{221C8162-6AFB-4660-B14A-6A0E41EBB356}"
 	ProjectSection(SolutionItems) = preProject
+		docs\Contraindications.md = docs\Contraindications.md
+		docs\Contributing.md = docs\Contributing.md
 		docs\EventSources.md = docs\EventSources.md
+		docs\Federation.md = docs\Federation.md
 		docs\index.md = docs\index.md
 		docs\MessageBus.md = docs\MessageBus.md
 		docs\Modules.md = docs\Modules.md
@@ -38,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Acquaintance.RabbitMq", "Ac
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C6BB546C-954B-4F43-90EB-48A35540B2DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitTester", "RabbitTester\RabbitTester.csproj", "{EF02BFFE-F8F9-449D-A2ED-0D46DE09103A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitTester", "RabbitTester\RabbitTester.csproj", "{EF02BFFE-F8F9-449D-A2ED-0D46DE09103A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
