@@ -26,6 +26,7 @@ namespace Acquaintance
             _router = new DisposableTopicRouter(messageBus.PublishRouter, messageBus.RequestRouter, messageBus.ScatterRouter, _subscriptions);
         }
 
+        public Guid Id => _messageBus.Id;
         public IPublishTopicRouter PublishRouter => _router;
         public IRequestTopicRouter RequestRouter => _router;
         public IScatterTopicRouter ScatterRouter => _router;

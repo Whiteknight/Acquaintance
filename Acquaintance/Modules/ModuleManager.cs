@@ -1,7 +1,6 @@
 ﻿using Acquaintance.Logging;
 using System;
 using System.Collections.Concurrent;
-using System.Threading;
 
 namespace Acquaintance.Modules
 {

@@ -22,12 +22,13 @@ namespace Acquaintance
         public MessageBus(MessageBusCreateParameters parameters = null)
         {
             parameters = parameters ?? MessageBusCreateParameters.Default;
+            Id = parameters.Id ?? Guid.NewGuid();
+
             var log = parameters.GetLogger();
+
             WorkerPool = new WorkerPool(log, parameters.NumberOfWorkers, parameters.MaximumQueuedMessages);
-
             Modules = new ModuleManager(this, log);
-            EnvelopeFactory = new EnvelopeFactory();
-
+            EnvelopeFactory = new EnvelopeFactory(Id);
             _subscriptionDispatcher = new SubscriptionDispatcher(log, parameters.AllowWildcards);
             _requestDispatcher = new RequestDispatcher(log, parameters.AllowWildcards);
             _participantDispatcher = new ParticipantDispatcher(log, parameters.AllowWildcards);
@@ -41,6 +42,8 @@ namespace Acquaintance
         public IScatterTopicRouter ScatterRouter => _router;
 
         public IEnvelopeFactory EnvelopeFactory { get; }
+
+        public Guid Id { get; }
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {

@@ -9,7 +9,6 @@ namespace Acquaintance.RabbitMq
     {
         private readonly IBus _bus;
         private IMessageBus _messageBus;
-            
 
         public RabbitModule(string connectionString)
         {
@@ -34,25 +33,14 @@ namespace Acquaintance.RabbitMq
             _messageBus = null;
         }
 
-        public void Dispose()
-        {
-            _bus.Dispose();
-        }
-
         public IDisposable SubscribeRemote<TPayload>(string topic)
         {
             string id = CreateSubscriberId();
             var queueName = MakeQueueName<TPayload>();
             return _bus.Subscribe<Envelope<TPayload>>(id, envelope => {
-                _messageBus.PublishEnvelope(envelope.ForLocalDelivery());
+                if (envelope.OriginBusId == _messageBus.Id)
+                    _messageBus.PublishEnvelope(envelope);
             }, c => Configure(c, topic, queueName));
-        }
-
-        private void Configure(ISubscriptionConfiguration configuration, string topic, string queueName)
-        {
-            configuration
-                .WithTopic(topic ?? string.Empty)
-                .WithQueueName(queueName);
         }
 
         public ISubscription<TPayload> CreateForwardingSubscriber<TPayload>()
@@ -67,15 +55,33 @@ namespace Acquaintance.RabbitMq
             return $"AQ:{t.Namespace}.{t.Name}";
         }
 
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        ~RabbitModule()
+        {
+            Dispose(false);
+        }
+
+        private static void Configure(ISubscriptionConfiguration configuration, string topic, string queueName)
+        {
+            configuration
+                .WithTopic(topic ?? string.Empty)
+                .WithQueueName(queueName);
+        }
+
         private static string CreateSubscriberId()
         {
             var id = Guid.NewGuid().ToString();
             return id;
         }
 
-        ~RabbitModule()
+        private void Dispose(bool disposing)
         {
-            Dispose();
+            _bus.Dispose();
         }
     }
 }

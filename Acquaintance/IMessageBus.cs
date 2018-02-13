@@ -19,6 +19,8 @@ namespace Acquaintance
         /// Factory for creating envelopes
         /// </summary>
         IEnvelopeFactory EnvelopeFactory { get; }
+
+        Guid Id { get; }
     }
 
     public interface IPublishable : IBusBase

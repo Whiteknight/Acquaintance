@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Acquaintance.Utility;
 using FluentAssertions;
 using NUnit.Framework;
@@ -11,14 +12,14 @@ namespace Acquaintance.Tests
         [Test]
         public void GetMetadata_Empty()
         {
-            var target = new Envelope<string>(1, "Test", "Payload");
+            var target = new Envelope<string>(Guid.Empty, 1, "Test", "Payload");
             target.GetMetadata("Anything").Should().BeNull();
         }
 
         [Test]
         public void SetMetadata_Test()
         {
-            var target = new Envelope<string>(1, "Test", "Payload");
+            var target = new Envelope<string>(Guid.Empty, 1, "Test", "Payload");
             target.SetMetadata("Anything", "Value");
             target.GetMetadata("Anything").Should().Be("Value");
         }
@@ -26,7 +27,7 @@ namespace Acquaintance.Tests
         [Test]
         public void HasMetadataFromFactory()
         {
-            var target = new EnvelopeFactory().Create("test", 5, new Dictionary<string, string>
+            var target = new EnvelopeFactory(Guid.Empty).Create("test", 5, new Dictionary<string, string>
             {
                 { "value1", "result1" }
             });
@@ -38,7 +39,7 @@ namespace Acquaintance.Tests
         [Test]
         public void RedirectsWithMetadata()
         {
-            var target = new Envelope<int>(1, "test", 5);
+            var target = new Envelope<int>(Guid.Empty, 1, "test", 5);
             target.SetMetadata("key", "value");
 
             var result = target.RedirectToTopic("other");

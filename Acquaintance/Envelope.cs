@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 
 namespace Acquaintance
@@ -7,33 +8,24 @@ namespace Acquaintance
     {
         private ConcurrentDictionary<string, string> _metadata;
 
-        public Envelope(long id, string topic, TPayload payload, bool localOnly = false)
+        public Envelope(Guid originBusId, long id, string topic, TPayload payload)
         {
+            OriginBusId = originBusId;
             Id = id;
             Topic = topic ?? string.Empty;
             Payload = payload;
-            LocalOnly = localOnly;
         }
 
         public string Topic { get; }
         public TPayload Payload { get; }
+        public Guid OriginBusId { get; }
         public long Id { get; }
-        // Set LocalOnly=true if we have remoting enabled, and we want to avoid publish loops
-        public bool LocalOnly { get; }
 
         public Envelope<TPayload> RedirectToTopic(string topic)
         {
             if (topic == Topic)
                 return this;
-            var envelope = new Envelope<TPayload>(Id, topic, Payload);
-            if (_metadata != null)
-                envelope._metadata = new ConcurrentDictionary<string, string>(_metadata);
-            return envelope;
-        }
-
-        public Envelope<TPayload> ForLocalDelivery()
-        {
-            var envelope = new Envelope<TPayload>(Id, Topic, Payload, true);
+            var envelope = new Envelope<TPayload>(OriginBusId, Id, topic, Payload);
             if (_metadata != null)
                 envelope._metadata = new ConcurrentDictionary<string, string>(_metadata);
             return envelope;
