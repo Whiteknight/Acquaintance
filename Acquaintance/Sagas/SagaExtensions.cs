@@ -11,7 +11,7 @@ namespace Acquaintance.Sagas
             var existing = messageBus.Modules.Get<SagasModule>();
             if (existing != null)
                 throw new Exception("Sagas module is already initialized");
-            return messageBus.Modules.Add(new SagasModule(numberOfThreads));
+            return messageBus.Modules.Add(new SagasModule(messageBus, numberOfThreads));
         }
 
         public static IDisposable CreateSaga<TState, TKey>(this IMessageBus messageBus, Action<ISagaBuilder<TState, TKey>> build)

@@ -10,7 +10,7 @@ namespace Acquaintance.Timers
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
-            return messageBus.Modules.Add(new MessageTimerModule());
+            return messageBus.Modules.Add(new MessageTimerModule(messageBus));
         }
 
         public static IDisposable StartTimer(this IMessageBus messageBus, string topic, int delayMs = 5000, int intervalMs = 10000)

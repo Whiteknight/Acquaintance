@@ -6,25 +6,16 @@ namespace Acquaintance.Timers
     public class MessageTimerModule : IMessageBusModule
     {
         private readonly ConcurrentDictionary<Guid, MessageTimer> _timers;
+        private readonly IMessageBus _messageBus;
 
-        private IMessageBus _messageBus;
-
-        public MessageTimerModule()
+        public MessageTimerModule(IMessageBus messageBus)
         {
-            _timers = new ConcurrentDictionary<Guid, MessageTimer>();
-        }
-
-        public void Attach(IMessageBus messageBus)
-        {
-            if (_messageBus != null)
-                throw new Exception("MessageTimer is already attached");
             _messageBus = messageBus;
+            _timers = new ConcurrentDictionary<Guid, MessageTimer>();
         }
 
         public void Start()
         {
-            if (_messageBus == null)
-                throw new Exception("Cannot Start when unattached");
         }
 
         public void Stop()
@@ -32,12 +23,6 @@ namespace Acquaintance.Timers
             foreach (var timer in _timers.Values)
                 timer.Dispose();
             _timers.Clear();
-        }
-
-        public void Unattach()
-        {
-            Stop();
-            _messageBus = null;
         }
 
         public IDisposable AddNewTimer(string topic, int delayMs = 5000, int intervalMs = 10000)
@@ -51,11 +36,6 @@ namespace Acquaintance.Timers
                 return null;
             }
             return new TimerToken(this, topic, id);
-        }
-
-        public void Dispose()
-        {
-            Stop();
         }
 
         private void RemoveTimer(Guid id)

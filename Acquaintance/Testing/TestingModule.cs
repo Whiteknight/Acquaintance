@@ -7,11 +7,12 @@ namespace Acquaintance.Testing
     public class TestingModule : IMessageBusModule
     {
         private readonly ConcurrentBag<IExpectation> _expectations;
-        private SubscriptionCollection _subscriptions;
+        private readonly SubscriptionCollection _subscriptions;
 
-        public TestingModule()
+        public TestingModule(IMessageBus messageBus)
         {
             _expectations = new ConcurrentBag<IExpectation>();
+            _subscriptions = new SubscriptionCollection(messageBus);
         }
 
         public void VerifyAllExpectations(Action<string[]> onError)
@@ -64,23 +65,13 @@ namespace Acquaintance.Testing
         {
         }
 
-        public void Attach(IMessageBus messageBus)
-        {
-            _subscriptions = new SubscriptionCollection(messageBus);
-        }
-
-        public void Unattach()
-        {
-            _subscriptions.Dispose();
-            _subscriptions = null;
-        }
-
         public void Start()
         {
         }
 
         public void Stop()
         {
+            _subscriptions.Dispose();
         }
 
         private static void DefaultOnError(string[] errors)

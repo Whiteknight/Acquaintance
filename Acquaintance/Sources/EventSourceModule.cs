@@ -7,19 +7,15 @@ namespace Acquaintance.Sources
 {
     public class EventSourceModule : IMessageBusModule
     {
-        private IMessageBus _messageBus;
+        private readonly IMessageBus _messageBus;
         private readonly ConcurrentDictionary<Guid, IEventSourceWorker> _threads;
         private readonly ConcurrentDictionary<Guid, IDisposable> _tokens;
 
-        public EventSourceModule()
-        {
-            _threads = new ConcurrentDictionary<Guid, IEventSourceWorker>();
-            _tokens = new ConcurrentDictionary<Guid, IDisposable>();
-        }
-
-        public void Attach(IMessageBus messageBus)
+        public EventSourceModule(IMessageBus messageBus)
         {
             _messageBus = messageBus;
+            _threads = new ConcurrentDictionary<Guid, IEventSourceWorker>();
+            _tokens = new ConcurrentDictionary<Guid, IDisposable>();
         }
 
         public void Start()
@@ -35,11 +31,6 @@ namespace Acquaintance.Sources
             foreach (var thread in _threads.Values.ToList())
                 thread.Dispose();
             _threads.Clear();
-        }
-
-        public void Unattach()
-        {
-            _messageBus = null;
         }
 
         public IDisposable RunEventSource(IEventSource source)

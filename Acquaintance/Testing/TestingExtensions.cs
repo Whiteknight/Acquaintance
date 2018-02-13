@@ -31,7 +31,7 @@ namespace Acquaintance.Testing
             var module = messageBus.Modules.Get<TestingModule>();
             if (module != null)
                 throw new Exception("Testing is already initialized");
-            return messageBus.Modules.Add(new TestingModule());
+            return messageBus.Modules.Add(new TestingModule(messageBus));
         }
 
         private static TestingModule GetTestingModule(IMessageBus messageBus)

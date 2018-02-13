@@ -27,7 +27,7 @@ namespace Acquaintance
             var log = parameters.GetLogger();
 
             WorkerPool = new WorkerPool(log, parameters.NumberOfWorkers, parameters.MaximumQueuedMessages);
-            Modules = new ModuleManager(this, log);
+            Modules = new ModuleManager(log);
             EnvelopeFactory = new EnvelopeFactory(Id);
             _subscriptionDispatcher = new SubscriptionDispatcher(log, parameters.AllowWildcards);
             _requestDispatcher = new RequestDispatcher(log, parameters.AllowWildcards);

@@ -6,13 +6,11 @@ namespace Acquaintance.Modules
 {
     public class ModuleManager : IDisposable, IModuleManager
     {
-        private readonly IMessageBus _messageBus;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, IMessageBusModule> _modules;
 
-        public ModuleManager(IMessageBus messageBus, ILogger logger)
+        public ModuleManager(ILogger logger)
         {
-            _messageBus = messageBus;
             _logger = logger;
             _modules = new ConcurrentDictionary<string, IMessageBusModule>();
         }
@@ -25,7 +23,6 @@ namespace Acquaintance.Modules
                 throw new Exception($"A module of type {typeof(TModule).FullName} has already been added.");
 
             _logger.Debug($"Adding module Type={module.GetType().Name}");
-            module.Attach(_messageBus);
             if (!_modules.TryAdd(key, module))
             {
                 _logger.Error($"Could not add module of type {module.GetType().Name} for unknown reasons");
@@ -53,19 +50,18 @@ namespace Acquaintance.Modules
         public void Dispose()
         {
             foreach (var module in _modules.Values)
-                module.Dispose();
+            {
+                module.Stop();
+                (module as IDisposable)?.Dispose();
+            }
             _modules.Clear();
         }
 
         private void RemoveModule(string key)
         {
             _modules.TryRemove(key, out IMessageBusModule module);
-
             _logger.Debug($"Stopping module Type={module.GetType().Name}");
             module.Stop();
-
-            _logger.Debug($"Removing module Type={module.GetType().Name}");
-            module.Unattach();
         }
 
         private static string GetKey<TModule>()

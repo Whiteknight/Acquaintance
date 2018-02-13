@@ -27,7 +27,7 @@ namespace Acquaintance.Sources
         public static IDisposable InitializeEventSources(this IMessageBus messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            return messageBus.Modules.Add(new EventSourceModule());
+            return messageBus.Modules.Add(new EventSourceModule(messageBus));
         }
 
         private static EventSourceModule GetModule(IMessageBus messageBus)
