@@ -3,6 +3,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Logging;
 using Acquaintance.Routing;
 using Acquaintance.Utility;
 
@@ -26,6 +27,7 @@ namespace Acquaintance
             _router = new DisposableTopicRouter(messageBus.PublishRouter, messageBus.RequestRouter, messageBus.ScatterRouter, _subscriptions);
         }
 
+        public ILogger Logger => _messageBus.Logger;
         public Guid Id => _messageBus.Id;
         public IPublishTopicRouter PublishRouter => _router;
         public IRequestTopicRouter RequestRouter => _router;

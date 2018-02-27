@@ -32,7 +32,7 @@ namespace Acquaintance
 #if DEBUG
             return new DelegateLogger(s => System.Diagnostics.Debug.WriteLine(s));
 #else
-            return new SilentLogger();
+            return null;
 #endif
         }
     }

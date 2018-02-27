@@ -90,7 +90,18 @@ namespace Acquaintance
 
         public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj)
         {
-            return new SubscriptionScanner().AutoSubscribe(messageBus, obj);
+            return new SubscriptionScanner(messageBus, messageBus.Logger).AutoSubscribe(obj);
+        }
+
+        public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, Action act)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(payloadType, nameof(payloadType));
+            Assert.ArgumentNotNull(act, nameof(act));
+
+            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedActionInternal), BindingFlags.Static | BindingFlags.NonPublic);
+            method = method.MakeGenericMethod(payloadType);
+            return method.Invoke(null, new object[] { messageBus, topics, act }) as IDisposable;
         }
 
         public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
@@ -100,12 +111,12 @@ namespace Acquaintance
             Assert.ArgumentNotNull(target, nameof(target));
             Assert.ArgumentNotNull(subscriber, nameof(subscriber));
 
-            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
+            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedMethodInfoInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
             return method.Invoke(null, new[] { messageBus, topics, target, subscriber } ) as IDisposable;
         }
 
-        private static IDisposable SubscribeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
+        private static IDisposable SubscribeUntypedMethodInfoInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
         {
             if (topics == null || topics.Length == 0)
             {
@@ -120,6 +131,25 @@ namespace Acquaintance
                 var token = Subscribe<TPayload>(messageBus, b => b
                     .WithTopic(topic)
                     .Invoke(p => subscriber.Invoke(target, new object[] { p })));
+                tokens.Add(token);
+            }
+            return tokens;
+        }
+        private static IDisposable SubscribeUntypedActionInternal<TPayload>(IPubSubBus messageBus, string[] topics, Action act)
+        {
+            if (topics == null || topics.Length == 0)
+            {
+                return Subscribe<TPayload>(messageBus, b => b
+                    .WithDefaultTopic()
+                    .Invoke(p => act()));
+            }
+
+            var tokens = new DisposableCollection();
+            foreach (var topic in topics)
+            {
+                var token = Subscribe<TPayload>(messageBus, b => b
+                    .WithTopic(topic)
+                    .Invoke(p => act()));
                 tokens.Add(token);
             }
             return tokens;

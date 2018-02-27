@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Logging;
 using Acquaintance.Threading;
 using Acquaintance.Utility;
 
@@ -16,6 +17,7 @@ namespace Acquaintance.Sources
         }
 
         public Guid Id => _messageBus.Id;
+        public ILogger Logger => _messageBus.Logger;
         public int IterationDelayMs { get; set; }
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;

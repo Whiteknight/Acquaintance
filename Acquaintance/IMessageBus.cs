@@ -4,6 +4,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Logging;
 using Acquaintance.Routing;
 
 namespace Acquaintance
@@ -19,6 +20,8 @@ namespace Acquaintance
         /// Factory for creating envelopes
         /// </summary>
         IEnvelopeFactory EnvelopeFactory { get; }
+
+        ILogger Logger { get; }
 
         Guid Id { get; }
     }

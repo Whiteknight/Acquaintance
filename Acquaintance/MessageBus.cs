@@ -4,6 +4,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
+using Acquaintance.Logging;
 using Acquaintance.Routing;
 using Acquaintance.Utility;
 
@@ -24,17 +25,18 @@ namespace Acquaintance
             parameters = parameters ?? MessageBusCreateParameters.Default;
             Id = parameters.Id ?? Guid.NewGuid();
 
-            var log = parameters.GetLogger();
+            Logger = parameters.GetLogger() ?? new SilentLogger();
 
-            WorkerPool = new WorkerPool(log, parameters.NumberOfWorkers, parameters.MaximumQueuedMessages);
-            Modules = new ModuleManager(log);
+            WorkerPool = new WorkerPool(Logger, parameters.NumberOfWorkers, parameters.MaximumQueuedMessages);
+            Modules = new ModuleManager(Logger);
             EnvelopeFactory = new EnvelopeFactory(Id);
-            _subscriptionDispatcher = new SubscriptionDispatcher(log, parameters.AllowWildcards);
-            _requestDispatcher = new RequestDispatcher(log, parameters.AllowWildcards);
-            _participantDispatcher = new ParticipantDispatcher(log, parameters.AllowWildcards);
+            _subscriptionDispatcher = new SubscriptionDispatcher(Logger, parameters.AllowWildcards);
+            _requestDispatcher = new RequestDispatcher(Logger, parameters.AllowWildcards);
+            _participantDispatcher = new ParticipantDispatcher(Logger, parameters.AllowWildcards);
             _router = new TopicRouter();
         }
 
+        public ILogger Logger { get; }
         public IModuleManager Modules { get; }
         public IWorkerPool WorkerPool { get; }
         public IPublishTopicRouter PublishRouter => _router;
