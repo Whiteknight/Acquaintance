@@ -139,16 +139,16 @@ namespace Acquaintance.Utility
             return node.Children.TryGetValue(root2, out node) ? node : null;
         }
 
-        private void OnEach(TrieNode node, Action<T> act)
+        private static void OnEach(TrieNode node, Action<T> act)
         {
             act(node.Value);
             foreach (var child in node.Children.Values)
                 OnEach(child, act);
         }
 
-        private void GetInternal(string[] path, int i, TrieNode node, List<TrieNode> resultNodes)
+        private static void GetInternal(IReadOnlyList<string> path, int i, TrieNode node, List<TrieNode> resultNodes)
         {
-            if (i >= path.Length)
+            if (i >= path.Count)
             {
                 resultNodes.Add(node);
                 return;

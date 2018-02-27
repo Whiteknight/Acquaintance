@@ -18,8 +18,8 @@ namespace Acquaintance.PubSub
 
         private static Action<TPayload> CreateAction(IPubSubBus messageBus, string channelName)
         {
-            Action<TPayload> newAction = t => messageBus.Publish(channelName, t);
-            return newAction;
+            void NewAction(TPayload t) => messageBus.Publish(channelName, t);
+            return NewAction;
         }
 
         private static IDisposable Subscribe(IPubSubBus messageBus, Action<TPayload> action, Action<IThreadSubscriptionBuilder<TPayload>> build, string channelName)

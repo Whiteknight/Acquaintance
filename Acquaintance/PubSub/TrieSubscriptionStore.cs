@@ -20,8 +20,7 @@ namespace Acquaintance.PubSub
             var channel = _channels.GetOrInsert(typeof(TPayload).FullName, topic.Split('.'), () => new Channel<TPayload>());
             if (channel == null)
                 throw new Exception("Channel not found");
-            var typedChannel = channel as Channel<TPayload>;
-            if (typedChannel == null)
+            if (!(channel is Channel<TPayload> typedChannel))
                 throw new Exception($"Expected channel of type {typeof(TPayload).FullName} but found {channel.GetType().FullName}");
             var id = Guid.NewGuid();
             typedChannel.AddSubscription(id, subscription);
@@ -52,8 +51,7 @@ namespace Acquaintance.PubSub
             var root = typeof(TPayload).FullName;
             var path = topic.Split('.');
             var channel = _channels.Get(root, path).FirstOrDefault();
-            var typedChannel = channel as Channel<TPayload>;
-            if (typedChannel == null)
+            if (!(channel is Channel<TPayload> typedChannel))
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)

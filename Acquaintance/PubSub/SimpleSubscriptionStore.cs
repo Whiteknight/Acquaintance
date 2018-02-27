@@ -18,8 +18,7 @@ namespace Acquaintance.PubSub
         {
             var key = GetKey<TPayload>(topic);
             var channelObj = _channels.GetOrAdd(key, s => new Channel<TPayload>());
-            var channel = channelObj as Channel<TPayload>;
-            if (channel == null)
+            if (!(channelObj is Channel<TPayload> channel))
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
             subscription.Id = Guid.NewGuid();
             channel.AddSubscription(subscription.Id, subscription);
@@ -31,8 +30,7 @@ namespace Acquaintance.PubSub
             var key = GetKey<TPayload>(topic);
             if (!_channels.TryGetValue(key, out object channelObj))
                 return Enumerable.Empty<ISubscription<TPayload>>();
-            var channel = channelObj as Channel<TPayload>;
-            if (channel == null)
+            if (!(channelObj is Channel<TPayload> channel))
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
             return channel.GetSubscriptions();
         }
@@ -53,8 +51,7 @@ namespace Acquaintance.PubSub
             bool found = _channels.TryGetValue(key, out object channel);
             if (!found || channel == null)
                 return;
-            var typedChannel = channel as Channel<TPayload>;
-            if (typedChannel == null)
+            if (!(channel is Channel<TPayload> typedChannel))
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)
