@@ -79,8 +79,7 @@ namespace Acquaintance.RequestResponse
             var root2 = typeof(TResponse).FullName;
             var path = topic.Split('.');
             var listenerObj = _listeners.Get(root1, root2, path).FirstOrDefault();
-            var listener = listenerObj as IListener<TRequest, TResponse>;
-            if (listener == null || listener.Id != id)
+            if (!(listenerObj is IListener<TRequest, TResponse> listener) || listener.Id != id)
                 return;
             _listeners.RemoveValue(root1, root2, path, v => (v as IDisposable)?.Dispose());
         }

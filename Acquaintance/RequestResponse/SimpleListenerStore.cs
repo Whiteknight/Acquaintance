@@ -29,8 +29,7 @@ namespace Acquaintance.RequestResponse
             var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_listeners.TryGetValue(key, out object listenerObj) || listenerObj == null)
                 return null;
-            var listener = listenerObj as IListener<TRequest, TResponse>;
-            if (listener == null)
+            if (!(listenerObj is IListener<TRequest, TResponse> listener))
                 throw new Exception($"Wrong listener type. Expected {typeof(IListener<TRequest, TResponse>).FullName} but got {listenerObj.GetType().FullName}");
             if (listener.ShouldStopListening)
             {
@@ -79,8 +78,7 @@ namespace Acquaintance.RequestResponse
             var found = _listeners.TryGetValue(key, out object listenerObj);
             if (!found || listenerObj == null)
                 return;
-            var listener = listenerObj as IListener<TRequest, TResponse>;
-            if (listener == null || listener.Id != id)
+            if (!(listenerObj is IListener<TRequest, TResponse> listener) || listener.Id != id)
                 return;
             _listeners.TryRemove(key, out object whatever);
         }

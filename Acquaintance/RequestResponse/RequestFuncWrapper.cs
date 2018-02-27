@@ -33,8 +33,8 @@ namespace Acquaintance.RequestResponse
 
         private static Func<TRequest, TResponse> BuildFunction(IReqResBus messageBus, string topic)
         {
-            Func<TRequest, TResponse> newFunc = req => messageBus.RequestWait<TRequest, TResponse>(topic, req);
-            return newFunc;
+            TResponse NewFunc(TRequest req) => messageBus.RequestWait<TRequest, TResponse>(topic, req);
+            return NewFunc;
         }
 
         private static IDisposable BuildListener(IReqResBus messageBus, Func<TRequest, TResponse> func, Action<IThreadListenerBuilder<TRequest, TResponse>> build, string topic)
