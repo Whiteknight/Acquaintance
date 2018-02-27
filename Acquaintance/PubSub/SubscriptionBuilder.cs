@@ -101,14 +101,15 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler)
+        public IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler, bool cacheService = true)
+            where TService : class
         {
             Assert.ArgumentNotNull(handler, nameof(handler));
             Assert.ArgumentNotNull(createService, nameof(createService));
 
             ValidateDoesNotHaveAction();
 
-            _actionReference = new ActivatedSubscriberReference<TPayload, TService>(createService, handler);
+            _actionReference = new ActivatedSubscriberReference<TPayload, TService>(createService, handler, cacheService);
             return this;
         }
 

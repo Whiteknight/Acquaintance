@@ -49,8 +49,10 @@ namespace Acquaintance.PubSub
         /// <typeparam name="TService">The type of service to instantiate</typeparam>
         /// <param name="createService">A factory method to create the service</param>
         /// <param name="handler">The callback to invoke with the service and the payload</param>
+        /// <param name="cacheService">True to create a single service instance and reuse it, false to create a new instance every time</param>
         /// <returns>The builder</returns>
-        IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler);
+        IThreadSubscriptionBuilder<TPayload> ActivateAndInvoke<TService>(Func<TPayload, TService> createService, Action<TService, TPayload> handler, bool cacheService = true)
+            where TService : class;
 
         /// <summary>
         /// Transform the event payload to a new type, and re-publish on the new channel
