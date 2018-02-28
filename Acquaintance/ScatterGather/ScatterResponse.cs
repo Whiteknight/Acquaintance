@@ -19,11 +19,11 @@ namespace Acquaintance.ScatterGather
             Success = true;
         }
 
-        public TResponse Value { get; private set; }
+        public TResponse Value { get; }
         public Guid ParticipantId { get; }
-        public bool Success { get; private set; }
+        public bool Success { get; }
         public Exception ErrorInformation { get; }
-        public bool IsEmpty { get; private set; }
+        public bool IsEmpty { get; }
 
         public void ThrowExceptionIfPresent()
         {

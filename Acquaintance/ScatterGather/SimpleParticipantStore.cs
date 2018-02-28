@@ -18,8 +18,7 @@ namespace Acquaintance.ScatterGather
         {
             var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             var channelObj = _channels.GetOrAdd(key, s => new Channel<TRequest, TResponse>());
-            var channel = channelObj as Channel<TRequest, TResponse>;
-            if (channel == null)
+            if (!(channelObj is Channel<TRequest, TResponse> channel))
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TRequest, TResponse>)} but found {channelObj.GetType().FullName}");
             participant.Id = Guid.NewGuid();
             channel.Add(participant);
@@ -31,8 +30,7 @@ namespace Acquaintance.ScatterGather
             var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_channels.TryGetValue(key, out object channelObj))
                 return Enumerable.Empty<IParticipant<TRequest, TResponse>>();
-            var channel = channelObj as Channel<TRequest, TResponse>;
-            if (channel == null)
+            if (!(channelObj is Channel<TRequest, TResponse> channel))
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TRequest, TResponse>)} but found {channelObj.GetType().FullName}");
             return channel.GetAll();
         }
@@ -107,8 +105,7 @@ namespace Acquaintance.ScatterGather
             var key = GetKey(typeof(TRequest), typeof(TResponse), topic);
             if (!_channels.TryGetValue(key, out object channelObj))
                 return;
-            var channel = channelObj as Channel<TRequest, TResponse>;
-            if (channel == null)
+            if (!(channelObj is Channel<TRequest, TResponse> channel))
                 return;
             channel.Remove(id);
             if (channel.IsEmpty)

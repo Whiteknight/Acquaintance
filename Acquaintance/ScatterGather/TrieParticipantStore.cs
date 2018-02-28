@@ -18,8 +18,7 @@ namespace Acquaintance.ScatterGather
         public IDisposable Participate<TRequest, TResponse>(string topic, IParticipant<TRequest, TResponse> participant)
         {
             var channelObj = _channels.GetOrInsert(typeof(TRequest).FullName, typeof(TResponse).FullName, topic.Split('.'), () => new Channel<TRequest, TResponse>());
-            var channel = channelObj as Channel<TRequest, TResponse>;
-            if (channel == null)
+            if (!(channelObj is Channel<TRequest, TResponse> channel))
                 throw new Exception("Could not get channel");
             participant.Id = Guid.NewGuid();
             channel.Add(participant);
@@ -100,8 +99,7 @@ namespace Acquaintance.ScatterGather
             var root2 = typeof(TResponse).FullName;
             var path = topic.Split('.');
             var channelObj = _channels.Get(root1, root2, path).FirstOrDefault();
-            var channel = channelObj as Channel<TRequest, TResponse>;
-            if (channel == null)
+            if (!(channelObj is Channel<TRequest, TResponse> channel))
                 return;
             channel.Remove(id);
             if (channel.IsEmpty)

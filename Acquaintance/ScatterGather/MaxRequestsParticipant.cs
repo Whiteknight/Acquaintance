@@ -20,8 +20,8 @@ namespace Acquaintance.ScatterGather
 
         public Guid Id
         {
-            get { return _inner.Id; }
-            set { _inner.Id = value; }
+            get => _inner.Id;
+            set => _inner.Id = value;
         }
 
         public bool CanHandle(Envelope<TRequest> request)
