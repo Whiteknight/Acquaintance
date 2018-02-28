@@ -27,16 +27,23 @@ namespace Acquaintance.Threading
             _tokenSource = new CancellationTokenSource();
 
             _thread = new Thread(ThreadFunction);
-            _thread.Start();
         }
 
         public Guid Id { get; }
 
         public int ThreadId => _thread.ManagedThreadId;
 
+        public void Start()
+        {
+            if (_thread.ThreadState == ThreadState.Unstarted)
+                _thread.Start();
+        }
+
         public void Stop()
         {
             _tokenSource.Cancel();
+            if (_thread.ThreadState == ThreadState.Unstarted || _thread.ThreadState == ThreadState.StopRequested || _thread.ThreadState == ThreadState.Stopped)
+                return;
             if (!_thread.Join(TimeSpan.FromSeconds(5)))
             {
                 // Log the error   
@@ -64,7 +71,7 @@ namespace Acquaintance.Threading
                 if (_context.IterationDelayMs > 0)
                 {
                     try {
-                        Task.Delay(_context.IterationDelayMs, token).Wait();
+                        Task.Delay(_context.IterationDelayMs, token).Wait(token);
                     } catch {}
                 }
             }

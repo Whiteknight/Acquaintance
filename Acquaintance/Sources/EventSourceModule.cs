@@ -2,18 +2,21 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using Acquaintance.Logging;
 
 namespace Acquaintance.Sources
 {
     public class EventSourceModule : IMessageBusModule
     {
         private readonly IMessageBus _messageBus;
+        private readonly ILogger _logger;
         private readonly ConcurrentDictionary<Guid, IEventSourceWorker> _threads;
         private readonly ConcurrentDictionary<Guid, IDisposable> _tokens;
 
-        public EventSourceModule(IMessageBus messageBus)
+        public EventSourceModule(IMessageBus messageBus, ILogger logger)
         {
             _messageBus = messageBus;
+            _logger = logger;
             _threads = new ConcurrentDictionary<Guid, IEventSourceWorker>();
             _tokens = new ConcurrentDictionary<Guid, IDisposable>();
         }
@@ -40,7 +43,8 @@ namespace Acquaintance.Sources
             bool ok = _threads.TryAdd(thread.Id, thread);
             if (!ok)
             {
-                // TODO: Handle the rare error
+                _logger.Error($"Could not add new event source ThreadId={thread.Id}. Maybe it has already been added?");
+                thread.Dispose();
                 return null;
             }
             var threadToken = _messageBus.WorkerPool.RegisterManagedThread("Event Source Module", thread.ThreadId, "SourceModule thread " + thread.Id);
@@ -85,7 +89,20 @@ namespace Acquaintance.Sources
 
         public void Dispose()
         {
-            // TODO: This
+            try
+            {
+                foreach (var token in _tokens.Values)
+                    token.Dispose();
+                _tokens.Clear();
+            }
+            catch { }
+
+            try
+            {
+                foreach (var source in _threads.Values)
+                    source.Dispose();
+                _threads.Clear();
+            } catch { }
         }
     }
 }
