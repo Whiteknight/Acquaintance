@@ -71,8 +71,10 @@ namespace Acquaintance.RequestResponse
         /// <typeparam name="TService"></typeparam>
         /// <param name="createService"></param>
         /// <param name="handler"></param>
+        /// <param name="cacheService">If true, caches a single service instance for all requests. Otherwise, creates a new service for each request</param>
         /// <returns></returns>
-        IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler);
+        IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler, bool cacheService = true)
+            where TService : class;
     }
 
     /// <summary>

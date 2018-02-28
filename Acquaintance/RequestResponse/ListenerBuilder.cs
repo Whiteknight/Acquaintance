@@ -109,12 +109,13 @@ namespace Acquaintance.RequestResponse
             });
         }
 
-        public IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler)
+        public IThreadListenerBuilder<TRequest, TResponse> ActivateAndInvoke<TService>(Func<TRequest, TService> createService, Func<TService, TRequest, TResponse> handler, bool cacheService = true)
+            where TService : class
         {
             Assert.ArgumentNotNull(createService, nameof(createService));
             Assert.ArgumentNotNull(handler, nameof(handler));
             ValidateDoesNotAlreadyHaveAction();
-            _funcReference = new ActivatedListenerReference<TRequest, TResponse, TService>(createService, handler);
+            _funcReference = new ActivatedListenerReference<TRequest, TResponse, TService>(createService, handler, cacheService);
             return this;
         }
 
