@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace Acquaintance.Sagas
 {
-    // TODO: Need a way to clean out old/incomplete contexts
     public class SagaRepository<TState, TKey> : ISagaDataRepository<TState, TKey>
     {
         private readonly ConcurrentDictionary<TKey, ISagaContext<TState, TKey>> _store;
@@ -30,6 +30,11 @@ namespace Acquaintance.Sagas
         public void RemoveState(TKey key)
         {
             _store.TryRemove(key, out ISagaContext<TState, TKey> context);
+        }
+
+        public TKey[] GetAllKeys()
+        {
+            return _store.Keys.ToArray();
         }
     }
 }

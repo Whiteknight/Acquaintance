@@ -65,7 +65,7 @@ namespace Acquaintance.Routing
             }
         }
 
-        private class PublishRouteToken : Utility.DisposeOnceToken
+        private class PublishRouteToken : DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -90,7 +90,7 @@ namespace Acquaintance.Routing
             return ok ? new PublishRouteToken(this, key) : (IDisposable)new NoRouteToken();
         }
 
-        private class RequestRouteToken : Utility.DisposeOnceToken
+        private class RequestRouteToken : DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -115,7 +115,7 @@ namespace Acquaintance.Routing
             return ok ? new RequestRouteToken(this, key) : (IDisposable)new NoRouteToken();
         }
 
-        private class ScatterRouteToken : Utility.DisposeOnceToken
+        private class ScatterRouteToken : DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;

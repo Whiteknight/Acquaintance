@@ -9,7 +9,7 @@ namespace Acquaintance.Routing
     public class RoundRobinDistributeRule<T> : IRouteRule<T>
     {
         private readonly string[] _topics;
-        private volatile int _idx;
+        private int _idx;
 
         public RoundRobinDistributeRule(IEnumerable<string> topics)
         {
