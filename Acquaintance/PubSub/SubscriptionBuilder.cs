@@ -15,7 +15,7 @@ namespace Acquaintance.PubSub
 
         private ISubscriberReference<TPayload> _actionReference;
         private DispatchThreadType _dispatchType;
-        private Func<TPayload, bool> _filter;
+        private Func<Envelope<TPayload>, bool> _filter;
         private int _maxEvents;
         private int _threadId;
         private bool _useDedicatedThread;
@@ -162,8 +162,14 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        // TODO: Should we have an option where the Filter predicate takes an Envelope<TPayload>?
         public IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter)
+        {
+            if (filter == null)
+                return this;
+            return WithFilterEnvelope(e => filter(e.Payload));
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> WithFilterEnvelope(Func<Envelope<TPayload>, bool> filter)
         {
             if (filter == null)
                 return this;

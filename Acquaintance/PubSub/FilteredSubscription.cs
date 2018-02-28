@@ -6,10 +6,10 @@ namespace Acquaintance.PubSub
     public class FilteredSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscription<TPayload> _inner;
-        private readonly Func<TPayload, bool> _filter;
+        private readonly Func<Envelope<TPayload>, bool> _filter;
 
         // TODO: Ability to filter on Envelope metadata?
-        public FilteredSubscription(ISubscription<TPayload> inner, Func<TPayload, bool> filter)
+        public FilteredSubscription(ISubscription<TPayload> inner, Func<Envelope<TPayload>, bool> filter)
         {
             Assert.ArgumentNotNull(inner, nameof(inner));
             Assert.ArgumentNotNull(filter, nameof(filter));
@@ -26,7 +26,7 @@ namespace Acquaintance.PubSub
 
         public void Publish(Envelope<TPayload> message)
         {
-            if (!_filter(message.Payload))
+            if (!_filter(message))
                 return;
 
             _inner.Publish(message);

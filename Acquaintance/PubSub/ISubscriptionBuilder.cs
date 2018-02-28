@@ -111,6 +111,13 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload> WithFilter(Func<TPayload, bool> filter);
 
         /// <summary>
+        /// Use a filter on the envelope to determine if the message should be sent to this subscription or not.
+        /// </summary>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        IDetailsSubscriptionBuilder<TPayload> WithFilterEnvelope(Func<Envelope<TPayload>, bool> filter);
+
+        /// <summary>
         /// Handle a maximum number of events on this channel before automatically unsubscribing
         /// </summary>
         /// <param name="maxEvents"></param>
