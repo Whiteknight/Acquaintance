@@ -32,11 +32,11 @@ namespace Acquaintance.ScatterGather
             var thread = _workerPool.GetFreeWorkerDispatcher();
             if (thread == null)
             {
-                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request.Payload, scatter);
+                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request, scatter);
                 return;
             }
 
-            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request.Payload, Id, scatter);
+            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, scatter);
             thread.DispatchAction(responseWaiter);
         }
     }

@@ -26,7 +26,7 @@ namespace Acquaintance.ScatterGather
 
         public void Scatter(Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
-            GetResponses(Id, _func, request.Payload, scatter);
+            GetResponses(Id, _func, request, scatter);
         }
 
         public static IParticipant<TRequest, TResponse> Create(Func<TRequest, TResponse> func)
@@ -34,7 +34,7 @@ namespace Acquaintance.ScatterGather
             return new ImmediateParticipant<TRequest, TResponse>(new StrongParticipantReference<TRequest, TResponse>(func));
         }
 
-        public static void GetResponses(Guid id, IParticipantReference<TRequest, TResponse> func, TRequest request, IGatherReceiver<TResponse> scatter)
+        public static void GetResponses(Guid id, IParticipantReference<TRequest, TResponse> func, Envelope<TRequest> request, IGatherReceiver<TResponse> scatter)
         {
             try
             {

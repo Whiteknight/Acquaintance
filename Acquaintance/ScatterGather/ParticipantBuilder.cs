@@ -75,7 +75,16 @@ namespace Acquaintance.ScatterGather
         {
             Assert.ArgumentNotNull(participant, nameof(participant));
             ValidateDoesNotAlreadyHaveAction();
-            var reference = CreateReference(participant , useWeakReference);
+            var reference = CreateReference(participant, useWeakReference);
+            _funcReference = reference;
+            return this;
+        }
+
+        public IThreadParticipantBuilder<TRequest, TResponse> InvokeEnvelope(Func<Envelope<TRequest>, TResponse> participant, bool useWeakReference = false)
+        {
+            Assert.ArgumentNotNull(participant, nameof(participant));
+            ValidateDoesNotAlreadyHaveAction();
+            var reference = CreateReference(participant, useWeakReference);
             _funcReference = reference;
             return this;
         }
@@ -188,11 +197,18 @@ namespace Acquaintance.ScatterGather
             return participant;
         }
 
-        private IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, TResponse> participant, bool useWeakReference)
+        private static IParticipantReference<TRequest, TResponse> CreateReference(Func<TRequest, TResponse> participant, bool useWeakReference)
         {
             if (useWeakReference)
                 return new WeakParticipantReference<TRequest, TResponse>(participant);
             return new StrongParticipantReference<TRequest, TResponse>(participant);
+        }
+
+        private static IParticipantReference<TRequest, TResponse> CreateReference(Func<Envelope<TRequest>, TResponse> participant, bool useWeakReference)
+        {
+            if (useWeakReference)
+                return new EnvelopeWeakParticipantReference<TRequest, TResponse>(participant);
+            return new EnvelopeStrongParticipantReference<TRequest, TResponse>(participant);
         }
     }
 }
