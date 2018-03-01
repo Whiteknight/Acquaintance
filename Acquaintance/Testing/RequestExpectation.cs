@@ -75,7 +75,11 @@ namespace Acquaintance.Testing
             return this;
         }
 
-        // TODO: Method to throw an exception
+        public RequestExpectation<TRequest, TResponse> WillThrow(Exception e)
+        {
+            _actions.Add((q, s) => throw e);
+            return this;
+        }
 
         public RequestExpectation<TRequest, TResponse> Callback(Action<TRequest, TResponse> callback)
         {
