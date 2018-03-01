@@ -62,10 +62,7 @@ namespace Acquaintance.Threading
             {
                 _source.CheckForEvents(_context, token);
                 if (_context.IsComplete)
-                {
-                    // TODO: Some kind of alert or event that tells the rest of the system that we've stopped?
                     return;
-                }
                 if (_context.IterationDelayMs < 0)
                     _context.IterationDelayMs = DefaultIterationDelayMs;
                 if (_context.IterationDelayMs > 0)

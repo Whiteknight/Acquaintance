@@ -21,7 +21,7 @@ namespace Acquaintance.Threading
 
         public override string ToString()
         {
-            return _subscriptionToken.ToString() + "\n" + _workerToken.ToString();
+            return _subscriptionToken + "\n" + _workerToken;
         }
     }
 }

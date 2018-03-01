@@ -41,8 +41,7 @@ namespace Acquaintance.Threading
 
         private static void HandlerThreadFunc(object contextObject)
         {
-            var context = contextObject as IWorkerContext;
-            if (context == null)
+            if (!(contextObject is IWorkerContext context))
                 return;
 
             while (true)
