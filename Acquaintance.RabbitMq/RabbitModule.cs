@@ -84,6 +84,7 @@ namespace Acquaintance.RabbitMq
 
         private static void Configure(ISubscriptionConfiguration configuration, string topic, string queueName)
         {
+            // TODO: Make more of these options available to the subscriber
             configuration
                 .WithTopic(topic ?? string.Empty)
                 .WithQueueName(queueName);
