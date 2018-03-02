@@ -8,6 +8,7 @@ namespace RabbitTester
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("Setting up MessageBus");
             var messageBus = new MessageBus();
             messageBus.InitializeRabbitMq("host=localhost;username=guest;password=guest");
 
@@ -20,11 +21,15 @@ namespace RabbitTester
                     Console.WriteLine(m.Payload.Text);
                 }));
 
+            Console.WriteLine("Sending message (should print 'whatever' if successful)");
             messageBus.Publish("send", new MyTestPayload
             {
                 Text = "whatever"
             });
+            Console.WriteLine("Press any key to continue");
             Console.ReadKey();
+            messageBus.Dispose();
+            //Environment.Exit(0);
         }
     }
 
