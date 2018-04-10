@@ -3,6 +3,8 @@ using System.Threading;
 
 namespace Acquaintance.Utility
 {
+    // TODO: Mode where we count the number of failures in the last N requests
+    // TODO: Mode where we count the number of failures in the last unit of time
     public class CircuitBreaker
     {
         private readonly int _breakMs;
@@ -23,7 +25,7 @@ namespace Acquaintance.Utility
             if (_failedRequests < _maxFailedRequests)
                 return true;
             var restartTime = Interlocked.Read(ref _restartTime);
-            if (DateTime.Now.Ticks >= restartTime)
+            if (DateTime.UtcNow.Ticks >= restartTime)
             {
                 _failedRequests = 0;
                 return true;
@@ -41,7 +43,7 @@ namespace Acquaintance.Utility
 
             var failedRequests = Interlocked.Increment(ref _failedRequests);
             if (failedRequests >= _maxFailedRequests)
-                _restartTime = DateTime.Now.AddMilliseconds(_breakMs).Ticks;
+                _restartTime = DateTime.UtcNow.AddMilliseconds(_breakMs).Ticks;
         }
     }
 }
