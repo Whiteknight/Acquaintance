@@ -47,9 +47,11 @@ namespace Acquaintance.Sources
                 thread.Dispose();
                 return null;
             }
+
             var threadToken = _messageBus.WorkerPool.RegisterManagedThread("Event Source Module", thread.ThreadId, "SourceModule thread " + thread.Id);
             var workerToken = new WorkerToken(this, thread, thread.Id, threadToken);
             _tokens.TryAdd(thread.Id, workerToken);
+            thread.Start();
             return workerToken;
         }
 
