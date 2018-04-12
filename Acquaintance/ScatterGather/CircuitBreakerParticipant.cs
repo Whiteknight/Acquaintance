@@ -6,9 +6,9 @@ namespace Acquaintance.ScatterGather
     public class CircuitBreakerParticipant<TRequest, TResponse> : IParticipant<TRequest, TResponse>
     {
         private readonly IParticipant<TRequest, TResponse> _inner;
-        private readonly CircuitBreaker _circuitBreaker;
+        private readonly ICircuitBreaker _circuitBreaker;
 
-        public CircuitBreakerParticipant(IParticipant<TRequest, TResponse> inner, CircuitBreaker circuitBreaker)
+        public CircuitBreakerParticipant(IParticipant<TRequest, TResponse> inner, ICircuitBreaker circuitBreaker)
         {
             _inner = inner;
             _circuitBreaker = circuitBreaker;
@@ -39,10 +39,10 @@ namespace Acquaintance.ScatterGather
 
         private class Receiver : IGatherReceiver<TResponse>
         {
-            private readonly CircuitBreaker _circuitBreaker;
+            private readonly ICircuitBreaker _circuitBreaker;
             private readonly IGatherReceiver<TResponse> _inner;
 
-            public Receiver(CircuitBreaker circuitBreaker, IGatherReceiver<TResponse> inner )
+            public Receiver(ICircuitBreaker circuitBreaker, IGatherReceiver<TResponse> inner )
             {
                 _circuitBreaker = circuitBreaker;
                 _inner = inner;

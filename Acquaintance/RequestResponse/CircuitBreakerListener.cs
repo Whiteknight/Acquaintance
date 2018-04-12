@@ -6,15 +6,15 @@ namespace Acquaintance.RequestResponse
     public class CircuitBreakerListener<TRequest, TResponse> : IListener<TRequest, TResponse>
     {
         private readonly IListener<TRequest, TResponse> _inner;
-        private readonly CircuitBreaker _circuitBreaker;
+        private readonly ICircuitBreaker _circuitBreaker;
 
         public CircuitBreakerListener(IListener<TRequest, TResponse> inner, int breakMs, int maxFailures)
         {
             _inner = inner;
-            _circuitBreaker = new CircuitBreaker(breakMs, maxFailures);
+            _circuitBreaker = new SequentialCountingCircuitBreaker(breakMs, maxFailures);
         }
 
-        public CircuitBreakerListener(IListener<TRequest, TResponse> inner, CircuitBreaker circuitBreaker)
+        public CircuitBreakerListener(IListener<TRequest, TResponse> inner, ICircuitBreaker circuitBreaker)
         {
             _inner = inner;
             _circuitBreaker = circuitBreaker;
@@ -46,10 +46,10 @@ namespace Acquaintance.RequestResponse
 
         private class Receiver : IResponseReceiver<TResponse>
         {
-            private readonly CircuitBreaker _circuitBreaker;
+            private readonly ICircuitBreaker _circuitBreaker;
             private readonly IResponseReceiver<TResponse> _inner;
 
-            public Receiver(CircuitBreaker circuitBreaker, IResponseReceiver<TResponse> inner)
+            public Receiver(ICircuitBreaker circuitBreaker, IResponseReceiver<TResponse> inner)
             {
                 _circuitBreaker = circuitBreaker;
                 _inner = inner;

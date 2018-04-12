@@ -20,7 +20,7 @@ namespace Acquaintance.RequestResponse
         private Func<TRequest, bool> _filter;
         private bool _useDedicatedThread;
         private Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> _modify;
-        private CircuitBreaker _circuitBreaker;
+        private ICircuitBreaker _circuitBreaker;
 
         public ListenerBuilder(IReqResBus messageBus, IWorkerPool workerPool)
         {
@@ -178,7 +178,7 @@ namespace Acquaintance.RequestResponse
         {
             if (_circuitBreaker != null)
                 throw new Exception("Already has a circuit breaker configured");
-            _circuitBreaker = new CircuitBreaker(breakMs, maxFailures);
+            _circuitBreaker = new SequentialCountingCircuitBreaker(breakMs, maxFailures);
             return this;
         }
 

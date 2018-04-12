@@ -19,7 +19,7 @@ namespace Acquaintance.ScatterGather
         private Func<TRequest, bool> _filter;
         private bool _useDedicatedThread;
         private Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> _modify;
-        private CircuitBreaker _circuitBreaker;
+        private ICircuitBreaker _circuitBreaker;
 
         public ParticipantBuilder(IScatterGatherBus messageBus, IWorkerPool workerPool)
         {
@@ -149,7 +149,7 @@ namespace Acquaintance.ScatterGather
         {
             if (_circuitBreaker != null)
                 throw new Exception("Circuit breaker is already configured");
-            _circuitBreaker = new CircuitBreaker(breakMs, maxFailures);
+            _circuitBreaker = new SequentialCountingCircuitBreaker(breakMs, maxFailures);
             return this;
         }
 

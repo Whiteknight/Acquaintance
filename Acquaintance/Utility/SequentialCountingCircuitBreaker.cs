@@ -3,9 +3,15 @@ using System.Threading;
 
 namespace Acquaintance.Utility
 {
+    public interface ICircuitBreaker
+    {
+        bool CanProceed();
+        void RecordResult(bool success);
+    }
+
     // TODO: Mode where we count the number of failures in the last N requests
     // TODO: Mode where we count the number of failures in the last unit of time
-    public class CircuitBreaker
+    public class SequentialCountingCircuitBreaker : ICircuitBreaker
     {
         private readonly int _breakMs;
         private readonly int _maxFailedRequests;
@@ -13,7 +19,7 @@ namespace Acquaintance.Utility
         private volatile int _failedRequests;
         private long _restartTime;
 
-        public CircuitBreaker(int breakMs, int maxFailedRequests)
+        public SequentialCountingCircuitBreaker(int breakMs, int maxFailedRequests)
         {
             _breakMs = breakMs;
             _maxFailedRequests = maxFailedRequests;
@@ -46,4 +52,33 @@ namespace Acquaintance.Utility
                 _restartTime = DateTime.UtcNow.AddMilliseconds(_breakMs).Ticks;
         }
     }
+
+    //public class WindowedCountingCircuitBreaker : ICircuitBreaker
+    //{
+    //    private readonly int _breakMs;
+    //    private readonly int _maxFailedRequests;
+    //    private readonly int _windowSize;
+
+    //    public WindowedCountingCircuitBreaker(int breakMs, int maxFailedRequests, int windowSize)
+    //    {
+    //        _breakMs = breakMs;
+    //        _maxFailedRequests = maxFailedRequests;
+    //        _windowSize = windowSize;
+    //    }
+
+    //    public bool CanProceed()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void RecordResult(bool success)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
+
+    //public class WindowedTimeCircuitBreaker : ICircuitBreaker
+    //{
+
+    //}
 }
