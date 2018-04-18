@@ -26,7 +26,6 @@ namespace Acquaintance.PubSub
 
         public void Invoke(Envelope<TPayload> message)
         {
-            // TODO: We should have the option to cache the service instance
             var service = _service ?? _createService(message.Payload);
             if (service == null)
                 throw new NullReferenceException("Activated service is null");

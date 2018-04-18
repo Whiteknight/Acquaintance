@@ -17,19 +17,45 @@ namespace Acquaintance.Tests.Nets
             string output = null;
             var builder = new NetBuilder();
             var resetEvent = new ManualResetEvent(false);
-            builder.AddNode<string>("capitalize")
+            builder.AddNode<string>("capitalize", b => b
                 .ReadInput()
-                .Transform(s => s.ToUpperInvariant());
-            builder.AddNode<string>("exclaim")
+                .Transform(s => s.ToUpperInvariant()));
+            builder.AddNode<string>("exclaim", b => b
                 .ReadOutputFrom("capitalize")
-                .Transform(s => s + "!!!");
-            builder.AddNode<string>("save string")
+                .Transform(s => s + "!!!"));
+            builder.AddNode<string>("save string", b => b
                 .ReadOutputFrom("exclaim")
                 .Handle(s =>
                 {
                     output = s;
                     resetEvent.Set();
-                });
+                }));
+
+            var target = builder.BuildNet();
+            target.Inject("test");
+            resetEvent.WaitOne(1000).Should().BeTrue();
+            output.Should().Be("TEST!!!");
+        }
+
+        [Test]
+        public void Transform_Pipeline_SimpleNodeRef()
+        {
+            string output = null;
+            var builder = new NetBuilder();
+            var resetEvent = new ManualResetEvent(false);
+            var n1 = builder.AddNode<string>("capitalize", b => b
+                .ReadInput()
+                .Transform(s => s.ToUpperInvariant()));
+            var n2 = builder.AddNode<string>("exclaim", b => b
+                .ReadOutputFrom(n1)
+                .Transform(s => s + "!!!"));
+            builder.AddNode<string>("save string", b => b
+                .ReadOutputFrom(n2)
+                .Handle(s =>
+                {
+                    output = s;
+                    resetEvent.Set();
+                }));
 
             var target = builder.BuildNet();
             target.Inject("test");
@@ -43,20 +69,20 @@ namespace Acquaintance.Tests.Nets
             string output = string.Empty;
             var builder = new NetBuilder();
             var resetEvent = new ManualResetEvent(false);
-            builder.AddNode<string>("capitalize")
+            builder.AddNode<string>("capitalize", b => b
                 .ReadInput()
-                .OnCondition(s => s == "test")
-                .Transform(s => s.ToUpperInvariant());
-            builder.AddNode<string>("exclaim")
+                .Transform(s => s.ToUpperInvariant())
+                .OnCondition(s => s == "test"));
+            builder.AddNode<string>("exclaim", b => b
                 .ReadOutputFrom("capitalize")
-                .Transform(s => s + "!!!");
-            builder.AddNode<string>("save string")
+                .Transform(s => s + "!!!"));
+            builder.AddNode<string>("save string", b => b
                 .ReadOutputFrom("exclaim")
                 .Handle(s =>
                 {
                     output += s;
                     resetEvent.Set();
-                });
+                }));
 
             var target = builder.BuildNet();
             target.Inject("other");
@@ -70,19 +96,19 @@ namespace Acquaintance.Tests.Nets
         {
             var results = new List<int>();
             var builder = new NetBuilder();
-            builder.AddNode<int>("increment")
+            builder.AddNode<int>("increment", b => b
                 .ReadInput()
-                .TransformMany(i => new[] { i + 1, i + 4 });
-            builder.AddNode<int>("multiply")
+                .TransformMany(i => new[] { i + 1, i + 4 }));
+            builder.AddNode<int>("multiply", b => b
                 .ReadOutputFrom("increment")
-                .TransformMany(i => new[] { i * 2, i * 3 });
-            builder.AddNode<int>("save")
+                .TransformMany(i => new[] { i * 2, i * 3 }));
+            builder.AddNode<int>("save", b => b
                 .ReadOutputFrom("multiply")
                 .Handle(s =>
                 {
                     results.Add(s);
                 })
-                .OnDedicatedThread();
+                .OnDedicatedThread());
 
             var target = builder.BuildNet();
             target.Inject(1);
@@ -96,16 +122,16 @@ namespace Acquaintance.Tests.Nets
             string output = "";
             var builder = new NetBuilder();
             var resetEvent = new ManualResetEvent(false);
-            builder.AddNode<string>("capitalize")
+            builder.AddNode<string>("capitalize", b => b
                 .ReadInput()
-                .Handle(s => output += s.ToUpperInvariant());
-            builder.AddNode<string>("exclaim")
+                .Handle(s => output += s.ToUpperInvariant()));
+            builder.AddNode<string>("exclaim", b => b
                 .ReadOutputFrom("capitalize")
                 .Handle(s =>
                 {
                     output += s + "!!!";
                     resetEvent.Set();
-                });
+                }));
 
             var target = builder.BuildNet();
             target.Inject("test");
@@ -119,20 +145,16 @@ namespace Acquaintance.Tests.Nets
             string output = "";
             var builder = new NetBuilder();
             var resetEvent = new ManualResetEvent(false);
-            builder.AddNode<string>("throws")
+            builder.AddNode<string>("throws", b => b
                 .ReadInput()
-                .Handle(s =>
-                {
-                    throw new Exception("throws");
-                });
-            builder.AddErrorNode<string>("save")
+                .Handle(s => throw new Exception("throws")));
+            builder.AddErrorNode<string>("save", b => b
                 .ReadOutputFrom("throws")
                 .Handle(s =>
                 {
                     output = "caught error " + s.Error.Message;
                     resetEvent.Set();
-                });
-
+                }));
 
             var target = builder.BuildNet();
             target.Inject("test");
@@ -146,12 +168,12 @@ namespace Acquaintance.Tests.Nets
             int receivedMessages = 0;
             var outputs = new HashSet<string>();
             var builder = new NetBuilder();
-            builder.AddNode<string>("add thread id")
+            builder.AddNode<string>("add thread id", b => b
                 .ReadInput()
                 .Transform(s => s + Thread.CurrentThread.ManagedThreadId)
-                .OnDedicatedThreads(4);
+                .OnDedicatedThreads(4));
 
-            builder.AddNode<string>("output")
+            builder.AddNode<string>("output", b => b
                 .ReadOutputFrom("add thread id")
                 .Handle(s =>
                 {
@@ -159,7 +181,7 @@ namespace Acquaintance.Tests.Nets
                     if (!outputs.Contains(s))
                         outputs.Add(s);
                 })
-                .OnDedicatedThread();
+                .OnDedicatedThread());
 
             var target = builder.BuildNet();
 
@@ -196,12 +218,12 @@ namespace Acquaintance.Tests.Nets
             var handler = new TestHandler();
             var builder = new NetBuilder();
             var resetEvent = new ManualResetEvent(false);
-            builder.AddNode<int>("handler")
+            builder.AddNode<int>("handler", b => b
                 .ReadInput()
-                .Handle(handler);
-            builder.AddNode<int>("set")
+                .Handle(handler));
+            builder.AddNode<int>("set", b => b
                 .ReadOutputFrom("handler")
-                .Handle(i => resetEvent.Set());
+                .Handle(i => resetEvent.Set()));
 
             var target = builder.BuildNet();
             target.Inject(1);
@@ -209,4 +231,6 @@ namespace Acquaintance.Tests.Nets
             handler.Value.Should().Be(1);
         }
     }
+
+    
 }

@@ -6,16 +6,24 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Nets
 {
+    public abstract class NodeBuilder
+    {
+        public abstract void BuildToMessageBus();
+        public abstract IReadOnlyList<NodeChannel> GetReadChannels();
+        public abstract IReadOnlyList<NodeChannel> GetWriteChannels();
+    }
+
     /// <summary>
     /// Builder type for building a Net Node. Behaviors and options of the Node can be specified
     /// in the builder.
     /// </summary>
     /// <typeparam name="TInput"></typeparam>
-    public class NodeBuilder<TInput> : INodeBuilder
+    public class NodeBuilder<TInput> : NodeBuilder, INodeBuilderReader<TInput>, INodeBuilderAction<TInput>, INodeBuilderDetails<TInput>
     {
         private readonly IMessageBus _messageBus;
         private readonly bool _readErrors;
         private readonly string _key;
+        private readonly List<NodeChannel> _writeChannels;
 
         private Action<TInput> _action;
         private ISubscriptionHandler<TInput> _handler;
@@ -25,7 +33,7 @@ namespace Acquaintance.Nets
 
         // TODO: Maybe support some of the features from SubscriptionBuilder such as MaxEvents
         // and thread affinity. Review list of SubscriptionBuilder features for inclusion
-        // TODO: Interface segregation to avoid duplicate/conflicting method calls
+        // TODO: Ability to read from multiple channels, so long as the TInput type is the same
 
         public NodeBuilder(string key, IMessageBus messageBus, bool readErrors)
         {
@@ -34,12 +42,15 @@ namespace Acquaintance.Nets
             _readErrors = readErrors;
 
             _key = key;
+            _writeChannels = new List<NodeChannel>();
         }
 
-        void INodeBuilder.BuildToMessageBus()
+        public override void BuildToMessageBus()
         {
             if (_action == null && _handler == null)
                 throw new Exception("No action provided");
+            if (string.IsNullOrEmpty(_topic))
+                throw new Exception("Must specify an input topic");
 
             if (_onDedicatedThreads == 0)
                 SubscribeSingleWorker(_topic, false);
@@ -49,13 +60,49 @@ namespace Acquaintance.Nets
                 SubscribeRoutedGroup();
         }
 
-        public NodeBuilder<TInput> Transform<TOut>(Func<TInput, TOut> transform)
+        public override IReadOnlyList<NodeChannel> GetReadChannels()
+        {
+            return string.IsNullOrEmpty(_topic) ? new NodeChannel[0] : new[] { new NodeChannel(typeof(TInput), _topic) };
+        }
+
+        public override IReadOnlyList<NodeChannel> GetWriteChannels()
+        {
+            return _writeChannels;
+        }
+
+        public INodeBuilderAction<TInput> ReadInput()
+        {
+            ValidateDoesNotAlreadyHaveTopic();
+            if (_readErrors)
+                throw new Exception("Cannot read errors from Net input");
+            _topic = Net.NetworkInputTopic;
+            return this;
+        }
+
+        public INodeBuilderAction<TInput> ReadOutputFrom(string nodeName)
+        {
+            Assert.ArgumentNotNull(nodeName, nameof(nodeName));
+            ValidateDoesNotAlreadyHaveTopic();
+
+            string key = nodeName.ToLowerInvariant();
+            _topic = _readErrors ? ErrorTopic(key) : OutputTopic(key);
+            return this;
+        }
+
+        public INodeBuilderAction<TInput> ReadOutputFrom(NodeToken node)
+        {
+            return ReadOutputFrom(node.Name);
+        }
+
+        public INodeBuilderDetails<TInput> Transform<TOut>(Func<TInput, TOut> transform)
         {
             Assert.ArgumentNotNull(transform, nameof(transform));
             ValidateDoesNotAlreadyHaveAction();
 
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
+            _writeChannels.Add(new NodeChannel(typeof(TOut), outputTopic));
+            _writeChannels.Add(new NodeChannel(typeof(NodeErrorMessage<TOut>), errorTopic));
             _action = m =>
             {
                 try
@@ -73,13 +120,15 @@ namespace Acquaintance.Nets
             return this;
         }
 
-        public NodeBuilder<TInput> TransformMany<TOut>(Func<TInput, IEnumerable<TOut>> handler)
+        public INodeBuilderDetails<TInput> TransformMany<TOut>(Func<TInput, IEnumerable<TOut>> handler)
         {
             Assert.ArgumentNotNull(handler, nameof(handler));
             ValidateDoesNotAlreadyHaveAction();
 
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
+            _writeChannels.Add(new NodeChannel(typeof(TOut), outputTopic));
+            _writeChannels.Add(new NodeChannel(typeof(NodeErrorMessage<TOut>), errorTopic));
             _action = m =>
             {
                 try
@@ -96,13 +145,15 @@ namespace Acquaintance.Nets
             return this;
         }
 
-        public NodeBuilder<TInput> Handle(Action<TInput> action)
+        public INodeBuilderDetails<TInput> Handle(Action<TInput> action)
         {
             Assert.ArgumentNotNull(action, nameof(action));
             ValidateDoesNotAlreadyHaveAction();
 
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
+            _writeChannels.Add(new NodeChannel(typeof(TInput), outputTopic));
+            _writeChannels.Add(new NodeChannel(typeof(NodeErrorMessage<TInput>), errorTopic));
             _action = m =>
             {
                 try
@@ -118,36 +169,19 @@ namespace Acquaintance.Nets
             return this;
         }
 
-        public NodeBuilder<TInput> Handle(ISubscriptionHandler<TInput> handler)
+        public INodeBuilderDetails<TInput> Handle(ISubscriptionHandler<TInput> handler)
         {
             Assert.ArgumentNotNull(handler, nameof(handler));
             ValidateDoesNotAlreadyHaveAction();
             string outputTopic = OutputTopic(_key);
             string errorTopic = ErrorTopic(_key);
+            _writeChannels.Add(new NodeChannel(typeof(TInput), outputTopic));
+            _writeChannels.Add(new NodeChannel(typeof(NodeErrorMessage<TInput>), errorTopic));
             _handler = new NodeRepublishSubscriptionHandler<TInput>(handler, _messageBus, _key, outputTopic, errorTopic);
             return this;
         }
 
-        public NodeBuilder<TInput> ReadInput()
-        {
-            ValidateDoesNotAlreadyHaveTopic();
-            if (_readErrors)
-                throw new Exception("Cannot read errors from Net input");
-            _topic = Net.NetworkInputTopic;
-            return this;
-        }
-
-        public NodeBuilder<TInput> ReadOutputFrom(string nodeName)
-        {
-            Assert.ArgumentNotNull(nodeName, nameof(nodeName));
-            ValidateDoesNotAlreadyHaveTopic();
-
-            string key = nodeName.ToLowerInvariant();
-            _topic = _readErrors ? ErrorTopic(key) : OutputTopic(key);
-            return this;
-        }
-
-        public NodeBuilder<TInput> OnCondition(Func<TInput, bool> predicate)
+        public INodeBuilderDetails<TInput> OnCondition(Func<TInput, bool> predicate)
         {
             Assert.ArgumentNotNull(predicate, nameof(predicate));
             if (_predicate != null)
@@ -156,12 +190,12 @@ namespace Acquaintance.Nets
             return this;
         }
 
-        public NodeBuilder<TInput> OnDedicatedThread()
+        public INodeBuilderDetails<TInput> OnDedicatedThread()
         {
             return OnDedicatedThreads(1);
         }
 
-        public NodeBuilder<TInput> OnDedicatedThreads(int numThreads)
+        public INodeBuilderDetails<TInput> OnDedicatedThreads(int numThreads)
         {
             Assert.IsInRange(numThreads, nameof(numThreads), 1, 65535);
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Acquaintance.Nets
 {
@@ -7,40 +8,60 @@ namespace Acquaintance.Nets
     /// </summary>
     public class NetBuilder
     {
-        private readonly Dictionary<string, INodeBuilder> _nodes;
+        private readonly Dictionary<string, NodeBuilder> _nodes;
         private readonly IMessageBus _messageBus;
 
         public NetBuilder()
         {
-            _nodes = new Dictionary<string, INodeBuilder>();
+            _nodes = new Dictionary<string, NodeBuilder>();
             _messageBus = new MessageBus();
         }
 
         public Net BuildNet()
         {
+            var inputs = new Dictionary<string,  IReadOnlyList<NodeChannel>>();
+            var outputs = new Dictionary<string, IReadOnlyList<NodeChannel>>();
             foreach (var kvp in _nodes)
-                kvp.Value.BuildToMessageBus();
-            return new Net(_messageBus);
+            {
+                var name = kvp.Key;
+                var nodeBuilder = kvp.Value;
+                nodeBuilder.BuildToMessageBus();
+                inputs.Add(name, nodeBuilder.GetReadChannels());
+                outputs.Add(name, nodeBuilder.GetWriteChannels());
+            }
+
+            return new Net(_messageBus, inputs, outputs);
         }
 
-        public NodeBuilder<T> AddNode<T>(string name)
+        public NodeToken AddNode<T>(string name, Action<INodeBuilderReader<T>> setup)
         {
-            return AddNodeInternal<T>(name, false);
+            return AddNodeInternal(name, false, setup);
         }
 
-        public NodeBuilder<NodeErrorMessage<T>> AddErrorNode<T>(string name)
+        public NodeToken AddErrorNode<T>(string name, Action<INodeBuilderReader<NodeErrorMessage<T>>> setup)
         {
-            return AddNodeInternal<NodeErrorMessage<T>>(name, true);
+            return AddNodeInternal(name, true, setup);
         }
 
-        private NodeBuilder<T> AddNodeInternal<T>(string name, bool readErrors)
+        private NodeToken AddNodeInternal<T>(string name, bool readErrors, Action<INodeBuilderReader<T>> setup)
         {
             string key = name.ToLowerInvariant();
             if (_nodes.ContainsKey(key))
-                throw new System.Exception("Cannot add new node with same name as existing node");
+                throw new Exception("Cannot add new node with same name as existing node");
             var builder = new NodeBuilder<T>(key, _messageBus, readErrors);
+            setup(builder);
             _nodes.Add(key, builder);
-            return builder;
+            return new NodeToken(name);
         }
+    }
+
+    public class NodeToken
+    {
+        public NodeToken(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
     }
 }

@@ -5,6 +5,7 @@ using EasyNetQ.FluentConfiguration;
 
 namespace Acquaintance.RabbitMq
 {
+    // TODO: Some kind of Outbox implementation for reliable publishing
     public class ForwardToRabbitSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly IBus _bus;
