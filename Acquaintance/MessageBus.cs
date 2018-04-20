@@ -4,6 +4,7 @@ using Acquaintance.RequestResponse;
 using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
+using System.Linq;
 using Acquaintance.Logging;
 using Acquaintance.Routing;
 using Acquaintance.Utility;
@@ -49,22 +50,22 @@ namespace Acquaintance
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {
-            var topics = _router.RoutePublish(message.Topic, message);
+            var topics = _router.RoutePublish(message.Topics, message);
             _subscriptionDispatcher.Publish(topics, message);
         }
 
-        public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string[] topics, ISubscription<TPayload> subscription)
         {
             Assert.ArgumentNotNull(subscription, nameof(subscription));
 
             subscription.Id = Guid.NewGuid();
-            return _subscriptionDispatcher.Subscribe(topic, subscription);
+            return _subscriptionDispatcher.Subscribe(topics, subscription);
         }
 
         public IRequest<TResponse> RequestEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
         {
             var request = new Request<TResponse>();
-            var topic = _router.RouteRequest<TRequest, TResponse>(envelope.Topic, envelope);
+            var topic = _router.RouteRequest<TRequest, TResponse>(envelope.Topics.FirstOrDefault(), envelope);
             _requestDispatcher.Request(topic, envelope, request);
             return request;
         }
@@ -78,7 +79,7 @@ namespace Acquaintance
         public IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope)
         {
             var scatter = new Scatter<TResponse>();
-            var topic = _router.RouteScatter<TRequest, TResponse>(envelope.Topic, envelope);
+            var topic = _router.RouteScatter<TRequest, TResponse>(envelope.Topics.FirstOrDefault(), envelope);
             _participantDispatcher.Scatter(topic ?? string.Empty, envelope, scatter);
             return scatter;
         }

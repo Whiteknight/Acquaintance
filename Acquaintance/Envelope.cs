@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -8,24 +9,42 @@ namespace Acquaintance
     {
         private ConcurrentDictionary<string, string> _metadata;
 
+        public Envelope(Guid originBusId, long id, string[] topics, TPayload payload)
+        {
+            OriginBusId = originBusId;
+            Id = id;
+            Topics = TopicUtility.CanonicalizeTopics(topics);
+            Payload = payload;
+        }
+
         public Envelope(Guid originBusId, long id, string topic, TPayload payload)
         {
             OriginBusId = originBusId;
             Id = id;
-            Topic = topic ?? string.Empty;
+            Topics = TopicUtility.CanonicalizeTopics(topic);
             Payload = payload;
         }
 
-        public string Topic { get; }
+        public string[] Topics { get; }
         public TPayload Payload { get; }
         public Guid OriginBusId { get; }
         public long Id { get; }
 
         public Envelope<TPayload> RedirectToTopic(string topic)
         {
-            if (topic == Topic)
-                return this;
-            var envelope = new Envelope<TPayload>(OriginBusId, Id, topic, Payload);
+            var topics = TopicUtility.CanonicalizeTopics(topic);
+            return RedirectToTopicsInternal(topics);
+        }
+
+        public Envelope<TPayload> RedirectToTopics(string[] topics)
+        {
+            topics = TopicUtility.CanonicalizeTopics(topics);
+            return RedirectToTopicsInternal(topics);
+        }
+
+        private Envelope<TPayload> RedirectToTopicsInternal(string[] topics)
+        {
+            var envelope = new Envelope<TPayload>(OriginBusId, Id, topics, Payload);
             if (_metadata != null)
                 envelope._metadata = new ConcurrentDictionary<string, string>(_metadata);
             return envelope;

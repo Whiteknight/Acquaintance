@@ -28,9 +28,14 @@ namespace Acquaintance.Routing
             return $"{typeof(TRequest).FullName}:{typeof(TResponse).FullName}:{topic}";
         }
 
-        public string[] RoutePublish<TPayload>(string topic, Envelope<TPayload> envelope)
+        public string[] RoutePublish<TPayload>(string[] topics, Envelope<TPayload> envelope)
         {
-            topic = topic ?? string.Empty;
+            topics = topics ?? new[] { string.Empty };
+            return topics.SelectMany(topic => GetRoutesForPublishTopic(topic, envelope)).Distinct().ToArray();
+        }
+
+        private string[] GetRoutesForPublishTopic<TPayload>(string topic, Envelope<TPayload> envelope)
+        {
             var key = GetKey<TPayload>(topic);
             if (!_publishRoutes.TryGetValue(key, out IRouteRule rule))
                 return new[] { topic };
@@ -68,26 +73,33 @@ namespace Acquaintance.Routing
         private class PublishRouteToken : DisposeOnceToken
         {
             private readonly TopicRouter _router;
-            private readonly string _route;
+            private readonly string[] _routeKeys;
 
-            public PublishRouteToken(TopicRouter router, string route)
+            public PublishRouteToken(TopicRouter router, string[] routeKeys)
             {
                 _router = router;
-                _route = route;
+                _routeKeys = routeKeys;
             }
 
             protected override void Dispose(bool disposing)
             {
-                _router._publishRoutes.TryRemove(_route, out IRouteRule rule);
+                foreach (var routeKey in _routeKeys)
+                    _router._publishRoutes.TryRemove(routeKey, out IRouteRule rule);
             }
         }
 
-        IDisposable IPublishTopicRouter.AddRule<TPayload>(string topic, IRouteRule<TPayload> rule)
+        IDisposable IPublishTopicRouter.AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
         {
             Assert.ArgumentNotNull(rule, nameof(rule));
-            var key = GetKey<TPayload>(topic ?? string.Empty);
-            bool ok = _publishRoutes.TryAdd(key, rule);
-            return ok ? new PublishRouteToken(this, key) : (IDisposable)new NoRouteToken();
+            var keys = TopicUtility.CanonicalizeTopics(topics)
+                .Select(t => GetKey<TPayload>(t ?? string.Empty))
+                .ToArray();
+            foreach (var key in keys)
+            {
+                bool ok = _publishRoutes.TryAdd(key, rule);
+                // TODO: How do we handle this error condition where !ok?
+            }
+            return new PublishRouteToken(this, keys);
         }
 
         private class RequestRouteToken : DisposeOnceToken

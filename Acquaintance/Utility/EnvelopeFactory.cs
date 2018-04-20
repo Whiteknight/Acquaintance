@@ -15,16 +15,20 @@ namespace Acquaintance.Utility
             _id = startId;
         }
 
-        public Envelope<TPayload> Create<TPayload>(string topic, TPayload payload, IReadOnlyDictionary<string, string> metadata = null)
+        public Envelope<TPayload> Create<TPayload>(string[] topics, TPayload payload, IReadOnlyDictionary<string, string> metadata = null)
         {
             long id = Interlocked.Increment(ref _id);
-            var envelope = new Envelope<TPayload>(_originBusId, id, topic, payload);
-            if (metadata != null)
-            {
-                foreach (var kvp in metadata)
-                    envelope.SetMetadata(kvp.Key, kvp.Value);
-            }
+            var envelope = new Envelope<TPayload>(_originBusId, id, topics, payload);
+            SetMetadata(metadata, envelope);
             return envelope;
+        }
+
+        private static void SetMetadata<TPayload>(IReadOnlyDictionary<string, string> metadata, Envelope<TPayload> envelope)
+        {
+            if (metadata == null)
+                return;
+            foreach (var kvp in metadata)
+                envelope.SetMetadata(kvp.Key, kvp.Value);
         }
     }
 }

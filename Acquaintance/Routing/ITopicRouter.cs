@@ -10,8 +10,8 @@ namespace Acquaintance.Routing
 
     public interface IPublishTopicRouter
     {
-        string[] RoutePublish<TPayload>(string topic, Envelope<TPayload> envelope);
-        IDisposable AddRule<TPayload>(string topic, IRouteRule<TPayload> rule);
+        string[] RoutePublish<TPayload>(string[] topics, Envelope<TPayload> envelope);
+        IDisposable AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule);
     }
 
     public interface IScatterTopicRouter

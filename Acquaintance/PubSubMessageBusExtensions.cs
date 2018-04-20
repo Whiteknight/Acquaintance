@@ -50,7 +50,7 @@ namespace Acquaintance
             var factoryMethod = messageBus.EnvelopeFactory.GetType()
                 .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
                 .MakeGenericMethod(payloadType);
-            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { topic, payload, null });
+            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { new [] { topic }, payload, null });
 
             var method = messageBus.GetType().GetMethod(nameof(messageBus.PublishEnvelope)).MakeGenericMethod(payloadType);
             method.Invoke(messageBus, new[] { envelope });
@@ -84,8 +84,21 @@ namespace Acquaintance
             build(builder);
             var subscription = builder.BuildSubscription();
 
-            var token = messageBus.Subscribe(builder.Topic, subscription);
+            var token = messageBus.Subscribe(builder.Topics, subscription);
             return builder.WrapToken(token);
+        }
+
+        /// <summary>
+        /// Convenience method to subscribe to a single topic
+        /// </summary>
+        /// <typeparam name="TPayload"></typeparam>
+        /// <param name="messageBus"></param>
+        /// <param name="topic"></param>
+        /// <param name="subscription"></param>
+        /// <returns>The subscription token which, when disposed, cancels the subscription</returns>
+        public static IDisposable Subscribe<TPayload>(this IPubSubBus messageBus, string topic, ISubscription<TPayload> subscription)
+        {
+            return messageBus.Subscribe(new[] { topic ?? string.Empty }, subscription);
         }
 
         public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj)
@@ -118,41 +131,36 @@ namespace Acquaintance
 
         private static IDisposable SubscribeUntypedMethodInfoInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
         {
-            if (topics == null || topics.Length == 0)
+            if (topics == null)
             {
                 return Subscribe<TPayload>(messageBus, b => b
-                    .WithDefaultTopic()
+                    .ForAllTopics()
                     .Invoke(p => subscriber.Invoke(target, new object[] { p })));
             }
 
-            var tokens = new DisposableCollection();
-            foreach (var topic in topics)
-            {
-                var token = Subscribe<TPayload>(messageBus, b => b
-                    .WithTopic(topic)
-                    .Invoke(p => subscriber.Invoke(target, new object[] { p })));
-                tokens.Add(token);
-            }
-            return tokens;
+            if (topics.Length == 0)
+                topics = new[] { string.Empty };
+
+            return Subscribe<TPayload>(messageBus, b => b
+                .WithTopic(topics)
+                .Invoke(p => subscriber.Invoke(target, new object[] { p })));
         }
+
         private static IDisposable SubscribeUntypedActionInternal<TPayload>(IPubSubBus messageBus, string[] topics, Action act)
         {
-            if (topics == null || topics.Length == 0)
+            if (topics == null)
             {
                 return Subscribe<TPayload>(messageBus, b => b
-                    .WithDefaultTopic()
+                    .ForAllTopics()
                     .Invoke(p => act()));
             }
 
-            var tokens = new DisposableCollection();
-            foreach (var topic in topics)
-            {
-                var token = Subscribe<TPayload>(messageBus, b => b
-                    .WithTopic(topic)
-                    .Invoke(p => act()));
-                tokens.Add(token);
-            }
-            return tokens;
+            if (topics.Length == 0)
+                topics = new[] { string.Empty };
+
+            return Subscribe<TPayload>(messageBus, b => b
+                .WithTopic(topics)
+                .Invoke(p => act()));
         }
 
         public static IDisposable SubscribeEnvelopeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)

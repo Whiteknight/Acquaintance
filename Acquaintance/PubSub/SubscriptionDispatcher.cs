@@ -15,11 +15,12 @@ namespace Acquaintance.PubSub
             _store = CreateStore(allowWildcards);
         }
 
-        public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string[] topics, ISubscription<TPayload> subscription)
         {
             Assert.ArgumentNotNull(subscription, nameof(subscription));
-            var token = _store.AddSubscription(topic, subscription);
-            _log.Debug("Adding subscription {0} to type Type={1} Topic={2}", subscription.Id, typeof(TPayload).FullName, topic);
+            var token = _store.AddSubscription(topics, subscription);
+            // TODO: Improve this logging message
+            _log.Debug($"Adding subscription {subscription.Id} to type Type={typeof(TPayload).FullName}");
             return token;
         }
 
@@ -29,23 +30,16 @@ namespace Acquaintance.PubSub
             if (topics == null || topics.Length == 0)
                 return;
 
-            foreach (var topic in topics)
-                PublishTopic(envelope, topic);
-        }
-
-        private void PublishTopic<TPayload>(Envelope<TPayload> envelope, string topic)
-        {
-            var topicEnvelope = envelope.RedirectToTopic(topic);
-            var subscriptions = _store.GetSubscriptions<TPayload>(topic);
+            var subscriptions = _store.GetSubscriptions<TPayload>(topics);
             foreach (var subscription in subscriptions)
-                PublishSubscription(topic, subscription, topicEnvelope);
+                PublishSubscription(subscription, envelope);
         }
 
-        private void PublishSubscription<TPayload>(string topic, ISubscription<TPayload> subscription, Envelope<TPayload> topicEnvelope)
+        private void PublishSubscription<TPayload>(ISubscription<TPayload> subscription, Envelope<TPayload> topicEnvelope)
         {
             TryPublishSubscription(subscription, topicEnvelope);
             if (subscription.ShouldUnsubscribe)
-                _store.Remove(topic, subscription);
+                _store.Remove(subscription);
         }
 
         private void TryPublishSubscription<TPayload>(ISubscription<TPayload> subscription, Envelope<TPayload> topicEnvelope)

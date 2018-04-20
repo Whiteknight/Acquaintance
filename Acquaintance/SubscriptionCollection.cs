@@ -37,9 +37,9 @@ namespace Acquaintance
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
-        public IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription)
+        public IDisposable Subscribe<TPayload>(string[] topics, ISubscription<TPayload> subscription)
         {
-            var token = _messageBus.Subscribe(topic, subscription);
+            var token = _messageBus.Subscribe(topics, subscription);
             _subscriptions.Add(token);
             return token;
         }
@@ -103,14 +103,14 @@ namespace Acquaintance
                 _tokens = tokens;
             }
 
-            public string[] RoutePublish<TPayload>(string topic, Envelope<TPayload> envelope)
+            public string[] RoutePublish<TPayload>(string[] topics, Envelope<TPayload> envelope)
             {
-                return _publishRouter.RoutePublish(topic, envelope);
+                return _publishRouter.RoutePublish(topics, envelope);
             }
 
-            IDisposable IPublishTopicRouter.AddRule<TPayload>(string topic, IRouteRule<TPayload> rule)
+            IDisposable IPublishTopicRouter.AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
             {
-                var token = _publishRouter.AddRule(topic, rule);
+                var token = _publishRouter.AddRule(topics, rule);
                 _tokens.Add(token);
                 return token;
             }

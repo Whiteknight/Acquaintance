@@ -1,5 +1,6 @@
 ﻿using Acquaintance.RequestResponse;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acquaintance.Utility;
@@ -73,7 +74,7 @@ namespace Acquaintance
             var factoryMethod = messageBus.EnvelopeFactory.GetType()
                 .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
                 .MakeGenericMethod(requestType);
-            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { topic, request, null });
+            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { new [] { topic }, request, null });
 
             var responseType = requestInterface.GetGenericArguments().Single();
 

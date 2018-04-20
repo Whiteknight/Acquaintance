@@ -7,15 +7,16 @@ namespace Acquaintance.PubSub
         /// <summary>
         /// Use the given channel name
         /// </summary>
-        /// <param name="topic">The name of the channel</param>
+        /// <param name="topics">The name of the channel</param>
         /// <returns>The builder</returns>
-        IActionSubscriptionBuilder<TPayload> WithTopic(string topic);
+        IActionSubscriptionBuilder<TPayload> WithTopic(params string[] topics);
 
         /// <summary>
         /// Use the default channel
         /// </summary>
         /// <returns>The builder</returns>
         IActionSubscriptionBuilder<TPayload> WithDefaultTopic();
+        IActionSubscriptionBuilder<TPayload> ForAllTopics();
     }
 
     public interface IActionSubscriptionBuilder<TPayload>

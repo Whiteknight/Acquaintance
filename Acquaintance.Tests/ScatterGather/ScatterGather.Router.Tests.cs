@@ -18,7 +18,8 @@ namespace Acquaintance.Tests.ScatterGather
                 .WithTopic("Odds")
                 .Invoke(e => e * 100));
 
-            target.SetupScatterRouting<int, int>("", r => r
+            target.SetupScatterRouting<int, int>(r => r
+                .FromDefaultTopic()
                 .When(e => e % 2 == 0, "Evens")
                 .When(e => e % 2 == 1, "Odds"));
 
@@ -40,7 +41,8 @@ namespace Acquaintance.Tests.ScatterGather
                 .WithTopic("Odds")
                 .Invoke(e => e * 100));
 
-            target.SetupScatterRouting<int, int>("", r => r
+            target.SetupScatterRouting<int, int>(r => r
+                .FromDefaultTopic()
                 .When(e => e % 2 == 0, "Evens")
                 .Else("Odds"));
 

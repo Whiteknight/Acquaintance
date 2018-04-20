@@ -19,10 +19,15 @@ namespace Acquaintance.RabbitMq
         }
 
         // Publishes messages from the local bus to Rabbit
-        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string topic)
+        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string[] topics)
         {
             var subscription = GetRabbitModule(messageBus).CreateForwardingSubscriber<TPayload>();
-            return messageBus.Subscribe(topic, subscription);
+            return messageBus.Subscribe(topics, subscription);
+        }
+
+        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string topic)
+        {
+            return ForwardLocalToRabbit<TPayload>(messageBus, new[] { topic ?? string.Empty });
         }
 
         private static RabbitModule GetRabbitModule(IMessageBus messageBus)

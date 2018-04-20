@@ -4,17 +4,65 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Routing
 {
-    public class FilterRouteBuilder<T>
+    public interface IFilterRouteBuilderSingleInput<T>
+    {
+        IFilterRouteBuilderWhen<T> FromTopic(string topic);
+        IFilterRouteBuilderWhen<T> FromDefaultTopic();
+    }
+    public interface IFilterRouteBuilderMultiInput<T>
+    {
+        IFilterRouteBuilderWhen<T> FromTopics(params string[] topics);
+        IFilterRouteBuilderWhen<T> FromTopics(IEnumerable<string> topics);
+        IFilterRouteBuilderWhen<T> FromDefaultTopic();
+    }
+
+    public interface IFilterRouteBuilderWhen<T>
+    {
+        IFilterRouteBuilderWhen<T> When(Func<T, bool> predicate, string topic);
+        void Else(string defaultRoute);
+    }
+
+    public class FilterRouteBuilder<T> : IFilterRouteBuilderSingleInput<T>, IFilterRouteBuilderMultiInput<T>, IFilterRouteBuilderWhen<T>
     {
         private readonly List<EventRoute<T>> _routes;
         private string _defaultRoute;
+
+        public string[] InTopics { get; private set; }
 
         public FilterRouteBuilder()
         {
             _routes = new List<EventRoute<T>>();
         }
 
-        public FilterRouteBuilder<T> When(Func<T, bool> predicate, string topic)
+        public FilterRouteRule<T> Build()
+        {
+            return new FilterRouteRule<T>(_routes, _defaultRoute);
+        }
+
+        public IFilterRouteBuilderWhen<T> FromTopics(params string[] topics)
+        {
+            InTopics = TopicUtility.CanonicalizeTopics(topics);
+            return this;
+        }
+
+        public IFilterRouteBuilderWhen<T> FromTopics(IEnumerable<string> topics)
+        {
+            InTopics = TopicUtility.CanonicalizeTopics(topics);
+            return this;
+        }
+
+        public IFilterRouteBuilderWhen<T> FromTopic(string topic)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IFilterRouteBuilderWhen<T> FromDefaultTopic()
+        {
+            InTopics = new[] { string.Empty };
+            return this;
+        }
+
+        public IFilterRouteBuilderWhen<T> When(Func<T, bool> predicate, string topic)
         {
             Assert.ArgumentNotNull(predicate, nameof(predicate));
 
@@ -22,16 +70,10 @@ namespace Acquaintance.Routing
             return this;
         }
 
-        public FilterRouteBuilder<T> Else(string defaultRoute)
+        public void Else(string defaultRoute)
         {
             ValidateDoesNotHaveDefaultRule();
             _defaultRoute = defaultRoute ?? string.Empty;
-            return this;
-        }
-
-        public FilterRouteRule<T> Build()
-        {
-            return new FilterRouteRule<T>(_routes, _defaultRoute);
         }
 
         private void ValidateDoesNotHaveDefaultRule()

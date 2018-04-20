@@ -1,5 +1,6 @@
 ﻿using Acquaintance.Threading;
 using System;
+using System.Linq;
 using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
@@ -29,9 +30,10 @@ namespace Acquaintance.PubSub
             _dispatchType = DispatchThreadType.NoPreference;
             _workerPool = workerPool;
             _messageBus = messageBus;
+            Topics = null;
         }
 
-        public string Topic { get; private set; }
+        public string[] Topics { get; private set; }
 
         public ISubscription<TPayload> BuildSubscription()
         {
@@ -60,15 +62,23 @@ namespace Acquaintance.PubSub
             return token;
         }
 
-        public IActionSubscriptionBuilder<TPayload> WithTopic(string topic)
+        public IActionSubscriptionBuilder<TPayload> WithTopic(params string[] topics)
         {
-            Topic = topic ?? string.Empty;
+            Topics = topics.Select(t => t ?? string.Empty).Distinct().ToArray();
+            if (topics.Length == 0)
+                Topics = new[] { string.Empty };
             return this;
         }
 
         public IActionSubscriptionBuilder<TPayload> WithDefaultTopic()
         {
-            Topic = string.Empty;
+            Topics = new[] { string.Empty };
+            return this;
+        }
+
+        public IActionSubscriptionBuilder<TPayload> ForAllTopics()
+        {
+            Topics = null;
             return this;
         }
 

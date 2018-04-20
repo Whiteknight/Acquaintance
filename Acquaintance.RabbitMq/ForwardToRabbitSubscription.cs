@@ -22,7 +22,8 @@ namespace Acquaintance.RabbitMq
 
         public void Publish(Envelope<TPayload> message)
         {
-            _bus.Publish(message, c => Configure(c, message.Topic));
+            foreach (var topic in message.Topics)
+                _bus.Publish(message, c => Configure(c, topic));
         }
 
         private void Configure(IPublishConfiguration configuration, string topic)

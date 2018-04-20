@@ -7,37 +7,71 @@ namespace Acquaintance.PubSub
 {
     public class SimpleSubscriptionStore : ISubscriptionStore
     {
-        private readonly ConcurrentDictionary<string, object> _channels;
+        private readonly ConcurrentDictionary<string, object> _topicChannels;
+        private readonly ConcurrentDictionary<string, object> _topiclessChannels;
+        private readonly ConcurrentDictionary<Guid, string[]> _topicMap;
 
         public SimpleSubscriptionStore()
         {
-            _channels = new ConcurrentDictionary<string, object>();
+            _topicChannels = new ConcurrentDictionary<string, object>();
+            _topiclessChannels = new ConcurrentDictionary<string, object>();
+            _topicMap = new ConcurrentDictionary<Guid, string[]>();
         }
 
-        public IDisposable AddSubscription<TPayload>(string topic, ISubscription<TPayload> subscription)
+        public IDisposable AddSubscription<TPayload>(string[] topics, ISubscription<TPayload> subscription)
         {
-            var key = GetKey<TPayload>(topic);
-            var channelObj = _channels.GetOrAdd(key, s => new Channel<TPayload>());
-            if (!(channelObj is Channel<TPayload> channel))
-                throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
             subscription.Id = Guid.NewGuid();
-            channel.AddSubscription(subscription.Id, subscription);
-            return new SubscriberToken<TPayload>(this, topic, subscription.Id);
+            if (topics == null)
+            {
+                var topiclessKey = GetKey<TPayload>();
+                AddSubscriptionByKey(_topiclessChannels, subscription, topiclessKey);
+                return new SubscriberToken<TPayload>(this, null, subscription.Id);
+            }
+
+            if (topics.Length == 0)
+                topics = new[] { string.Empty };
+
+            _topicMap.TryAdd(subscription.Id, topics);
+            foreach (var topic in topics)
+            {
+                var key = GetKey<TPayload>(topic);
+                AddSubscriptionByKey(_topicChannels, subscription, key);
+            }
+            return new SubscriberToken<TPayload>(this, topics, subscription.Id);
         }
 
-        public IEnumerable<ISubscription<TPayload>> GetSubscriptions<TPayload>(string topic)
+        public IEnumerable<ISubscription<TPayload>> GetSubscriptions<TPayload>(string[] topics)
         {
-            var key = GetKey<TPayload>(topic);
-            if (!_channels.TryGetValue(key, out object channelObj))
+            var topiclessKey = GetKey<TPayload>();
+            var topicless = GetSubscriptionsInternal<TPayload>(_topiclessChannels, topiclessKey);
+            var byTopic = topics
+                .Select(GetKey<TPayload>)
+                .SelectMany(topicKey => GetSubscriptionsInternal<TPayload>(_topicChannels, topicKey));
+            return topicless
+                .Concat(byTopic)
+                .Distinct();
+        }
+
+        public void Remove<TPayload>(ISubscription<TPayload> subscription)
+        {
+            Unsubscribe<TPayload>(subscription.Id);
+        }
+
+        private static IEnumerable<ISubscription<TPayload>> GetSubscriptionsInternal<TPayload>(ConcurrentDictionary<string, object> store, string key)
+        {
+            if (!store.TryGetValue(key, out object channelObj))
                 return Enumerable.Empty<ISubscription<TPayload>>();
             if (!(channelObj is Channel<TPayload> channel))
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
             return channel.GetSubscriptions();
         }
 
-        public void Remove<TPayload>(string topic, ISubscription<TPayload> subscription)
+        private static void AddSubscriptionByKey<TPayload>(ConcurrentDictionary<string, object> store, ISubscription<TPayload> subscription, string key)
         {
-            Unsubscribe<TPayload>(topic, subscription.Id);
+            var channelObj = store.GetOrAdd(key, s => new Channel<TPayload>());
+            if (!(channelObj is Channel<TPayload> channel))
+                throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
+            channel.AddSubscription(subscription.Id, subscription);
         }
 
         private static string GetKey<TPayload>(string topic)
@@ -45,17 +79,37 @@ namespace Acquaintance.PubSub
             return $"{typeof(TPayload).FullName}:{topic}";
         }
 
-        private void Unsubscribe<TPayload>(string topic, Guid id)
+        private static string GetKey<TPayload>()
         {
-            var key = GetKey<TPayload>(topic);
-            bool found = _channels.TryGetValue(key, out object channel);
+            return typeof(TPayload).FullName;
+        }
+
+        private void Unsubscribe<TPayload>(Guid id)
+        {
+            if (!_topicMap.TryGetValue(id, out string[] topics))
+            {
+                var topiclessKey = GetKey<TPayload>();
+                UnsubscribeByKey<TPayload>(_topiclessChannels, id, topiclessKey);
+                return;
+            }
+
+            foreach (var topic in topics)
+            {
+                var topicKey = GetKey<TPayload>(topic);
+                UnsubscribeByKey<TPayload>(_topicChannels, id, topicKey);
+            }
+        }
+
+        private static void UnsubscribeByKey<TPayload>(ConcurrentDictionary<string, object>  store, Guid id, string key)
+        {
+            bool found = store.TryGetValue(key, out object channel);
             if (!found || channel == null)
                 return;
             if (!(channel is Channel<TPayload> typedChannel))
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)
-                _channels.TryRemove(key, out channel);
+                store.TryRemove(key, out channel);
         }
 
         private class Channel<TPayload> 
@@ -88,24 +142,26 @@ namespace Acquaintance.PubSub
         private class SubscriberToken<TPayload> : IDisposable
         {
             private readonly SimpleSubscriptionStore _store;
-            private readonly string _topic;
+            private readonly string[] _topics;
             private readonly Guid _id;
 
-            public SubscriberToken(SimpleSubscriptionStore store, string topic, Guid id)
+            public SubscriberToken(SimpleSubscriptionStore store, string[] topics, Guid id)
             {
                 _store = store;
-                _topic = topic;
+                _topics = topics;
                 _id = id;
             }
 
             public void Dispose()
             {
-                _store.Unsubscribe<TPayload>(_topic, _id);
+                _store.Unsubscribe<TPayload>(_id);
             }
 
             public override string ToString()
             {
-                return $"Subscription Type={typeof(TPayload).Name} Topic={_topic} Id={_id}";
+                if (_topics != null)
+                    return $"Subscription Type={typeof(TPayload).Name} Topics={string.Join(",", _topics)} Id={_id}";
+                return $"Subscription Type={typeof(TPayload).Name} All Topics Id={_id}";
             }
         }
     }

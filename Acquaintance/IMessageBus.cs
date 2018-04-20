@@ -39,13 +39,13 @@ namespace Acquaintance
     public interface IPubSubBus : IPublishable
     {
         /// <summary>
-        /// Subscribe to pub/sub events for the given type, on the given channel name.
+        /// Subscribe to pub/sub events for the given type, on the given topic.
         /// </summary>
         /// <typeparam name="TPayload">The type of event payload to subscribe to</typeparam>
-        /// <param name="topic">The name of the channel</param>
+        /// <param name="topics">If null, subscribes to all topics. Otherwise subscribes to the list of topics provided</param>
         /// <param name="subscription">The subscription object to receive the events</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
-        IDisposable Subscribe<TPayload>(string topic, ISubscription<TPayload> subscription);
+        IDisposable Subscribe<TPayload>(string[] topics, ISubscription<TPayload> subscription);
 
         /// <summary>
         /// Router for publish topics
@@ -87,7 +87,6 @@ namespace Acquaintance
         /// </summary>
         /// <typeparam name="TRequest">The type of request object</typeparam>
         /// <typeparam name="TResponse">The type of response object</typeparam>
-        /// <param name="topic">The name of the channel</param>
         /// <param name="envelope">The request object</param>
         /// <returns>A disposable token which represents the subscription. Dispose this to cancel the subscription.</returns>
         IScatter<TResponse> ScatterEnvelope<TRequest, TResponse>(Envelope<TRequest> envelope);

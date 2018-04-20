@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Acquaintance.Logging;
 using Acquaintance.Utility;
 
@@ -36,7 +37,7 @@ namespace Acquaintance.RequestResponse
                 return;
             }
 
-            _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to listener Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, envelope.Topic, listener.Id);
+            _logger.Debug("Requesting RequestType={0} ResponseType={1} Topic={2} to listener Id={3}", typeof(TRequest).FullName, typeof(TResponse).FullName, envelope.Topics.FirstOrDefault(), listener.Id);
             try
             {
                 listener.Request(topicEnvelope, request);
