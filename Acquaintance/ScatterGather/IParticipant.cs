@@ -7,7 +7,7 @@ namespace Acquaintance.ScatterGather
     /// </summary>
     /// <typeparam name="TRequest"></typeparam>
     /// <typeparam name="TResponse"></typeparam>
-    public interface IParticipant<TRequest, out TResponse>
+    public interface IParticipant<TRequest, TResponse>
     {
         /// <summary>
         /// Determine if the participant can handle the request
@@ -33,5 +33,6 @@ namespace Acquaintance.ScatterGather
         /// The unique ID of the participant
         /// </summary>
         Guid Id { get; set; }
+        string Name { get; }
     }
 }

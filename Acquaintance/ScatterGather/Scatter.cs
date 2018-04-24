@@ -109,24 +109,11 @@ namespace Acquaintance.ScatterGather
             return GatherResponses(int.MaxValue, new TimeSpan(0, 0, DefaultTimeoutS));
         }
 
-        public void AddResponse(Guid participantId, TResponse response)
+        public void AddResponse(Guid participantId, ScatterResponse<TResponse> response)
         {
+            // TODO: Check to make sure we don't add multiple responses from a single participant
             Interlocked.Increment(ref _completedParticipants);
-            _responses.Add(new ScatterResponse<TResponse>(response, participantId, null));
-            Interlocked.Decrement(ref _expectCount);
-        }
-
-        public void AddError(Guid participantId, Exception error)
-        {
-            Interlocked.Increment(ref _completedParticipants);
-            _responses.Add(new ScatterResponse<TResponse>(default(TResponse), participantId, error));
-            Interlocked.Decrement(ref _expectCount);
-        }
-
-        public void CompleteWithNoResponse(Guid participantId)
-        {
-            Interlocked.Increment(ref _completedParticipants);
-            _responses.Add(new ScatterResponse<TResponse>(participantId));
+            _responses.Add(response);
             Interlocked.Decrement(ref _expectCount);
         }
 

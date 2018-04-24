@@ -7,12 +7,14 @@ namespace Acquaintance.ScatterGather
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;
         private readonly Envelope<TRequest> _request;
+        private readonly string _name;
         private readonly IGatherReceiver<TResponse> _scatter;
 
-        public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, Envelope<TRequest> request, Guid participantId, IGatherReceiver<TResponse> scatter)
+        public DispatchableScatter(IParticipantReference<TRequest, TResponse> func, Envelope<TRequest> request, Guid participantId, string name, IGatherReceiver<TResponse> scatter)
         {
             _func = func;
             _request = request;
+            _name = name;
             _scatter = scatter;
             ParticipantId = participantId;
         }
@@ -24,11 +26,11 @@ namespace Acquaintance.ScatterGather
             try
             {
                 var response = _func.Invoke(_request);
-                _scatter.AddResponse(ParticipantId, response);
+                _scatter.AddResponse(ParticipantId, ScatterResponse<TResponse>.Success(ParticipantId, _name, response));
             }
             catch (Exception e)
             {
-                _scatter.AddError(ParticipantId, e);
+                _scatter.AddResponse(ParticipantId, ScatterResponse<TResponse>.Error(ParticipantId, _name, e));
             }
         }
     }

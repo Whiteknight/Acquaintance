@@ -2,11 +2,9 @@ using System;
 
 namespace Acquaintance.ScatterGather
 {
-    public interface IGatherReceiver<in TResponse>
+    public interface IGatherReceiver<TResponse>
     {
-        void AddResponse(Guid participantId, TResponse response);
-        void AddError(Guid participantId, Exception error);
-        void CompleteWithNoResponse(Guid participantId);
+        void AddResponse(Guid participantId, ScatterResponse<TResponse> response);
         void AddParticipant(Guid participantId);
     }
 }

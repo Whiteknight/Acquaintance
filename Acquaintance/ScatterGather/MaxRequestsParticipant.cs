@@ -24,6 +24,8 @@ namespace Acquaintance.ScatterGather
             set => _inner.Id = value;
         }
 
+        public string Name => _inner.Name;
+
         public bool CanHandle(Envelope<TRequest> request)
         {
             return _maxRequests > 0 || _inner.CanHandle(request);

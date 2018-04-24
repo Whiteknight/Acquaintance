@@ -20,6 +20,7 @@ namespace Acquaintance.ScatterGather
             get => _inner.Id;
             set => _inner.Id = value;
         }
+        public string Name => _inner.Name;
 
         public bool CanHandle(Envelope<TRequest> request)
         {
@@ -30,7 +31,7 @@ namespace Acquaintance.ScatterGather
         {
             if (!_circuitBreaker.CanProceed())
             {
-                scatter.CompleteWithNoResponse(Id);
+                scatter.AddResponse(Id, ScatterResponse<TResponse>.NoResponse(Id, Name));
                 return;
             }
             scatter = new Receiver(_circuitBreaker, scatter);
@@ -48,21 +49,10 @@ namespace Acquaintance.ScatterGather
                 _inner = inner;
             }
 
-            public void AddResponse(Guid participantId, TResponse response)
+            public void AddResponse(Guid participantId, ScatterResponse<TResponse> response)
             {
-                _circuitBreaker.RecordResult(true);
+                _circuitBreaker.RecordResult(response.IsSuccess);
                 _inner.AddResponse(participantId, response);
-            }
-
-            public void AddError(Guid participantId, Exception error)
-            {
-                _circuitBreaker.RecordResult(false);
-                _inner.AddError(participantId, error);
-            }
-
-            public void CompleteWithNoResponse(Guid participantId)
-            {
-                _inner.CompleteWithNoResponse(participantId);
             }
 
             public void AddParticipant(Guid participantId)

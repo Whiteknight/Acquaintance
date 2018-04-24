@@ -20,6 +20,7 @@ namespace Acquaintance.ScatterGather
         private bool _useDedicatedThread;
         private Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> _modify;
         private ICircuitBreaker _circuitBreaker;
+        private string _name;
 
         public ParticipantBuilder(IScatterGatherBus messageBus, IWorkerPool workerPool)
         {
@@ -47,7 +48,7 @@ namespace Acquaintance.ScatterGather
         {
             if (_funcReference == null)
                 throw new Exception("No actions defined");
-            return CreateParticipant(_funcReference, _dispatchType, _threadId);
+            return CreateParticipant(_funcReference, _dispatchType, _threadId, _name);
         }
 
         public IDisposable WrapToken(IDisposable token)
@@ -153,6 +154,12 @@ namespace Acquaintance.ScatterGather
             return this;
         }
 
+        public IDetailsParticipantBuilder<TRequest, TResponse> Named(string name)
+        {
+            _name = name;
+            return this;
+        }
+
         private void ValidateDoesNotAlreadyHaveAction()
         {
             if (_funcReference != null)
@@ -165,22 +172,22 @@ namespace Acquaintance.ScatterGather
                 throw new Exception($"Builder is already configured to use Dispatch Type {_dispatchType}");
         }
 
-        private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId)
+        private IParticipant<TRequest, TResponse> CreateParticipant(IParticipantReference<TRequest, TResponse> reference, DispatchThreadType dispatchType, int threadId, string name)
         {
             switch (dispatchType)
             {
                 case DispatchThreadType.NoPreference:
-                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _workerPool);
+                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _workerPool, name);
                 case DispatchThreadType.AnyWorkerThread:
-                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _workerPool);
+                    return new AnyThreadParticipant<TRequest, TResponse>(reference, _workerPool, name);
                 case DispatchThreadType.SpecificThread:
-                    return new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _workerPool);
+                    return new SpecificThreadParticipant<TRequest, TResponse>(reference, threadId, _workerPool, name);
                 case DispatchThreadType.ThreadpoolThread:
-                    return new ThreadPoolParticipant<TRequest, TResponse>(_workerPool, reference);
+                    return new ThreadPoolParticipant<TRequest, TResponse>(_workerPool, reference, name);
                 case DispatchThreadType.Immediate:
-                    return new ImmediateParticipant<TRequest, TResponse>(reference);
+                    return new ImmediateParticipant<TRequest, TResponse>(reference, name);
                 default:
-                    return new ImmediateParticipant<TRequest, TResponse>(reference);
+                    return new ImmediateParticipant<TRequest, TResponse>(reference, name);
             }
         }
 

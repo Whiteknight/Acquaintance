@@ -12,14 +12,17 @@ namespace Acquaintance.ScatterGather
     {
         private readonly IParticipantReference<TRequest, TResponse> _func;
         private readonly IWorkerPool _workerPool;
+        private readonly string _name;
 
-        public AnyThreadParticipant(IParticipantReference<TRequest, TResponse> func, IWorkerPool workerPool)
+        public AnyThreadParticipant(IParticipantReference<TRequest, TResponse> func, IWorkerPool workerPool, string name)
         {
             _func = func;
             _workerPool = workerPool;
+            _name = name;
         }
 
         public Guid Id { get; set; }
+        public string Name => string.IsNullOrEmpty(_name) ? Id.ToString() : _name;
         public bool ShouldStopParticipating => !_func.IsAlive;
 
         public bool CanHandle(Envelope<TRequest> request)
@@ -32,11 +35,11 @@ namespace Acquaintance.ScatterGather
             var thread = _workerPool.GetFreeWorkerDispatcher();
             if (thread == null)
             {
-                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request, scatter);
+                ImmediateParticipant<TRequest, TResponse>.GetResponses(Id, _func, request, scatter, Name);
                 return;
             }
 
-            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, scatter);
+            var responseWaiter = new DispatchableScatter<TRequest, TResponse>(_func, request, Id, Name, scatter);
             thread.DispatchAction(responseWaiter);
         }
     }

@@ -101,8 +101,8 @@ namespace Acquaintance.Tests.ScatterGather
         public void Participate_SecondListener()
         {
             var target = new MessageBus();
-            var listener1 = ImmediateParticipant<TestRequestWithResponse, TestResponse>.Create(req => null);
-            var listener2 = ImmediateParticipant<TestRequestWithResponse, TestResponse>.Create(req => null);
+            var listener1 = ImmediateParticipant<TestRequestWithResponse, TestResponse>.Create(req => null, "A");
+            var listener2 = ImmediateParticipant<TestRequestWithResponse, TestResponse>.Create(req => null, "B");
             target.Participate("test", listener1);
             Action act = () => target.Participate("test", listener2);
             act.ShouldNotThrow<Exception>();
@@ -128,7 +128,7 @@ namespace Acquaintance.Tests.ScatterGather
             var target = new MessageBus();
             target.Participate<int, int>(l => l
                 .WithDefaultTopic()
-                .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
+                .Invoke(req => throw new Exception("expected"))
                 .OnWorker());
 
             var response = target.Scatter<int, int>(1).GetNextResponse();
@@ -142,7 +142,7 @@ namespace Acquaintance.Tests.ScatterGather
             var target = new MessageBus();
             target.Participate<int, int>(l => l
                 .WithDefaultTopic()
-                .Invoke((Func<int, int>)(req => { throw new Exception("expected"); }))
+                .Invoke(req => throw new Exception("expected"))
                 .Immediate());
 
             var response = target.Scatter<int, int>(1).GetNextResponse();
@@ -182,6 +182,27 @@ namespace Acquaintance.Tests.ScatterGather
             var values = response.GatherResponses(1).Select(r => r.Value).ToArray();
             response.CompletedParticipants.Should().Be(1);
             values.Length.Should().Be(1);
+        }
+
+        [Test]
+        public void ParticipateScatterGather_NamedResponses()
+        {
+            var target = new MessageBus();
+            target.Participate<int, int>(l => l
+                .WithTopic("Test")
+                .Invoke(req => req + 10)
+                .OnWorker()
+                .Named("A"));
+            target.Participate<int, int>(l => l
+                .WithTopic("Test")
+                .Invoke(req => req + 100)
+                .OnWorker()
+                .Named("B"));
+            var response = target.Scatter<int, int>("Test", 5);
+            response.TotalParticipants.Should().Be(2);
+            var values = response.GatherResponses(2).ToArray();
+            values.Should().Contain(r => r.Name == "A" && r.Value == 15);
+            values.Should().Contain(r => r.Name == "B" && r.Value == 105);
         }
     }
 }
