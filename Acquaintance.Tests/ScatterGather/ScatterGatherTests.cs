@@ -204,5 +204,18 @@ namespace Acquaintance.Tests.ScatterGather
             values.Should().Contain(r => r.Name == "A" && r.Value == 15);
             values.Should().Contain(r => r.Name == "B" && r.Value == 105);
         }
+
+        [Test]
+        public void Scatter_DuplicateResponses()
+        {
+            var target = new Scatter<int>();
+            var id = Guid.NewGuid();
+            target.AddParticipant(id);
+            target.AddResponse(id, ScatterResponse<int>.Success(id, "A", 5));
+            target.AddResponse(id, ScatterResponse<int>.Success(id, "A", 6));
+            var response = target.GatherResponses();
+            response.Count.Should().Be(1);
+            response[0].Value.Should().Be(5);
+        }
     }
 }

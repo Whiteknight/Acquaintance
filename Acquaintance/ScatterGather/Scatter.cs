@@ -10,6 +10,7 @@ namespace Acquaintance.ScatterGather
     {
         private const int DefaultTimeoutS = 10;
         private readonly BlockingCollection<ScatterResponse<TResponse>> _responses;
+        private readonly ConcurrentDictionary<Guid, bool> _respondents;
 
         private volatile bool _neverHadParticipants;
         private volatile int _expectCount;
@@ -19,6 +20,7 @@ namespace Acquaintance.ScatterGather
         public Scatter()
         {
             _responses = new BlockingCollection<ScatterResponse<TResponse>>();
+            _respondents = new ConcurrentDictionary<Guid, bool>();
             _neverHadParticipants = true;
         }
 
@@ -111,7 +113,9 @@ namespace Acquaintance.ScatterGather
 
         public void AddResponse(Guid participantId, ScatterResponse<TResponse> response)
         {
-            // TODO: Check to make sure we don't add multiple responses from a single participant
+            if (!_respondents.TryUpdate(participantId, true, false))
+                return;
+            
             Interlocked.Increment(ref _completedParticipants);
             _responses.Add(response);
             Interlocked.Decrement(ref _expectCount);
@@ -119,6 +123,7 @@ namespace Acquaintance.ScatterGather
 
         public void AddParticipant(Guid participantId)
         {
+            _respondents.TryAdd(participantId, false);
             Interlocked.Increment(ref _totalParticipants);
             _neverHadParticipants = false;
             Interlocked.Increment(ref _expectCount);
