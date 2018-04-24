@@ -115,7 +115,7 @@ namespace Acquaintance.ScatterGather
         {
             if (!_respondents.TryUpdate(participantId, true, false))
                 return;
-            
+
             Interlocked.Increment(ref _completedParticipants);
             _responses.Add(response);
             Interlocked.Decrement(ref _expectCount);
