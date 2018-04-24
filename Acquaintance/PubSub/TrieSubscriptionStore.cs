@@ -28,8 +28,7 @@ namespace Acquaintance.PubSub
                 return new SubscriptionToken<TPayload>(this, null, subscription.Id);
             }
 
-            if (topics.Length == 0)
-                topics = new[] { string.Empty };
+            topics = TopicUtility.CanonicalizeTopics(topics);
 
             _topicMap.TryAdd(subscription.Id, topics);
             foreach (var topic in topics)

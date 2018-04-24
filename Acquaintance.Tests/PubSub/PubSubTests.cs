@@ -103,6 +103,20 @@ namespace Acquaintance.Tests.PubSub
         }
 
         [Test]
+        public void Subscribe_SubscriptionBuilder_AllTopics()
+        {
+            var target = new MessageBus();
+            string text = "";
+            target.Subscribe<TestPubSubEvent>(builder => builder
+                .ForAllTopics()
+                .Invoke(e => text += e.Text)
+                .Immediate());
+            target.Publish("A", new TestPubSubEvent("A"));
+            target.Publish("B", new TestPubSubEvent("B"));
+            text.Should().Be("AB");
+        }
+
+        [Test]
         public void Subscribe_Unsubscribe()
         {
             var target = new MessageBus();

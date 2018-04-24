@@ -48,9 +48,9 @@ namespace Acquaintance.PubSub
 
         private ISubscription<TPayload> BuildSubscriptionInternal()
         {
-            if (_actionReference != null)
-                return CreateSubscription(_actionReference, _dispatchType, _threadId);
-            throw new Exception("No action specified");
+            if (_actionReference == null)
+                throw new Exception("No action specified");
+            return CreateSubscription(_actionReference, _dispatchType, _threadId);
         }
 
         public IDisposable WrapToken(IDisposable token)
