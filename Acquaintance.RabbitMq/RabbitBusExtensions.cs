@@ -12,10 +12,13 @@ namespace Acquaintance.RabbitMq
             messageBus.Modules.Add(new RabbitModule(connectionString));
         }
 
+        // TODO: Use a builder so we can get more options: Subscribe to one- or many-topics
+        // subscribe to wildcard topics. Convert from AQ-style wildcards to rabbit-style wildcards
+        // Be able to set values like TTL and queue expiration, QOS, durability, and other details
         // Receives messages from Rabbit and publishes them on the local bus
         public static IDisposable ForwardRabbitToLocal<TPayload>(this IMessageBus messageBus, string topic)
         {
-            return GetRabbitModule(messageBus).SubscribeRemote<TPayload>(topic);
+            return GetRabbitModule(messageBus).SubscribeRemote<TPayload>(new []{ topic });
         }
 
         // Publishes messages from the local bus to Rabbit

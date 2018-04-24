@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Acquaintance.PubSub;
+using Acquaintance.Utility;
 using EasyNetQ;
 using EasyNetQ.FluentConfiguration;
 
@@ -38,19 +39,42 @@ namespace Acquaintance.RabbitMq
             _messageBus = null;
         }
 
-        public IDisposable SubscribeRemote<TPayload>(string topic)
+        public IDisposable SubscribeRemote<TPayload>(string[] topics)
         {
-            string id = CreateSubscriberId();
+            
             var queueName = MakeQueueName<TPayload>();
+            if (topics == null)
+            {
+                string id = CreateSubscriberId();
+                var token = SubscribeRemoteInternal<TPayload>(id, queueName, "#");
+                _tokens.Add(token);
+                return token;
+            }
+
+            topics = TopicUtility.CanonicalizeTopics(topics);
+
+            var tokens = new DisposableCollection();
+            foreach (var topic in topics)
+            {
+                string id = CreateSubscriberId();
+                var token = SubscribeRemoteInternal<TPayload>(id, queueName, topic);
+                _tokens.Add(token);
+                tokens.Add(token);
+            }
+            return tokens;
+        }
+
+        private SubscriptionToken SubscribeRemoteInternal<TPayload>(string id, string queueName, string topic)
+        {
             var innerToken = _bus.Subscribe<Envelope<TPayload>>(id, envelope =>
             {
                 if (envelope.OriginBusId == _messageBus.Id)
                     _messageBus.PublishEnvelope(envelope);
             }, c => Configure(c, topic, queueName));
             var token = new SubscriptionToken(this, innerToken);
-            _tokens.Add(token);
             return token;
         }
+
 
         public ISubscription<TPayload> CreateForwardingSubscriber<TPayload>()
         {

@@ -9,14 +9,15 @@ namespace Acquaintance.Utility
         {
             if (topics == null || topics.Length == 0)
                 return new[] { string.Empty };
-            return topics.Select(t => t ?? string.Empty).Distinct().ToArray();
+            topics =  topics.Select(t => t ?? string.Empty).Distinct().ToArray();
+            if (topics.Length == 0)
+                return new[] { string.Empty };
+            return topics;
         }
 
         public static string[] CanonicalizeTopics(IEnumerable<string> topics)
         {
-            if (topics == null)
-                return new[] { string.Empty };
-            return CanonicalizeTopics(topics.ToArray());
+            return CanonicalizeTopics(topics?.ToArray());
         }
 
         public static string[] CanonicalizeTopics(string topic)
