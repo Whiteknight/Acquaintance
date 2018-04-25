@@ -25,8 +25,13 @@ namespace Acquaintance.Threading
 
         public void DispatchAction(IThreadAction action)
         {
-            if (_queue.Count < _maxQueuedMessages)
-                _queue.Add(action);
+            if (_queue.Count >= _maxQueuedMessages)
+            {
+                Log.Warn($"Action {action.GetType().Name} was not dispatched because of queue limits");
+                return;
+            }
+
+            _queue.Add(action);
         }
 
         public void Stop()
@@ -43,9 +48,7 @@ namespace Acquaintance.Threading
                     return _queue.Take();
 
                 bool hasValue = _queue.TryTake(out IThreadAction action, timeoutMs.Value);
-                if (!hasValue || action == null)
-                    return null;
-                return action;
+                return hasValue ? action : null;
             }
             catch (Exception e)
             {
