@@ -16,9 +16,7 @@ namespace Acquaintance.Tests.ScatterGather
             const int iterations = 100;
 
             var scatters = new List<IScatter<string>>();
-            var target = new MessageBus(new MessageBusCreateParameters {
-                MaximumQueuedMessages = letters.Length * iterations
-            });
+            var target = MessageBus.Create(b => b.AllowMaximumQueuedMessages(letters.Length * iterations));
             
             foreach (char letter in letters)
             {

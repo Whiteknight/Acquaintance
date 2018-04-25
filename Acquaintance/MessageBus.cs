@@ -48,6 +48,13 @@ namespace Acquaintance
 
         public Guid Id { get; }
 
+        public static IMessageBus Create(Action<MessageBusBuilder> setup = null)
+        {
+            var builder = new MessageBusBuilder();
+            setup?.Invoke(builder);
+            return builder.Build();
+        }
+
         public void PublishEnvelope<TPayload>(Envelope<TPayload> message)
         {
             var topics = _router.RoutePublish(message.Topics, message);
