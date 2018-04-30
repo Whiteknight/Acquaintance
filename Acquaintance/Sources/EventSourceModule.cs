@@ -91,20 +91,27 @@ namespace Acquaintance.Sources
 
         public void Dispose()
         {
-            try
-            {
-                foreach (var token in _tokens.Values)
-                    token.Dispose();
-                _tokens.Clear();
-            }
-            catch { }
 
-            try
+            foreach (var token in _tokens.Values)
             {
-                foreach (var source in _threads.Values)
+                try
+                {
+                    token.Dispose();
+                }
+                catch { }
+            }
+            _tokens.Clear();
+            
+
+            foreach (var source in _threads.Values)
+            {
+                try
+                {
                     source.Dispose();
-                _threads.Clear();
-            } catch { }
+                }
+                catch { }
+            }
+            _threads.Clear();
         }
     }
 }
