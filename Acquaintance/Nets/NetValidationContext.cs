@@ -17,7 +17,7 @@ namespace Acquaintance.Nets
             Inputs = inputs;
             Outputs = outputs;
             _errors = new List<string>();
-            AllOutputs = new HashSet<string>(outputs.SelectMany(kvp => kvp.Value).Select(c => c.ToString()).Distinct());
+            AllOutputs = (IReadOnlyCollection<string>)new HashSet<string>(outputs.SelectMany(kvp => kvp.Value).Select(c => c.ToString()).Distinct());
         }
 
         public IReadOnlyList<string> GetErrors()

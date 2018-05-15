@@ -3,7 +3,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
-    public class ImmediatePubSubSubscription<TPayload> : ISubscription<TPayload>
+    public sealed class ImmediatePubSubSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscriberReference<TPayload> _action;
 
@@ -22,5 +22,9 @@ namespace Acquaintance.PubSub
         }
 
         public bool ShouldUnsubscribe => !_action.IsAlive;
+
+        public void Dispose()
+        {
+        }
     }
 }

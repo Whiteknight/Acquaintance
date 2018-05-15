@@ -27,5 +27,9 @@ namespace Acquaintance.PubSub
             var context = _workerPool.GetThreadPoolDispatcher();
             context.DispatchAction(action);
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

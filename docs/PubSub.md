@@ -1,10 +1,12 @@
 # Publish/Subscribe
 
-Publish/Subscribe ("Pub/Sub") is a messaging pattern where a component publishes a message on a **channel** and all **subscribers** to that channel receive a copy of the message.
+Publish/Subscribe ("Pub/Sub") is a messaging pattern where a component publishes a message on a **channel** and all **subscribers** to that channel receive a copy of the message. This is one of the core patterns of Acquaintance, and represents a substrate on which a number of other features and patterns are built.
+
+Pub/Sub represents a number of messaging *channels*, each of which contains a number of *subscribers*. Subscribers are added to a channel during setup, and messages can be published to a channel from anywhere in the application. As a general design philosophy, it's important to recognize that creating subscribers tends to happen relatively infrequently, during a setup or initialization phase of the application, but publishing messages tends to happen frequently at all other points of the application lifetime. For that reason, Acquaintance has been optimized to improve performance of Publish over Subscribe.
 
 ## Channels
 
-Acquaintance Pub/SubChannels are defined by two pieces of information: A payload **type** and a **topic**. The default topic, if none is provided, is the empty string.
+Acquaintance Pub/Sub Channels are defined by two pieces of information: A payload **type** and a **topic**. In Acquaintance these two pieces of information together represent a unique key. 
 
 Subscribers subscribe to a particular channel and publishers publish messages to a particular channel.
 
@@ -12,7 +14,7 @@ Acquaintance has two modes of operation. The first treats topic strings as liter
 
 ### Default Topic
 
-The default topic is an empty string. Null strings are coalesced to the empty string. These three calls are all equivalent:
+The default topic, if none is provided, is the empty string. For Subscribers, the `null` topic represents a wildcard to subscribe to all topics for the given payload type. For publishers, a `null` topic is coalesced to the default topic (empty string). When publishing messages, these three calls are all equivalent:
 
 ```csharp
 messageBus.Publish<int>("", 1);
@@ -37,7 +39,7 @@ With wildcards enabled, topic strings are parsed by separating on periods ('.') 
 messageBus.Publish<MyMessage>("A.B.*", message);
 ```
 
-Wildcard topics are only valid for publishing. You cannot subscribe with a topic containing a wildcard.
+Wildcard topics are only valid for publishing. You cannot subscribe with a topic containing a wildcard. You can subscribe to all topics and filter out the ones you don't want to listen on, but this may incur a performance penalty.
 
 ## Publishing
 
@@ -45,9 +47,34 @@ Acquaintance is optimized so that the common operations should be fast, while th
 
 Publishing, as seen in examples above, can be done with a single method call and only requires specifying a message type, a topic and a message payload.
 
+### Subtypes
+
+As mentioned above, the payload **type** and the **topic** represent a unique key in the system. Publishing messages does not respect subtypes. Consider this class hierarchy:
+
+```csharp
+public class MessageParent { }
+public class MessageChild : MessageParent { }
+```
+
+In this case, the following calls will publish to different subscribers:
+
+```csharp
+var p = new MessageParent();
+var c = new MessageChild();
+
+messageBus.Publish(p); // uses type MessageParent
+messageBus.Publish(c); // uses type MessageChild
+messageBus.Publish<MessageParent>(c); // uses type MessageParent
+```
+
+There is currently no way to setup a subscriber such that it receives messages for a type and all its subtypes. There are two strategies you might consider if you're looking for this kind of behavior:
+
+1. Use a single message type with no inheritance, and use data in the message to differentiate its purpose in the subscriber
+1. Always publish and subscribe explicitly on the parent type, and use the `is` operator and pattern matching in the receiver to handle messages differently
+
 ### Anonymous Publish
 
-In some situations the type of the message payload will not be known at compile time. In these cases you can use an anonymous publish:
+In some situations the type of the message payload will not be known at compile time. Consider, for example, the case where a remote system is sending messages to your application encoded as JSON or XML, and your application is materializing those requests to types depending on what the payload contains (a `"$type"` property in the JSON, for example). In these cases the type of the message is not known at compile time, but you can publish the message anonymously:
 
 ```csharp
 messageBus.Publish("topic", message.GetType(), message);
@@ -70,17 +97,21 @@ Most fields of the envelope are immutable, but it does contain a mechanism for a
 envelope.SetMetadata("key", "value")
 ```
 
-Envelopes are passed between threads and the usual pattern for supporting this is the Immutable Object pattern. However metadata can and will change, so it requires explicit synchronization. If you use metadata, understand that there will be some overhead associated with it.
+Envelopes are passed between threads and the usual pattern for supporting this is the Immutable Object pattern. However metadata can and will change, so it requires explicit synchronization. Understand that the use of envelope metadata may incur a performance penalty, and may also lead to timing issues when multiple receiver threads are accessing and modifying metadata at once. 
+
+Some use-cases of envelope metadata may include:
+1. Giving indication about where the message originated from
+1. In a federated system with networking, including information in the message that may affect how it was sent or received on the network
 
 ## Subscribing
 
-Publishing is simple and straight-forward, but Subscribing is where the real complexity lies. A subscription is a Composite object which encapsulates a number of options and behaviors. The most simple subscription method looks like this:
+Publishing is simple and straight-forward, but Subscribing is where the real complexity lies. As mentioned above, this is an explicit design decision of Acquaintance: Publish happens more frequently so it has been optimized more for both performance and usability. A subscription is a Composite object which encapsulates a number of options and behaviors. Specifically, a subscription is typically set up like a pipeline, with each stage in the pipeline doing some work and then passing the message on to the next step of the pipeline. The most simple subscription method looks like this:
 
 ```csharp
 messageBus.Subscribe<MyMessage>("topic", subscription);
 ```
 
-You can build your own subscription object, but these can get complicated. Acquaintance provides a builder object which allows you to create the subscription you need:
+This `Subscribe` method looks simple, but the `subscription` object may be quite complicated with many options and settings. For this reason, Acquaintance provides a `SubscriptionBuilder` object which can be used to build up a subscription with all of these details:
 
 ```csharp
 messageBus.Subscribe<MyMessage>(builder => { });
@@ -95,6 +126,9 @@ builder
 
     // Use the default topic
     .WithDefaultTopic()
+
+    // For all topics
+    .ForAllTopics()
 ```
 
 Next specify an action with one of these methods:
@@ -103,10 +137,10 @@ Next specify an action with one of these methods:
     // Invoke an action on the payload
     .Invoke(payload => { })
 
-    // Invoke an action on the envelope
+    // Invoke an action on the envelope, which gives access to metadata
     .InvokeEnvelope(envelope => { })
 
-    // Invoke a method on a handler object
+    // Invoke a method on a handler object of type ISubscriptionHandler<T>
     .Invoke(handler)
 
     // Instantiate a service to handle the message;
@@ -118,6 +152,9 @@ Next specify an action with one of these methods:
     .TransformTo<MyOtherMessage>(
         payload => new MyOtherMessage(),
         "newTopic")
+
+    // Use a custom ISubscription<T> or ISubscriberReference<T> class, if you have one
+    .UseCustomSubscriber(subscriber)
 ```
 
 Optionally specify how you want the action dispatched using one of the [Threading Options](Threads.md):
@@ -146,11 +183,17 @@ Finally, if you still have more things to specify, you can put in a few other op
     // Only receive messages which satisfy a Predicate<T>
     .WithFilter(payload => true)
 
+    // Only receive envelopes which satisfy a Predicate<Envelope<T>>
+    .WithFilterEnvelope(envelope => true)
+
     // Only handle a limited number of events
     .MaximumEvents(5)
 
-    // Make changes to the subscription object
-    .ModifySubscription(subscription => { })
+    // Make changes to the subscription at the front of the pipeline
+    .WraoSubscriptionBase(subscription => { })
+
+    // Make changes to the subscription object at the end of the pipeline
+    .WrapSubscription(subscription => { })
 ```
 
 The subscription builder uses segregated interfaces to help protect you for specifying conflicting options. At each step, only a few methods will be available to you to choose. Don't fight it. Setup things in order and you'll avoid whole classes of potential bugs.
@@ -160,11 +203,14 @@ The subscription builder uses segregated interfaces to help protect you for spec
 Acquaintance uses the Disposable object pattern for unsubscribing. Every `.Subscribe` method variant returns an `IDisposable` token. Disposing this token removes the subscription from the channel:
 
 ```csharp
+// Create the subscription
 var token = messageBus.Subscribe<int>(b => { ... });
+
+// Remove the subscription
 token.Dispose();
 ```
 
-Disposing the subscription token removes the subscription from the channel and cleans up all related resources. If you specified the `.OnDedicatedWorker()` option, disposing the token will also stop and cleanup the worker thread.
+Disposing the subscription token removes the subscription from the channel and cleans up all related resources. If you specified options in the `SubscriptionBuilder` such as the `.OnDedicatedWorker()` option, disposing the token will also stop and cleanup the worker thread.
 
 ### Errors
 
@@ -176,7 +222,7 @@ var messageBus = new MessageBus(new MessageBusCreateParameters {
 });
 ```
 
-By default Acquaintance does not log anywhere, but you can easily create your own logger. It would be easy to adapt `Common.Logging`, `log4net` another logging tool to work with Acquaintance.
+By default Acquaintance does not log anywhere, but you can easily create your own logger. It would be easy to adapt `Common.Logging`, `log4net` another logging tool to work with Acquaintance. For simplicity and portability, Acquaintance doesn't explicitly bind to any of these frameworks, instead allowing the developer to choose how logging happens.
 
 For simple purposes, you can just call a delegate with log messages to dump to the console, the debug window, or a file somewhere;
 
@@ -192,25 +238,34 @@ var messageBus = new MessageBus(new MessageBusCreateParameters {
 
 If you don't need fine-tuned control over the options of your subscription, and would like them to be automatically created from attributes, you can use the autosubscription mechanism.
 
-In your class annotate methods with the `SubscriptionAttribute`:
+First, create your class with public methods annotated with the `SubscriptionAttribute`:
 
 ```csharp
-[Subscription]
-public void MyMethod(MyMessage payload) { ... }
+public class MyObject {
+    [Subscription]
+    public void MyMethod(MyMessage payload) { ... }
 
-[Subscription(Topics: new [] {"topic"})]
-public void MyMethod(MyMessage payload) { ... }
+    [Subscription(Topics: new [] {"topic"})]
+    public void MyMethod(MyMessage payload) { ... }
 
-[Subscription(Type: typeof(MyMessageType))]
-public void MyMethod(MyMessageOrSubclass payload) { ... }
+    [Subscription(Type: typeof(MyMessageType))]
+    public void MyMethod(MyMessageOrSubclass payload) { ... }
 
-[Subscription]
-public void MyMethod(Envelope<MyMessage> envelope) { ... }
+    [Subscription]
+    public void MyMethod(Envelope<MyMessage> envelope) { ... }
+}
 ```
 
-The method currently must be public, must not be static, must return `void` and must take a single parameter of the correct type. If the scanner detects that any of these conditions are not satisfied, it will silently skip the method.
+Next, you can subscribe an instance of this class with Acquaintance, which will automatically setup all necessary subscriptions:
 
-You cannot currently specify complicated options such as dispatch thread, maximum events, or anything else.
+```csharp
+var myObject = new MyObject();
+var token = messageBus.AutoSubscribe(myObject);
+```
+
+The method currently must be public, must not be static, must return `void` and must take a single parameter of the correct type. If the scanner detects that any of these conditions are not satisfied, it will silently skip the method. You cannot currently specify complicated options such as dispatch thread, maximum events, or anything else, though these features might be added in a later release.
+
+Notice that Acquaintance maintains a strong reference to your object, which will prevent it from getting collected by GC. 
 
 ### Wrapping an Action
 
@@ -235,7 +290,7 @@ IDisposable token = info.Token;
 string topic = info.Topic
 ```
 
-If you're passing actions around, this is a way to use Acquaintance internally without having to change your signatures.
+If you're passing actions around, this is a way to use Acquaintance internally without having to change your method signatures.
 
 ## Routing
 
@@ -245,24 +300,26 @@ Acquaintance allows you to setup routing rules on a topic, so that the message c
 var token = messageBus.PublishRouter.AddRule("topic", rule);
 ```
 
-There are other methods which simplify the creation of routing rules, which you should probably use instead.
-
-As with all other places in Acquaintance, the `token` can be disposed to remove the rule from the router.
+Routing rules are resoved before Channels are selected, which means you cannot create a loop by routing a topic back to itself. 
 
 ### Predicate-Based Routing
 
-You can setup predicates to determine which message to dispatch to which topic:
+As with subscriptions, there are better method variants which use Builder and other patterns to specify the fine-grained details:
 
 ```csharp
-var token = messageBus.SetupPublishRouting<MyMessage>("topic", b => b
-    .When(payload => IsAMessage(payload), "TopicA")
-    .When(payload => IsBMessage(payload), "TopicB")
+var token = messageBus.SetupPublishRouting<T>(b => b
+    // Specify the input topic which Publishers use:
+    .FromTopics("InTopic")
+    .FromDefaultTopic()
 
-    // Else clause is optional and can only be specified once
-    .Else("TopicC"));
+    // Provide predicates. When the message matches the predicate, it is redirected from its original topic to the new topic
+    .When(m => ..., "OutTopic1")
+    .When(m => ..., "OutTopic2")
+
+    // If none of the .When() predicates are matched, you can optionally specify a default topic
+    .Else("DefaultOutTopic")
+);
 ```
-
-If routing is set up for a topic, none of the predicates match and there is no default, the publish will be ignored.
 
 ### Distribution
 
@@ -276,29 +333,31 @@ var token = messageBus.SetupPublishDistribution("topic", new[] {
 });
 ```
 
+Consider the use-case where you have a network with multiple copies of a service. You can use distribution as a form of load-balancer, to send requests to different service instances.
+
 ### Route By Examination
 
 Sometimes the payload object contains the information needed for its own routing. You can derive the topic to use by examining the payload object:
 
 ```csharp
-var token = messageBus.SetupPublishByExamination("topic",
-    payload => "newTopic");
+var token = messageBus.SetupPublishByExamination("InTopic",
+    payload => "NewTopic");
 ```
 
-If the payload object returns null the message will not be routed or published. Otherwise the string returned will be used as the new topic to publish.
+If the payload object returns null the message will not be routed or published, but will simply be dropped. Otherwise the string returned will be used as the new topic to publish.
 
 ## Use Cases
 
-* Use Pub/Sub to implement the Domain Events pattern in a system with multiple bounded subdomains
-* Use Pub/Sub to remove long chains of `event`/`EventHandler<T>` where most handlers simply redirect to another handler. If you're using events to send a message up the call chain to a manager object and then using method calls to send the message down to where it's really needed, you should use Pub/Sub instead
-* Use Pub/Sub to send data to output streams such as files, sockets and logging systems. Acquaintance can automatically serialize these requests to a single thread if your communication mechanism isn't thread-safe
+* Use Pub/Sub to implement the Domain Events pattern in a system with multiple bounded subdomains. Using an [Outbox](Outbox.md) to only publish messages when domain data has been committed may be a good option.
+* Use Pub/Sub to remove long Chain of Responsibility patterns or long sequences of `event`/`EventHandler<T>` where most handlers simply redirect to another handler, which is frequently done to push data back up a call stack. If you're using events to send a message up the call chain to a manager object and then using method calls to send the message down to where it's really needed, you should use Pub/Sub instead.
+* Use Pub/Sub to send data to output streams such as files, sockets and logging systems. Acquaintance can automatically serialize these requests to a single thread if your communication mechanism isn't thread-safe.
 * Use Pub/Sub along with the WorkerPool or .NET ThreadPool to distribute work to worker threads without having to implement and maintain your own work queues and thread management code.
 
 ## Examples
 
 ### Shared Log File
 
-I have multiple worker threads who all want to log to a single log file. I only want to log events of a high severity. I can use a dedicated worker thread to make all requests to the shared log file happen on a single thread to avoid data corruption, locking or deadlocks:
+I have multiple worker threads who all want to log to a single log file. I only want to log events of a high severity. I can use a dedicated worker thread to make all requests to the shared log file happen on a single thread to avoid data corruption and deadlocks, and obviate the need for explicit locking or serialization:
 
 ```csharp
 var token = messageBus.Subscribe<LogData>(builder => builder
@@ -323,7 +382,7 @@ var tokenA = messageBus.Subscribe<LogData>(builder => builder
     .OnThread(workerToken.ThreadId));
 var tokenB = messageBus.Subscribe<LogData>(builder => builder
     .WithTopic("ModuleB")
-    .Invoke(data => File.AppendAllText(fileNameA, data.ToString()))
+    .Invoke(data => File.AppendAllText(fileNameB, data.ToString()))
     .OnThread(workerToken.ThreadId));
 
 // Setup a routing rule to forward a log request to the appropriate
@@ -348,10 +407,10 @@ I have two instances of a Web Service in my network, and I would like my applica
 // Subscribe two topics, one for server A and one for server B
 var serverAToken = messageBus.Subscribe<MyEvent>(builder => builder
     .WithTopic("ServerA")
-    .Invoke(e => sendTo(serverAUrl, e)));
+    .Invoke(e => SendTo(serverAUrl, e)));
 var serverBToken = messageBus.Subscribe<MyEvent>(builder => builder
     .WithTopic("ServerB")
-    .Invoke(e => sendTo(serverBUrl, e)));
+    .Invoke(e => SendTo(serverBUrl, e)));
 
 // Setup round-robin distribution to both topics
 var routeToken = messagebus.SetupPublishDistribution<MyEvent>("",

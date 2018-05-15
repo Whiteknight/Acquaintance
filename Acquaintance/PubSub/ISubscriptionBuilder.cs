@@ -63,6 +63,21 @@ namespace Acquaintance.PubSub
         /// <param name="newTopic">The new channel name to publish the transformed message to</param>
         /// <returns>The builder</returns>
         IThreadSubscriptionBuilder<TPayload> TransformTo<TOutput>(Func<TPayload, TOutput> transform, string newTopic = null);
+
+        /// <summary>
+        /// Specify a custom subscription to be the final destination of the message. The provided subscription
+        /// should handle it's own dispatch, options will not be provided to select which thread to dispatch on
+        /// </summary>
+        /// <param name="subscriber"></param>
+        /// <returns></returns>
+        IDetailsSubscriptionBuilder<TPayload> UseCustomSubscriber(ISubscription<TPayload> subscriber);
+
+        /// <summary>
+        /// Specify a custom subscriber reference to be the final destination of the message
+        /// </summary>
+        /// <param name="subscriber"></param>
+        /// <returns></returns>
+        IThreadSubscriptionBuilder<TPayload> UseCustomSubscriber(ISubscriberReference<TPayload> subscriber);
     }
 
     public interface IThreadSubscriptionBuilder<TPayload>
@@ -131,6 +146,13 @@ namespace Acquaintance.PubSub
         /// </summary>
         /// <param name="wrap">A callback function to modify the generated ISubscription</param>
         /// <returns>The builder</returns>
-        IDetailsSubscriptionBuilder<TPayload> ModifySubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap);
+        IDetailsSubscriptionBuilder<TPayload> WrapSubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap);
+
+        /// <summary>
+        /// Wrap the base subscription, before the rest of the pipeline is constructed
+        /// </summary>
+        /// <param name="wrap"></param>
+        /// <returns></returns>
+        IDetailsSubscriptionBuilder<TPayload> WrapSubscriptionBase(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap);
     }
 }

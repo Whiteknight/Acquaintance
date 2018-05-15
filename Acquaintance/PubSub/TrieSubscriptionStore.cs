@@ -175,6 +175,7 @@ namespace Acquaintance.PubSub
             public void RemoveSubscription(Guid id)
             {
                 _subscriptions.TryRemove(id, out ISubscription<TPayload> subscription);
+                (subscription as IDisposable)?.Dispose();
             }
 
             public IEnumerable<ISubscription<TPayload>> GetAllSubscriptions()

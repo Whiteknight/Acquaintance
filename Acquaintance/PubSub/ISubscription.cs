@@ -7,7 +7,7 @@ namespace Acquaintance.PubSub
     /// messages published on its channel.
     /// </summary>
     /// <typeparam name="TPayload"></typeparam>
-    public interface ISubscription<TPayload>
+    public interface ISubscription<TPayload> : IDisposable
     {
         /// <summary>
         /// Receive the published message and perform the necessary action

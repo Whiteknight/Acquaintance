@@ -175,6 +175,8 @@ namespace Acquaintance
             return method.Invoke(null, new[] { messageBus, topics, target, subscriber }) as IDisposable;
         }
 
+        // TODO: Ability to use WeakReferences, so that the subscriptions are automatically culled when the object gets collected
+        // This may require a new attribute to be used at the class level, or some parameter to the Autosubscribe() method.
         private static IDisposable SubscribeEnvelopeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
         {
             if (topics == null || topics.Length == 0)

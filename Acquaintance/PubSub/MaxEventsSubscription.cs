@@ -4,7 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
-    public class MaxEventsSubscription<TPayload> : ISubscription<TPayload>
+    public sealed class MaxEventsSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscription<TPayload> _inner;
         private int _maxEvents;
@@ -15,6 +15,13 @@ namespace Acquaintance.PubSub
 
             _inner = inner;
             _maxEvents = maxEvents;
+        }
+
+        public static ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> inner, int maxEvents)
+        {
+            if (maxEvents <= 0)
+                return inner;
+            return new MaxEventsSubscription<TPayload>(inner, maxEvents);
         }
 
         public Guid Id
@@ -31,5 +38,10 @@ namespace Acquaintance.PubSub
         }
 
         public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe || _maxEvents <= 0;
+
+        public void Dispose()
+        {
+            _inner?.Dispose();
+        }
     }
 }

@@ -4,7 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.PubSub
 {
-    public class AnyThreadPubSubSubscription<TPayload> : ISubscription<TPayload>
+    public sealed class AnyThreadPubSubSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscriberReference<TPayload> _action;
         private readonly IWorkerPool _workerPool;
@@ -27,5 +27,9 @@ namespace Acquaintance.PubSub
         }
 
         public bool ShouldUnsubscribe => false;
+
+        public void Dispose()
+        {
+        }
     }
 }

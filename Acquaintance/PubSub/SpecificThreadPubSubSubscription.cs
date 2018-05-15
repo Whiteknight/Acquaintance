@@ -29,5 +29,9 @@ namespace Acquaintance.PubSub
         }
 
         public bool ShouldUnsubscribe => false;
+
+        public void Dispose()
+        {
+        }
     }
 }

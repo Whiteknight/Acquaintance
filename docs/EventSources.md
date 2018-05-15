@@ -2,9 +2,11 @@
 
 **Warning**: Event sources are experimental and may change in future releases based on usage and feedback.
 
-Acquaintance provides a mechanism to monitor a source of events and publish them at regular intervals. This mechanism is called "Event Sources". An Event Source is a callback which is invoked at regular intervals on a dedicated thread. The event source callback will do work and will be able to publish messages to the bus as they are available.
+Acquaintance provides a mechanism to monitor a source of events and publish them to the bus at regular intervals. This mechanism is called "Event Sources". An Event Source is a callback which is invoked at regular intervals on a dedicated thread. The event source callback will do work and will be able to publish messages to the bus as they are available.
 
 ## Event Source Callbacks
+
+There are two signatures for callbacks in an event source. The first takes a **context** object which can be used to control the operation of the event source:
 
 ```csharp
 var token = messageBus.RunEventSource(context => {
@@ -16,6 +18,18 @@ var token = messageBus.RunEventSource(context => {
 
     // Mark the event source complete so that it stops iterating
     context.Complete();
+});
+```
+
+The second signature also takes a `CancellationToken`, which you can use to abort the event source early:
+
+```csharp
+var token = messageBus.RunEventSource((context, cancellationToken) => {
+    // check the token to break out of a long-running operation:
+    while(!cancellationToken.IsCancellationRequested) 
+    {
+        ...
+    }
 });
 ```
 
@@ -40,3 +54,35 @@ You can register your source object with the system:
 ```csharp
 var token = messageBus.RunEventSource(new MyEventSource());
 ```
+
+## Use Cases
+
+### Bulk DB Processing
+
+I have an application which needs to read records from a DB and distribute those records to worker threads for fast bulk processing.
+
+```csharp
+// Setup worker threads
+messageBus.Subscribe<MyDbRecord>(b => b
+    .WithTopc("Process")
+    .Invoke(r => Process(r))
+    .OnThreadPool());
+
+// Setup the event souce
+messageBus.RunEventSource((c, t) => {
+    while (!t.IsCancellationRequested) {
+        var record = dataSource.GetNextRecord();
+        if (record == null)
+        {
+            c.Complete();
+            return;
+        }
+
+        messageBus.Publish("Process", record);
+    }
+});
+```
+
+### Polling a Webservice
+
+I have a remote webserv

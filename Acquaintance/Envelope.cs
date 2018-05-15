@@ -69,5 +69,12 @@ namespace Acquaintance
 
             metadata.AddOrUpdate(name, value, (a, b) => value);
         }
+
+        public string GetAndClearMetadata(string name)
+        {
+            if (_metadata == null)
+                return null;
+            return _metadata.TryRemove(name, out string value) ? value : null;
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Acquaintance.Outbox;
 using Acquaintance.PubSub;
 using Acquaintance.Utility;
 using EasyNetQ;
@@ -11,19 +12,16 @@ namespace Acquaintance.RabbitMq
     {
         private readonly IBus _bus;
         private readonly HashSet<IDisposable> _tokens;
-        private IMessageBus _messageBus;
+        private readonly IMessageBus _messageBus;
         private bool _disposing;
 
-        public RabbitModule(string connectionString)
+        public RabbitModule(IMessageBus messageBus, string connectionString)
         {
+            _messageBus = messageBus;
             _bus = RabbitHutch.CreateBus(connectionString);
             _tokens = new HashSet<IDisposable>();
             _disposing = false;
-        }
-
-        public void Attach(IMessageBus messageBus)
-        {
-            _messageBus = messageBus;
+            
         }
 
         public void Start()
@@ -34,14 +32,8 @@ namespace Acquaintance.RabbitMq
         {
         }
 
-        public void Unattach()
-        {
-            _messageBus = null;
-        }
-
         public IDisposable SubscribeRemote<TPayload>(string[] topics)
         {
-            
             var queueName = MakeQueueName<TPayload>();
             if (topics == null)
             {
@@ -75,11 +67,11 @@ namespace Acquaintance.RabbitMq
             return token;
         }
 
-
-        public ISubscription<TPayload> CreateForwardingSubscriber<TPayload>()
+        public ISubscription<TPayload> CreateForwardingSubscriber<TPayload>(IOutboxFactory outboxFactory)
         {
             var queueName = MakeQueueName<TPayload>();
-            return new ForwardToRabbitSubscription<TPayload>(_bus, queueName);
+            outboxFactory = outboxFactory ?? new PassthroughOutboxFactory();
+            return new ForwardToRabbitSubscription<TPayload>(_bus, queueName, outboxFactory);
         }
 
         public static string MakeQueueName<TPayload>()

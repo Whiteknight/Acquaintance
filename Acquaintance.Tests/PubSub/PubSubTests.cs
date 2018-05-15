@@ -226,7 +226,7 @@ namespace Acquaintance.Tests.PubSub
                 .WithTopic("Test")
                 .Invoke(e => x += e)
                 .Immediate()
-                .ModifySubscription(s => new MaxEventsSubscription<int>(s, 3)));
+                .WrapSubscription(s => new MaxEventsSubscription<int>(s, 3)));
             for (int i = 1; i < 100000; i *= 10)
                 target.Publish("Test", i);
             x.Should().Be(111);
@@ -275,6 +275,10 @@ namespace Acquaintance.Tests.PubSub
 
             public bool ShouldUnsubscribe => true;
             public Guid Id { get; set; }
+
+            public void Dispose()
+            {
+            }
         }
 
         [Test]

@@ -2,7 +2,7 @@
 
 namespace Acquaintance.Utility
 {
-    internal static class Assert
+    public static class Assert
     {
         public static void ArgumentNotNull(object arg, string name)
         {

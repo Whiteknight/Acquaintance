@@ -15,12 +15,14 @@ namespace Acquaintance.PubSub
         private readonly IWorkerPool _workerPool;
 
         private ISubscriberReference<TPayload> _actionReference;
+        private ISubscription<TPayload> _customSubscription;
         private DispatchThreadType _dispatchType;
         private Func<Envelope<TPayload>, bool> _filter;
         private int _maxEvents;
         private int _threadId;
         private bool _useDedicatedThread;
-        private Func<ISubscription<TPayload>, ISubscription<TPayload>> _wrap;
+        private Func<ISubscription<TPayload>, ISubscription<TPayload>> _preBuildWrap;
+        private Func<ISubscription<TPayload>, ISubscription<TPayload>> _postBuildWrap;
 
         public SubscriptionBuilder(IPubSubBus messageBus, IWorkerPool workerPool)
         {
@@ -40,17 +42,19 @@ namespace Acquaintance.PubSub
             if (_useDedicatedThread)
                 _threadId = _workerPool.StartDedicatedWorker().ThreadId;
 
-            var subscription = BuildSubscriptionInternal();
+            var subscription = GetOrCreateSubscriptionBase();
 
             subscription = WrapSubscription(subscription);
             return subscription;
         }
 
-        private ISubscription<TPayload> BuildSubscriptionInternal()
+        private ISubscription<TPayload> GetOrCreateSubscriptionBase()
         {
-            if (_actionReference == null)
-                throw new Exception("No action specified");
-            return CreateSubscription(_actionReference, _dispatchType, _threadId);
+            if (_actionReference != null)
+                return CreateBaseSubscription(_actionReference, _dispatchType, _threadId);
+            if (_customSubscription != null)
+                return _customSubscription;
+            throw new Exception("No action or subscriber specified");
         }
 
         public IDisposable WrapToken(IDisposable token)
@@ -134,6 +138,21 @@ namespace Acquaintance.PubSub
             });
         }
 
+        public IDetailsSubscriptionBuilder<TPayload> UseCustomSubscriber(ISubscription<TPayload> subscriber)
+        {
+            Assert.ArgumentNotNull(subscriber, nameof(subscriber));
+
+            _customSubscription = subscriber;
+            return this;
+        }
+
+        public IThreadSubscriptionBuilder<TPayload> UseCustomSubscriber(ISubscriberReference<TPayload> subscriber)
+        {
+            Assert.ArgumentNotNull(subscriber, nameof(subscriber));
+            _actionReference = subscriber;
+            return this;
+        }
+
         public IDetailsSubscriptionBuilder<TPayload> OnWorker()
         {
             ValidateDoesNotHaveDispatchType();
@@ -202,15 +221,28 @@ namespace Acquaintance.PubSub
             return this;
         }
 
-        public IDetailsSubscriptionBuilder<TPayload> ModifySubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap)
+        public IDetailsSubscriptionBuilder<TPayload> WrapSubscriptionBase(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap)
         {
             Assert.ArgumentNotNull(wrap, nameof(wrap));
-            if (_wrap == null)
-                _wrap = wrap;
+            if (_preBuildWrap == null)
+                _preBuildWrap = wrap;
             else
             {
-                var oldWrap = _wrap;
-                _wrap = s => wrap(oldWrap(s));
+                var oldWrap = _preBuildWrap;
+                _preBuildWrap = s => wrap(oldWrap(s));
+            }
+            return this;
+        }
+
+        public IDetailsSubscriptionBuilder<TPayload> WrapSubscription(Func<ISubscription<TPayload>, ISubscription<TPayload>> wrap)
+        {
+            Assert.ArgumentNotNull(wrap, nameof(wrap));
+            if (_postBuildWrap == null)
+                _postBuildWrap = wrap;
+            else
+            {
+                var oldWrap = _postBuildWrap;
+                _postBuildWrap = s => wrap(oldWrap(s));
             }
             return this;
         }
@@ -229,12 +261,15 @@ namespace Acquaintance.PubSub
 
         private ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> subscription)
         {
-            if (_filter != null)
-                subscription = new FilteredSubscription<TPayload>(subscription, _filter);
-            if (_maxEvents > 0)
-                subscription = new MaxEventsSubscription<TPayload>(subscription, _maxEvents);
-            if (_wrap != null)
-                subscription = _wrap(subscription);
+            subscription = _preBuildWrap?.Invoke(subscription) ?? subscription;
+
+            subscription = FilteredSubscription<TPayload>.WrapSubscription(subscription, _filter);
+
+            // MaxEvents happens last, to not send anything else through the pipeline if the subscriber is dead
+            subscription = MaxEventsSubscription<TPayload>.WrapSubscription(subscription, _maxEvents);
+
+            subscription = _postBuildWrap?.Invoke(subscription) ?? subscription;
+
             return subscription;
         }
 
@@ -252,7 +287,7 @@ namespace Acquaintance.PubSub
             return new PayloadStrongSubscriberReference<TPayload>(act);
         }
 
-        private ISubscription<TPayload> CreateSubscription(ISubscriberReference<TPayload> actionReference, DispatchThreadType dispatchType, int threadId)
+        private ISubscription<TPayload> CreateBaseSubscription(ISubscriberReference<TPayload> actionReference, DispatchThreadType dispatchType, int threadId)
         {
             switch (dispatchType)
             {

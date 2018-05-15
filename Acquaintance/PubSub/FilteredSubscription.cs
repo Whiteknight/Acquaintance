@@ -17,6 +17,13 @@ namespace Acquaintance.PubSub
             _filter = filter;
         }
 
+        public static ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> inner, Func<Envelope<TPayload>, bool> filter)
+        {
+            if (filter == null)
+                return inner;
+            return new FilteredSubscription<TPayload>(inner, filter);
+        }
+
         public Guid Id
         {
             get => _inner.Id;
@@ -32,5 +39,10 @@ namespace Acquaintance.PubSub
         }
 
         public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe;
+
+        public void Dispose()
+        {
+            _inner?.Dispose();
+        }
     }
 }
