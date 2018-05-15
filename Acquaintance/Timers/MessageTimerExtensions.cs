@@ -13,6 +13,12 @@ namespace Acquaintance.Timers
             return messageBus.Modules.Add(new MessageTimerModule(messageBus));
         }
 
+        public static bool IsMessageTimerInitialized(this IMessageBus messageBus)
+        {
+            var module = messageBus.Modules.Get<MessageTimerModule>();
+            return module != null;
+        }
+
         public static IDisposable StartTimer(this IMessageBus messageBus, string topic, int delayMs = 5000, int intervalMs = 10000)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
