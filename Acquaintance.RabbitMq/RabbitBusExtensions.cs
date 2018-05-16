@@ -1,45 +1,46 @@
 ﻿using System;
-using Acquaintance.Outbox;
+using Acquaintance.PubSub;
+using Acquaintance.Utility;
 
 namespace Acquaintance.RabbitMq
 {
     public static class RabbitBusExtensions
     {
-        public static void InitializeRabbitMq(this IMessageBus messageBus, string connectionString)
+        public static IDisposable InitializeRabbitMq(this IMessageBus messageBus, string connectionString)
         {
             var module = messageBus.Modules.Get<RabbitModule>();
             if (module != null)
                 throw new Exception("RabbitMQ already initialized");
-            messageBus.Modules.Add(new RabbitModule(messageBus, connectionString));
+            return messageBus.Modules.Add(new RabbitModule(messageBus, connectionString));
         }
 
-        // TODO: Use a builder so we can get more options: Subscribe to one- or many-topics
-        // subscribe to wildcard topics. Convert from AQ-style wildcards to rabbit-style wildcards
-        // Be able to set values like TTL and queue expiration, QOS, durability, and other details
-        // Receives messages from Rabbit and publishes them on the local bus
-        public static IDisposable ForwardRabbitToLocal<TPayload>(this IMessageBus messageBus, string topic)
+        public static IDisposable InitializeRabbitMq(this IMessageBus messageBus, string host, string username, string password)
         {
-            return GetRabbitModuleOrThrow(messageBus).SubscribeRemote<TPayload>(new []{ topic });
+            return InitializeRabbitMq(messageBus, $"host={host};username={username};password={password}");
         }
 
-        // TODO: Make this an extension method on ISubscriptionBuilder instead
-        // TODO: Use a builder so we can specify outbox and other options
-        // Publishes messages from the local bus to Rabbit
-        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string[] topics, IOutbox<TPayload> outbox = null)
-        { 
-            var subscription = GetRabbitModuleOrThrow(messageBus).CreateForwardingSubscriber(outbox);
-            return messageBus.Subscribe(topics, subscription);
-        }
-
-        // TODO: Make this an extension method on ISubscriptionBuilder instead
-        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string topic, IOutbox<TPayload> outbox = null)
+        public static IDisposable PullRabbitMqToLocal<TPayload>(this IBusBase messageBus, Action<IRabbitConsumerBuilderRemoteTopic<TPayload>> setup)
+            where TPayload : class
         {
-            return ForwardLocalToRabbit(messageBus, new[] { topic ?? string.Empty }, outbox);
+            var module = GetRabbitModuleOrThrow(messageBus);
+            var builder = module.CreateSubscriberBuilder<TPayload>();
+            setup(builder);
+            var receiver = builder.Build();
+            return module.ManageConsumer(receiver);
         }
 
-        // TODO: Expose CreateForwardingSubscriber as an extension method here
+        public static ISubscriberReference<TPayload> CreateRabbitMqForwardingSubscription<TPayload>(this IBusBase messageBus, Action<IRabbitSenderBuilder<TPayload>> setup)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(setup, nameof(setup));
 
-        private static RabbitModule GetRabbitModuleOrThrow(IMessageBus messageBus)
+            var module = GetRabbitModuleOrThrow(messageBus);
+            var builder = module.CreatePublisherBuilder<TPayload>();
+            setup(builder);
+            return builder.Build();
+        }
+
+        private static RabbitModule GetRabbitModuleOrThrow(IBusBase messageBus)
         {
             var module = messageBus.Modules.Get<RabbitModule>();
             if (module == null)
@@ -47,6 +48,4 @@ namespace Acquaintance.RabbitMq
             return module;
         }
     }
-
-
 }

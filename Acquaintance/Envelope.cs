@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using Acquaintance.Utility;
 
@@ -9,7 +9,7 @@ namespace Acquaintance
     {
         private ConcurrentDictionary<string, string> _metadata;
 
-        public Envelope(Guid originBusId, long id, string[] topics, TPayload payload)
+        public Envelope(string originBusId, long id, string[] topics, TPayload payload)
         {
             OriginBusId = originBusId;
             Id = id;
@@ -17,7 +17,7 @@ namespace Acquaintance
             Payload = payload;
         }
 
-        public Envelope(Guid originBusId, long id, string topic, TPayload payload)
+        public Envelope(string originBusId, long id, string topic, TPayload payload)
         {
             OriginBusId = originBusId;
             Id = id;
@@ -27,7 +27,7 @@ namespace Acquaintance
 
         public string[] Topics { get; }
         public TPayload Payload { get; }
-        public Guid OriginBusId { get; }
+        public string OriginBusId { get; }
         public long Id { get; }
 
         public Envelope<TPayload> RedirectToTopic(string topic)
@@ -55,6 +55,13 @@ namespace Acquaintance
             if (_metadata == null)
                 return null;
             return _metadata.TryGetValue(name, out string value) ? value : null;
+        }
+
+        public Dictionary<string, string> ExportMetadata()
+        {
+            if (_metadata == null)
+                return null;
+            return new Dictionary<string, string>(_metadata);
         }
 
         public void SetMetadata(string name, string value)

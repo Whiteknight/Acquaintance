@@ -17,9 +17,10 @@ namespace Acquaintance.Sources
             IterationDelayMs = -1;
         }
 
-        public Guid Id => _messageBus.Id;
+        public string Id => _messageBus.Id;
         public ILogger Logger => _messageBus.Logger;
-       
+
+        // TODO: Should we implement this?
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
         public IModuleManager Modules => throw new NotImplementedException();

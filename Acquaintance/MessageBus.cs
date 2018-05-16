@@ -24,7 +24,7 @@ namespace Acquaintance
         public MessageBus(MessageBusCreateParameters parameters = null)
         {
             parameters = parameters ?? MessageBusCreateParameters.Default;
-            Id = parameters.Id ?? Guid.NewGuid();
+            Id = parameters.Id ?? Guid.NewGuid().ToString();
 
             Logger = parameters.GetLogger() ?? new SilentLogger();
 
@@ -46,7 +46,7 @@ namespace Acquaintance
 
         public IEnvelopeFactory EnvelopeFactory { get; }
 
-        public Guid Id { get; }
+        public string Id { get; }
 
         public static IMessageBus Create(Action<MessageBusBuilder> setup = null)
         {

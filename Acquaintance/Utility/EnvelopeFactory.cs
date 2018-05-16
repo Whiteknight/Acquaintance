@@ -6,10 +6,10 @@ namespace Acquaintance.Utility
 {
     public class EnvelopeFactory : IEnvelopeFactory
     {
-        private readonly Guid _originBusId;
+        private readonly string _originBusId;
         private long _id;
 
-        public EnvelopeFactory(Guid originBusId, long startId = 0)
+        public EnvelopeFactory(string originBusId, long startId = 0)
         {
             _originBusId = originBusId;
             _id = startId;

@@ -29,7 +29,7 @@ namespace Acquaintance
         }
 
         public ILogger Logger => _messageBus.Logger;
-        public Guid Id => _messageBus.Id;
+        public string Id => _messageBus.Id;
         public IPublishTopicRouter PublishRouter => _router;
         public IRequestTopicRouter RequestRouter => _router;
         public IScatterTopicRouter ScatterRouter => _router;

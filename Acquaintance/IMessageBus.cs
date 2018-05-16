@@ -28,7 +28,7 @@ namespace Acquaintance
 
         ILogger Logger { get; }
 
-        Guid Id { get; }
+        string Id { get; }
     }
 
     public interface IPublishable : IBusBase
