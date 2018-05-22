@@ -8,3 +8,4 @@ Most modules consist of three parts: An `IMessageBusModule` class which is regis
 * [Message Timer](Timer.md)
 * [Sagas](Sagas.md)
 * [Testing](Testing.md)
+* [Outbox](Outbox.md)

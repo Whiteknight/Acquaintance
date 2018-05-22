@@ -1,20 +1,18 @@
 # Publish/Subscribe
 
-Publish/Subscribe ("Pub/Sub") is a messaging pattern where a component publishes a message on a **channel** and all **subscribers** to that channel receive a copy of the message. This is one of the core patterns of Acquaintance, and represents a substrate on which a number of other features and patterns are built.
+**Publish/Subscribe** ("Pub/Sub") is a messaging pattern where a component publishes a message on a **channel** and all **subscribers** to that channel receive a copy of the message. This is one of the core patterns of Acquaintance, and represents a substrate on which a number of other features and patterns are built.
 
-Pub/Sub represents a number of messaging *channels*, each of which contains a number of *subscribers*. Subscribers are added to a channel during setup, and messages can be published to a channel from anywhere in the application. As a general design philosophy, it's important to recognize that creating subscribers tends to happen relatively infrequently, during a setup or initialization phase of the application, but publishing messages tends to happen frequently at all other points of the application lifetime. For that reason, Acquaintance has been optimized to improve performance of Publish over Subscribe.
+Subscribers are added to a channel during setup, and messages can be published to a channel from anywhere in the application. As a general design philosophy, it's important to recognize that creating subscribers tends to happen relatively infrequently, during a setup or initialization phase of the application, but publishing messages tends to happen frequently at all other points of the application lifetime. For that reason, Acquaintance has been optimized to improve performance and simplicity of Publish over Subscribe.
 
 ## Channels
 
-Acquaintance Pub/Sub Channels are defined by two pieces of information: A payload **type** and a **topic**. In Acquaintance these two pieces of information together represent a unique key. 
-
-Subscribers subscribe to a particular channel and publishers publish messages to a particular channel.
+Acquaintance Pub/Sub Channels are defined by two pieces of information: A payload **type** and a **topic**. In Acquaintance these two pieces of information together represent a unique key for a channel.
 
 Acquaintance has two modes of operation. The first treats topic strings as literals and makes a single match to the channel with the given topic. The second mode allows topic strings to contain **wildcards** and all channels are selected which match the pattern.
 
 ### Default Topic
 
-The default topic, if none is provided, is the empty string. For Subscribers, the `null` topic represents a wildcard to subscribe to all topics for the given payload type. For publishers, a `null` topic is coalesced to the default topic (empty string). When publishing messages, these three calls are all equivalent:
+The default topic for publishing, if none is provided, is the empty string. A `null` topic is coalesced to the default topic (empty string). These three calls are all equivalent:
 
 ```csharp
 messageBus.Publish<int>("", 1);
@@ -22,24 +20,26 @@ messageBus.Publish<int>(null, 1);
 messageBus.Publish<int>(1);
 ```
 
+For subscribers the case is a bit more complex. If a subscriber subscribes to a `null` topic, it will receive messages for all topics for the given message payload type. If it subscribes to an empty string `""` or a specific topic string, it will receive messages for that case only. 
+
 ### Wildcards
 
-Wildcard topic matching is more flexible but also incurs a slight performance penalty. To enable wildcards, you must specify the option when you create the message bus:
+If the option is enabled in the message bus, Publishers may publish to multiple channels simultaneously by providing a topic with wildcards. Acquaintance will pick all channels which match the wildcard provided. To enable wildcards, you must specify the option when you create the message bus. This changes Acquaintance to store channels in a way that supports wildcards, but also incurs a slight performance penalty:
 
 ```csharp
-var messageBus = new MessageBus(new MessageBusCreateParameters {
-    AllowWildcards = true
-});
+var messageBus = new MessageBusBuilder()
+    .AllowTopicWildcards()
+    .Build();
 ```
 
-With wildcards enabled, topic strings are parsed by separating on periods ('.') and matching parts with an asterisk ('*')
+With wildcards enabled, topic strings are parsed by separating on periods ('.') and matching parts with an asterisk ('*').
 
 ```csharp
 // Publishes to topics like 'A.B.C' and 'A.B.X'
 messageBus.Publish<MyMessage>("A.B.*", message);
 ```
 
-Wildcard topics are only valid for publishing. You cannot subscribe with a topic containing a wildcard. You can subscribe to all topics and filter out the ones you don't want to listen on, but this may incur a performance penalty.
+You cannot subscribe with a topic containing a wildcard. You can subscribe to all topics and filter out the ones you don't want to listen on, but this may incur a performance penalty.
 
 ## Publishing
 
@@ -70,7 +70,7 @@ messageBus.Publish<MessageParent>(c); // uses type MessageParent
 There is currently no way to setup a subscriber such that it receives messages for a type and all its subtypes. There are two strategies you might consider if you're looking for this kind of behavior:
 
 1. Use a single message type with no inheritance, and use data in the message to differentiate its purpose in the subscriber
-1. Always publish and subscribe explicitly on the parent type, and use the `is` operator and pattern matching in the receiver to handle messages differently
+1. Always publish and subscribe explicitly on the parent type, and use the `is` operator and pattern matching in the receiver to handle messages differently based on type
 
 ### Anonymous Publish
 
@@ -97,7 +97,11 @@ Most fields of the envelope are immutable, but it does contain a mechanism for a
 envelope.SetMetadata("key", "value")
 ```
 
-Envelopes are passed between threads and the usual pattern for supporting this is the Immutable Object pattern. However metadata can and will change, so it requires explicit synchronization. Understand that the use of envelope metadata may incur a performance penalty, and may also lead to timing issues when multiple receiver threads are accessing and modifying metadata at once. 
+```csharp
+var value = envelope.GetMetadata("key");
+```
+
+Envelopes are passed between threads and the usual pattern for supporting this is the **Immutable Object pattern**. However metadata can and will change, so it requires explicit synchronization. Understand that the use of envelope metadata may incur a performance penalty, and may also lead to timing issues when multiple receiver threads are accessing and modifying metadata at once. 
 
 Some use-cases of envelope metadata may include:
 1. Giving indication about where the message originated from
@@ -105,7 +109,7 @@ Some use-cases of envelope metadata may include:
 
 ## Subscribing
 
-Publishing is simple and straight-forward, but Subscribing is where the real complexity lies. As mentioned above, this is an explicit design decision of Acquaintance: Publish happens more frequently so it has been optimized more for both performance and usability. A subscription is a Composite object which encapsulates a number of options and behaviors. Specifically, a subscription is typically set up like a pipeline, with each stage in the pipeline doing some work and then passing the message on to the next step of the pipeline. The most simple subscription method looks like this:
+Publishing is simple and straight-forward, but Subscribing is where the real complexity lies. As mentioned above, this is an explicit design decision of Acquaintance: Publish happens more frequently so it has been optimized more for both performance and usability. A subscription is a **Composite Object** which encapsulates a number of options and behaviors. Specifically, a subscription is typically set up like a pipeline or **Chain of Responsibility**, with each stage in the pipeline doing some work and then passing the message on to the next step. The most simple subscription method looks like this:
 
 ```csharp
 messageBus.Subscribe<MyMessage>("topic", subscription);

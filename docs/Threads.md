@@ -7,12 +7,12 @@ Acquaintance keeps track of several different types of threads for dispatching v
 Free Worker threads are created when the MessageBus is initialized. The default number of free worker threads is 2, but this value is configurable:
 
 ```csharp
-var messageBus = new MessageBus(new MessageBusCreateParameters {
-    NumberOfWorkers = 4
-});
+var messageBus = new MessageBusBuilder()
+    .UseWorkerThreads(4)
+    .Build();
 ```
 
-Setting the number of workers to 0 will cause Acquaintance to not allocate any worker threads.
+Setting the number of workers to 0 will cause Acquaintance to not allocate any free worker threads, though it may still allocate dedicated worker threads on request.
 
 Handlers using the `.OnWorker()` method or not specifying a dispatch will use Free Worker threads by default, unless Acquaintance is configured to not use any. In that case these events will go to the .NET ThreadPool instead.
 
@@ -40,6 +40,15 @@ messageBus.Subscribe<int>(b => b
     .WithDefaultTopic()
     .Invoke(p => ...)
     .OnThread(worker.ThreadId)));
+```
+
+Many operations also provide a convenience method to setup a dedicated worker thread automatically. In this case, the thread will be automatically allocated, and will be freed when the `.Dispose()` method is called on the subscription token:
+
+```csharp
+var token = messageBus.Subscribe<int>(b => b
+    .WithDefaultTopic()
+    .Invoke(p => ...)
+    .OnDedicatedWorker());
 ```
 
 ## Detached Contexts and Runloops

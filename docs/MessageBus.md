@@ -1,20 +1,26 @@
 # The MessageBus
 
-The `IMessageBus` object is the central component of Acquaintance. Almost all interactions with Acquaintance and all behaviors of Acquaintance are performed through the `IMessageBus`.
+The `IMessageBus` object is the central component of Acquaintance. Almost all interactions with Acquaintance and all behaviors of Acquaintance are performed through the `IMessageBus`, either directly or as extension methods.
 
-It is a good idea to make use of the Composition Root pattern when setting up your MessageBus. It is probably a good idea to set up your MessageBus in the same place as you set up a Dependency Injection container for your application.
+It is a good idea to make use of the **Composition Root pattern** when setting up your MessageBus. It is probably a good idea to set up your MessageBus in the same place as you set up a Dependency Injection container for your application. Initialize the messageBus and all its routes and features in a single place at the top-level of your application.
 
 ## Creation Parameters
 
 ## The WorkerPool
 
-See [Threading](Threads.md)
+Acquaintance optionally creates and manages a pool of specialized worker threads to handle dispatch. Acquaintance can also be configured to use the default .NET threadpool and other sources of worker threads. Different workflows can be configured to dispatch work to different places as required.
+
+See [Threading](Threads.md) for more details.
 
 ## The Envelope Factory
 
+Acquaintance wraps all messages and requests in an `Envelope<T>` type, which follows the **Immutable Object pattern**. Creating an envelope can be done with the `IMessageBus.EnvelopeFactory`, which will create an immutable envelope. In most common cases this functionality is not required, though the envelope does provide a way to explore and make decisions based on message metadata and routing information.
+
 ## Modules
 
-See [Modules](Modules.md)
+The Acquaintance message bus is extensible through a module system, and many interactions with the message bus occur through module-specific extension methods. 
+
+See [Modules](Modules.md) for more details.
 
 ## Logging
 
@@ -42,7 +48,7 @@ var messageBus = new MessageBus(new MessageBusCreateParameters {
 
 ## Tokens
 
-Acquaintance uses the `IDisposable` pattern throughout to manage resources. Almost every operation which allocates resources will return an `IDisposable` token. Disposing the token will free all the related resources.
+Acquaintance uses the `IDisposable` pattern throughout to manage resources. Almost every operation which allocates resources will return an `IDisposable` token. Disposing the token will free all the related resources of that operation.
 
 Almost all Tokens in Acquaintance override the `.ToString()` method to return information about what the token represents. This can be useful for debugging and auditing purposes.
 
@@ -55,7 +61,7 @@ var collection = new DisposableCollection();
 collection.Add(token1);
 collection.Add(token2);
 
-// Get a string from all tokens in the collection
+// Get a description string from all tokens in the collection
 var report = collection.ToString()
 
 // Dispose all tokens and free all associated resources
@@ -83,4 +89,6 @@ bus.Dispose();
 
 ## Federation
 
-See [Federation](Federation.md)
+Federation is the ability of Acquaintance to communicate with other components in your process and other processes running on the local machine and across the network. These other components and processes may be running Acquaintance as well, or might not be. Acquaintance should be able to communicate with most of these, typically through the use of an adaptor for the network or message channel. 
+
+See [Federation](Federation.md) for more details.

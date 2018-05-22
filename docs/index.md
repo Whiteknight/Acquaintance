@@ -1,6 +1,6 @@
 # Acquaintance
 
-Acquaintance is a .NET library for intra-process communications. It's like an in-memory message bus that loosely-coupled parts of your application can use to communicate with each other. At the heart, Acquaintance implements 3 basic communication patterns: **Publish/Subscribe**, **Request/Response** and **Scatter/Gather**. In addition to these three basic patterns, Acquaintance has a few other tricks and features which can help some medium to large applications stay organized and safe.
+Acquaintance is a .NET library for intra-process communications. It's an in-memory message bus that loosely-coupled parts of your application can use to communicate with each other. At the heart, Acquaintance implements three basic communication patterns: **Publish/Subscribe**, **Request/Response** and **Scatter/Gather**. On top of these three basic patterns, a number of other patterns, features and workflows are built to help support medium- and large-size projects.
 
 Get Acquaintance from nuget:
 
@@ -8,7 +8,9 @@ Get Acquaintance from nuget:
 
 When you're ready to code, create a [Message Bus](MessageBus.md):
 
-    var messageBus = new MessageBus();
+```csharp
+    var messageBus = new MessageBusBuilder().Build();
+```
 
 ## Publish/Subscribe
 
@@ -28,14 +30,14 @@ When you're ready to code, create a [Message Bus](MessageBus.md):
 
 ## Request/Response
 
-[Request/Response](ReqRes.md) is essentially an abstracted method call or local RPC mechanism. One part of your code makes a request and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain an object hierarchy to calculate that result.
+[Request/Response](ReqRes.md) is essentially an abstracted method call or local RPC mechanism. One part of your code makes a request and a single listener fulfills it. This can be an improvement over Dependency Injection or Service Location patterns in some cases, such as when you only need a calculation result and do not want to manage and maintain the object hierarchy necessary to calculate that result.
 
 ```csharp
     // Setup a Listener
     messageBus.Listen<MyRequest, MyResponse>(l => l
         .WithTopic("test")
         .Invoke(req => new MyResponse {
-            Message = "Hello " + req.Message"
+            Message = "Hello " + req.Message
         }));
 
     // Send a request and wait for the response
@@ -46,7 +48,7 @@ When you're ready to code, create a [Message Bus](MessageBus.md):
 
 ## Scatter/Gather
 
-[Scatter/Gather](ScatterGather.md) is conceptually similar to Request/Response except the channel may have many listeners or *participants*.  Internally and in terms of API the two are significantly different, however. Because scatter/gather requests must wait on an unknown number of participants providing responses asynchronously, waiting and timeouts can become an issue. For best performance, when you do scatter/gather make sure you know how many responses you'd like to receive and how long are you willing to wait to get them.
+[Scatter/Gather](ScatterGather.md) is conceptually similar to Request/Response except the channel may have many listeners or *participants*.  Internally and in terms of API the two are significantly different, however. Because scatter/gather requests must wait on an unknown number of participants providing responses asynchronously, waiting and timeouts require significant planning and consideration. For best performance, when you do scatter/gather make sure you know how many responses you'd like to receive and how long are you willing to wait to get them.
 
 ```csharp
     // Setup a Participant
@@ -74,7 +76,7 @@ Here are some common use-cases which Acquaintance was explicitly designed to han
 1. Round-Robin dispatch and predicate-based routing of events and requests to multiple handlers
 1. Serving as an easy wiring mechanism for loosely-coupled and plugin-based applications
 1. Serving as an intermediate step for monolithic applications which are in the process of being decomposed into microservices
-1. Serving as an easy bridge for external resources, queues and Enterprise Service Buses
+1. Serving as an easy bridge for external resources, queues, message brokers and Enterprise Service Buses
 1. Acting as the communication mechanism for domain events in a Domain-Driven solution
 1. Simplify the distribution of work among many threads while avoiding many common pitfalls of multi-threaded programming
 
@@ -82,9 +84,20 @@ Here are some common use-cases which Acquaintance was explicitly designed to han
 
 Acquaintance provides several features which are extensions of the three basic messaging patterns above:
 
-1. Unit testing with built-in ability to mock channels and expect messages
+1. Built-In Unit testing functionality with ability to mock channels and expect messages
 1. Message timer to generate application heartbeats on a set schedule
 1. Automatic polling of asynchronous event sources
+1. Automatic delivery retry with the Outbox pattern
+
+## Design Goals
+
+Acquaintance follows several design goals:
+
+1. Make good use of appropriate patterns, including GoF, Messaging and Architectural patterns
+1. Be lockless
+1. Optimize for the common case, both in terms of performance and usability
+1. Use good, fluent interfaces to help features be usable and discoverable
+1. Be flexible and extensible to support a wide variety of projects and use-cases
 
 ## Contraindications
 

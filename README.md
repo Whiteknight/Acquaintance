@@ -4,9 +4,9 @@ You can stay in touch without having to be all up in each others' business.
 
 ## Project
 
-Acquaintance is a library for the internal messaging needs of a loosly-coupled application. Using a messaging technology such as Acquaintance, individual components in your software can communicate without having to maintain explicit references to each other or worry about order of initialization.
+Acquaintance is an in-memory message bus and safe concurrency engine. It provides the mechanisms to support modular and loosely-coupled applications, easy work distribution between threads and serialization of work for thread-unsafe resources. 
 
-Acquaintance implements several messaging patterns: **Publish/Subscribe**, **Request/Response** and **Scatter/Gather**. In addition to these three primary patterns, Acquaintance provides several additional features and patterns to aide in communication and code organization.
+At it's core, Acquaintance implements several messaging patterns: **Publish/Subscribe**, **Request/Response** and **Scatter/Gather**. These three patterns represent a fundamental basis for implementing more complex patterns and workflows to improve communication and code organization.
 
 See the [Project Website](https://Whiteknight.github.com/Acquaintance/) for detailed documentation and examples.
 
