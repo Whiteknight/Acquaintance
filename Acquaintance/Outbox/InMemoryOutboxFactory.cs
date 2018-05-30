@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
@@ -9,6 +10,9 @@ namespace Acquaintance.Outbox
 
         public InMemoryOutboxFactory(IOutboxManager manager, int maxMessages)
         {
+            Assert.ArgumentNotNull(manager, nameof(manager));
+            Assert.IsInRange(maxMessages, nameof(maxMessages), 1, int.MaxValue);
+
             _manager = manager;
             _maxMessages = maxMessages;
         }

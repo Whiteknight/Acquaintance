@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
@@ -6,6 +7,9 @@ namespace Acquaintance.Outbox
     {
         public OutboxAndToken(IOutbox<TMessage> outbox, IDisposable token)
         {
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+            Assert.ArgumentNotNull(token, nameof(token));
+
             Outbox = outbox;
             Token = token;
         }

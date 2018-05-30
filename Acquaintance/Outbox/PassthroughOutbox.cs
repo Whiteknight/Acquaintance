@@ -15,6 +15,7 @@ namespace Acquaintance.Outbox
 
         public bool AddMessage(Envelope<TMessage> message)
         {
+            Assert.ArgumentNotNull(message, nameof(message));
             _outputPort(message);
             return true;
         }

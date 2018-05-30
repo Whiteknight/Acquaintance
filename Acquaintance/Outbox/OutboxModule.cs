@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
@@ -6,8 +7,11 @@ namespace Acquaintance.Outbox
     {
         public OutboxManager Manager { get; }
 
-        public OutboxModule(IMessageBus messageBus, int pollDelayMs)
+        public OutboxModule(IBusBase messageBus, int pollDelayMs)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.IsInRange(pollDelayMs, nameof(pollDelayMs), 1000, int.MaxValue);
+
             Manager = new OutboxManager(messageBus.WorkerPool, pollDelayMs);
         }
 

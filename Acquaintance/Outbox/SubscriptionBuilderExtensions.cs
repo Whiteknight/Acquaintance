@@ -14,6 +14,7 @@ namespace Acquaintance.Outbox
         /// <returns></returns>
         public static IThreadSubscriptionBuilder<TPayload> SendToOutbox<TPayload>(this IActionSubscriptionBuilder<TPayload> builder, IOutbox<TPayload> outbox)
         {
+            Assert.ArgumentNotNull(builder, nameof(builder));
             Assert.ArgumentNotNull(outbox, nameof(outbox));
             return builder.UseCustomSubscriber(new OutboxSubscriberReference<TPayload>(outbox));
         }
@@ -28,6 +29,7 @@ namespace Acquaintance.Outbox
         /// <returns></returns>
         public static IDetailsSubscriptionBuilder<TPayload> UseOutbox<TPayload>(this IDetailsSubscriptionBuilder<TPayload> builder, IOutboxFactory outboxFactory)
         {
+            Assert.ArgumentNotNull(builder, nameof(builder));
             Assert.ArgumentNotNull(outboxFactory, nameof(outboxFactory));
             return builder.WrapSubscriptionBase(s => OutboxSubscription<TPayload>.WrapSubscription(s, outboxFactory));
         }

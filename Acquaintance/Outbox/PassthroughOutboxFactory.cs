@@ -7,6 +7,7 @@ namespace Acquaintance.Outbox
     {
         public OutboxAndToken<TMessage> Create<TMessage>(Action<Envelope<TMessage>> outputPort)
         {
+            Assert.ArgumentNotNull(outputPort, nameof(outputPort));
             var outbox = new PassthroughOutbox<TMessage>(outputPort);
             return new OutboxAndToken<TMessage>(outbox, new DoNothingDisposable());
         }

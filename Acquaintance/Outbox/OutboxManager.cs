@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using Acquaintance.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
@@ -15,6 +16,9 @@ namespace Acquaintance.Outbox
 
         public OutboxManager(IWorkerPool workers, int pollDelayMs)
         {
+            Assert.ArgumentNotNull(workers, nameof(workers));
+            Assert.IsInRange(pollDelayMs, nameof(pollDelayMs), 1000, int.MaxValue);
+
             _outboxes = new ConcurrentDictionary<long, IOutbox>();
             _thread = new OutboxWorker(_outboxes, pollDelayMs);
             _threadToken = workers.RegisterManagedThread("Outbox Module", _thread.ThreadId, "Outbox worker thread");
@@ -38,6 +42,8 @@ namespace Acquaintance.Outbox
 
         public IDisposable AddOutboxToBeMonitored(IOutbox outbox)
         {
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+
             var id = Interlocked.Increment(ref _outboxId);
             bool ok = _outboxes.TryAdd(id, outbox);
             if (!ok)
