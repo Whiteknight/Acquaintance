@@ -6,7 +6,7 @@ Acquaintance provides a mechanism to monitor a source of events and publish them
 
 ## Event Source Callbacks
 
-There are two signatures for callbacks in an event source. The first takes a **context** object which can be used to control the operation of the event source:
+There are two signatures for callbacks in an event source. The first takes a **context** object which can be used to control the operation of the event source. A context exposes the ability to publish an event to the bus, but does not expose all the methods of `IMessageBus`. The context can also control when the next iteration happens and when the event source is complete. 
 
 ```csharp
 var token = messageBus.RunEventSource(context => {
@@ -32,6 +32,8 @@ var token = messageBus.RunEventSource((context, cancellationToken) => {
     }
 });
 ```
+
+Event sources with the context are conceptually similar to the `IEnumerable`/`IEnumerator` interfaces in core .NET. `context.Publish` is analogous to the `yield return` construct in an enumerator, and `context.Complete()` is analogous to the `yield break` construct. The primary difference is that enumerators tend to operate on a *pull* model while Event Sources operate on a *poll*/*push* model instead. 
 
 ## IEventSource
 
@@ -85,4 +87,16 @@ messageBus.RunEventSource((c, t) => {
 
 ### Polling a Webservice
 
-I have a remote webserv
+I have a remote webservice whose state needs to be monitored. If the webservice responds to a ping, we can publish events that the webservice is healthy. If the webservice does not respond, we can publish an event that the service is unhealthy. I want to ping the webservice every minute. This ping process should continue indefinitely.
+
+```csharp
+messageBus.RunEventSource(c => {
+    c.IterationDelayMs = 60000; // 60 secs/min * 1000 ms/sec = 60000 ms/min
+    
+    var result = myWebServiceGateway.SendPing();
+    if (result != null)
+        c.Publish(new MyWebserviceHealthMessage(isHealthy: true));
+    else
+        c.Publish(new MyWebserviceHealthMessage(isHealthy: false));
+});
+```

@@ -84,28 +84,13 @@ This method calls into the normal publish methods using reflection and may incur
 
 ### Envelopes
 
-Internally, Acquaintance wraps published messages in an `Envelope<T>` object. Envelopes contain the payload and topic information and also contain a unique ID and metadata about the message. You can create and publish envelopes manually:
+By manually creating an `Envelope<T>` to wrap a message, you can modify the envelope metadata before publishing the message.
 
 ```csharp
-var envelope = messageBus.EnvelopeFactory
-    .Create<MyMessage>("topic", message);
+var envelope = messageBus.EnvelopeFactory.Create<MyMessage>("topic", myMessage);
+envelope.SetMetadata("key", "value");
+messageBus.PublishEnvelope(envelope);
 ```
-
-Most fields of the envelope are immutable, but it does contain a mechanism for attaching metadata to the envelope, which can be inspected later by the subscriber. Metadata is specified as a key/value pair with both key and value being strings:
-
-```csharp
-envelope.SetMetadata("key", "value")
-```
-
-```csharp
-var value = envelope.GetMetadata("key");
-```
-
-Envelopes are passed between threads and the usual pattern for supporting this is the **Immutable Object pattern**. However metadata can and will change, so it requires explicit synchronization. Understand that the use of envelope metadata may incur a performance penalty, and may also lead to timing issues when multiple receiver threads are accessing and modifying metadata at once. 
-
-Some use-cases of envelope metadata may include:
-1. Giving indication about where the message originated from
-1. In a federated system with networking, including information in the message that may affect how it was sent or received on the network
 
 ## Subscribing
 

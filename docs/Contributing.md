@@ -10,5 +10,5 @@ The goal of Acquaintance is not just to provide messaging features but to try an
 
 * Acquaintance really shouldn't have any dependencies. It is a foundational piece. We don't want Acquaintance contributing to DLL Hell.
 * We try to make good use of well-known Design Patterns and SOLID design, and we refactor relentlessly to bring us there.
-* Nearly everything should be unit tested. That's how we know a feature works as advertised. Considering the central role Acquaintance may play in user applications, it should be solid.
-* Just about everything should be thread-safe. Acquaintance gets the multi-threading details right so applications don't need to worry about them.
+* Nearly everything should be unit tested. That's how we know a feature works as advertised. Considering the central role Acquaintance may play in user applications, it should just work.
+* Just about everything should be thread-safe, preferrably without locks. Acquaintance gets the multi-threading details right so applications don't need to worry about them.

@@ -8,7 +8,7 @@ Federation options are in development and will be released as separate add-in li
 
 ## Envelopes and Local Delivery
 
-`Envelope<T>` defines a property `LocalOnly`. When this property is set to `true` the message will only be delivered locally. If it is set to `false` the message is eligible to be sent across the network using the configured communication mechanisms.
+`IMessageBus` defines an `Id` property which contains a unique identifier for the messageBus instance. You can set a custom Id in the `MessageBusCreateParameters.Id` property. Otherwise a random identifier will be assigned. For federation, you should use an Id which is unique in the network but consistent for the instance. This way, the Acquaintance instance can be uniquely identified across the network and the process can continue operation if it stops and restarts.
 
 ## RabbitMQ
 
@@ -36,4 +36,3 @@ Next is the case where a message from Rabbit is published on the local message b
 // given topic
 var token = messageBus.ForwardRabbitToLocal<MyEvent>("topic");
 ```
-

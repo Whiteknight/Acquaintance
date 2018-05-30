@@ -8,9 +8,9 @@ At it's heart, Acquaintance runs contrary to some important Object-Oriented Prog
 * **Don't**: Use the MessageBus as a God Object for handling all behavior
 
 * **Do**: Wrap the MessageBus in an abstraction, such as a Facade or Adaptor Pattern, so that dependencies are clearly listed for better testability.
-* **Don't**: Call the MessageBus all over your code, obscuring dependencies and creating spaghetti.
+* **Don't**: Directly call the MessageBus all over your code, obscuring dependencies and creating spaghetti.
 
-Message-passing in Acquaintance is cheaper than making a remote call to a separate service, but it's much more expensive than passing a message in a language like Objective-C or Erlang. You don't want to use Acquaintance for every single method call, and you want to keep performance in mind whenever you employ it. Acquaintance works best for passing messages between subsystems or modules, and is not intended to faciliate communication between nearby classes.
+Message-passing in Acquaintance is cheaper than making a remote call to a separate service, but it's much more expensive than passing a message in a language like Objective-C or Erlang. You don't want to use Acquaintance for every single method call, and you want to keep performance in mind whenever you employ it. Acquaintance works best for passing messages between subsystems or modules, and is not intended to faciliate communication between nearby classes. When easily available, a simple method call is always preferrable.
 
 * **Do**: Use the MessageBus to communicate between modules and bounded subdomains, especially if they require pluggability or loose-coupling.
 * **Don't**: Use the MessageBus to replace simple method calls in a single module or bounded subdomain
@@ -21,7 +21,7 @@ Message-passing in Acquaintance is cheaper than making a remote call to a separa
 Acquaintance works with threading primitives to provide a variety of dispatching behaviors, and it is entirely possible for you to configure Acquaintance to produce bottlenecks, resource starvation and soft-deadlocks if you are not paying enough attention to system design. Acquaintance may try to detect some of the most obvious issues, but it is ultimately your responsibility to keep your process running smoothly.
 
 * **Do**: Use Acquaintance to help simplify multi-threaded programming and dispatching of work to multiple threads without needing Locks.
-* **Don't**: Use Locks and strict ordering of operations to potentially create deadlocks.
+* **Don't**: Use Locks and strict ordering of operations with Acquaintance to potentially create deadlocks.
 
 * **Do**: Use the Immutable Object pattern for message contracts
 * **Don't**: Make changes to the message/request object after it has been sent over the bus, or make changes to a message payload in a subscriber/listener/participant.
