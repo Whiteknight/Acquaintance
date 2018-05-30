@@ -1,9 +1,9 @@
-﻿namespace Acquaintance.Sources
+﻿using Acquaintance.Threading;
+
+namespace Acquaintance.Sources
 {
-    public interface IEventSourceContext : IPublishable
+    public interface IEventSourceContext : IIntervalWorkerContext, IPublishable
     {
-        void Complete();
-        bool IsComplete { get; }
-        int IterationDelayMs { get; set; }
+        
     }
 }

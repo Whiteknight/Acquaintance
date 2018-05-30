@@ -10,15 +10,16 @@ namespace Acquaintance.Sources
     {
         private readonly IMessageBus _messageBus;
         private readonly ILogger _logger;
-        private readonly ConcurrentDictionary<Guid, IEventSourceWorker> _threads;
+        private readonly ConcurrentDictionary<Guid, EventSourceWorker> _threads;
         private readonly ConcurrentDictionary<Guid, IDisposable> _tokens;
 
         public EventSourceModule(IMessageBus messageBus, ILogger logger)
         {
             _messageBus = messageBus;
             _logger = logger;
-            _threads = new ConcurrentDictionary<Guid, IEventSourceWorker>();
+            _threads = new ConcurrentDictionary<Guid, EventSourceWorker>();
             _tokens = new ConcurrentDictionary<Guid, IDisposable>();
+            
         }
 
         public void Start()
@@ -39,8 +40,11 @@ namespace Acquaintance.Sources
         public IDisposable RunEventSource(IEventSource source)
         {
             IEventSourceContext context = new EventSourceContext(_messageBus);
-            var thread = new EventSourceWorker(source, context);
-            bool ok = _threads.TryAdd(thread.Id, thread);
+            var strategy = new EventSourceWorkStrategy(source, context);
+            var thread = new IntervalWorkerThread(_messageBus.Logger, strategy);
+            var worker = new EventSourceWorker(thread, context);
+
+            bool ok = _threads.TryAdd(thread.Id, worker);
             if (!ok)
             {
                 _logger.Error($"Could not add new event source ThreadId={thread.Id}. Maybe it has already been added?");
@@ -49,7 +53,7 @@ namespace Acquaintance.Sources
             }
 
             var threadToken = _messageBus.WorkerPool.RegisterManagedThread("Event Source Module", thread.ThreadId, "SourceModule thread " + thread.Id);
-            var workerToken = new WorkerToken(this, thread, thread.Id, threadToken);
+            var workerToken = new WorkerToken(this, worker, thread.Id, threadToken);
             _tokens.TryAdd(thread.Id, workerToken);
             thread.Start();
             return workerToken;
@@ -58,17 +62,18 @@ namespace Acquaintance.Sources
         private void RemoveThread(Guid id)
         {
             _tokens.TryRemove(id, out IDisposable token);
-            _threads.TryRemove(id, out IEventSourceWorker thread);
+            _threads.TryRemove(id, out EventSourceWorker worker);
+            worker?.Dispose();
         }
 
         private class WorkerToken : IDisposable
         {
-            private readonly IEventSourceWorker _worker;
+            private readonly EventSourceWorker _worker;
             private readonly Guid _id;
             private readonly IDisposable _threadToken;
             private readonly EventSourceModule _module;
 
-            public WorkerToken(EventSourceModule module, IEventSourceWorker worker, Guid id, IDisposable threadToken)
+            public WorkerToken(EventSourceModule module, EventSourceWorker worker, Guid id, IDisposable threadToken)
             {
                 _worker = worker;
                 _id = id;
@@ -80,7 +85,6 @@ namespace Acquaintance.Sources
             {
                 _threadToken.Dispose();
                 _module.RemoveThread(_id);
-                _worker.Dispose();
             }
 
             public override string ToString()

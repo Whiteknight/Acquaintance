@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Acquaintance.Logging;
 using Acquaintance.Threading;
 using Acquaintance.Utility;
 
@@ -8,19 +9,20 @@ namespace Acquaintance.Outbox
 {
     public class OutboxManager : IOutboxManager, IDisposable
     {
-        private readonly OutboxWorker _thread;
+        private readonly IntervalWorkerThread _thread;
         private readonly IDisposable _threadToken;
         private readonly ConcurrentDictionary<long, IOutbox> _outboxes;
 
         private long _outboxId;
 
-        public OutboxManager(IWorkerPool workers, int pollDelayMs)
+        public OutboxManager(ILogger logger, IWorkerPool workers, int pollDelayMs)
         {
             Assert.ArgumentNotNull(workers, nameof(workers));
             Assert.IsInRange(pollDelayMs, nameof(pollDelayMs), 1000, int.MaxValue);
 
             _outboxes = new ConcurrentDictionary<long, IOutbox>();
-            _thread = new OutboxWorker(_outboxes, pollDelayMs);
+            var strategy = new OutboxWorkerStrategy(_outboxes, pollDelayMs);
+            _thread = new IntervalWorkerThread(logger, strategy);
             _threadToken = workers.RegisterManagedThread("Outbox Module", _thread.ThreadId, "Outbox worker thread");
         }
 

@@ -12,7 +12,7 @@ namespace Acquaintance.Outbox
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.IsInRange(pollDelayMs, nameof(pollDelayMs), 1000, int.MaxValue);
 
-            Manager = new OutboxManager(messageBus.WorkerPool, pollDelayMs);
+            Manager = new OutboxManager(messageBus.Logger, messageBus.WorkerPool, pollDelayMs);
         }
 
         public void Start()
