@@ -25,16 +25,16 @@ namespace Acquaintance.RabbitMq
         // TODO: Make this an extension method on ISubscriptionBuilder instead
         // TODO: Use a builder so we can specify outbox and other options
         // Publishes messages from the local bus to Rabbit
-        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string[] topics, IOutboxFactory outboxFactory = null)
+        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string[] topics, IOutbox<TPayload> outbox = null)
         { 
-            var subscription = GetRabbitModuleOrThrow(messageBus).CreateForwardingSubscriber<TPayload>(outboxFactory);
+            var subscription = GetRabbitModuleOrThrow(messageBus).CreateForwardingSubscriber(outbox);
             return messageBus.Subscribe(topics, subscription);
         }
 
         // TODO: Make this an extension method on ISubscriptionBuilder instead
-        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string topic, IOutboxFactory outboxFactory = null)
+        public static IDisposable ForwardLocalToRabbit<TPayload>(this IMessageBus messageBus, string topic, IOutbox<TPayload> outbox = null)
         {
-            return ForwardLocalToRabbit<TPayload>(messageBus, new[] { topic ?? string.Empty }, outboxFactory);
+            return ForwardLocalToRabbit(messageBus, new[] { topic ?? string.Empty }, outbox);
         }
 
         // TODO: Expose CreateForwardingSubscriber as an extension method here

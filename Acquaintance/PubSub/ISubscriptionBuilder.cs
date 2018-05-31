@@ -2,7 +2,12 @@
 
 namespace Acquaintance.PubSub
 {
-    public interface ITopicSubscriptionBuilder<TPayload>
+    public interface ISubscriptionBuilderBase
+    {
+        IPubSubBus MessageBus { get; }
+    }
+
+    public interface ITopicSubscriptionBuilder<TPayload> : ISubscriptionBuilderBase
     {
         /// <summary>
         /// Use the given channel name
@@ -19,7 +24,7 @@ namespace Acquaintance.PubSub
         IActionSubscriptionBuilder<TPayload> ForAllTopics();
     }
 
-    public interface IActionSubscriptionBuilder<TPayload>
+    public interface IActionSubscriptionBuilder<TPayload> : ISubscriptionBuilderBase
     {
         /// <summary>
         /// Invoke the given callback in response to the event. The callback receives the raw message payload
@@ -80,7 +85,7 @@ namespace Acquaintance.PubSub
         IThreadSubscriptionBuilder<TPayload> UseCustomSubscriber(ISubscriberReference<TPayload> subscriber);
     }
 
-    public interface IThreadSubscriptionBuilder<TPayload>
+    public interface IThreadSubscriptionBuilder<TPayload> : ISubscriptionBuilderBase
     {
         /// <summary>
         /// Execute the subscriber on a managed worker thread
@@ -117,7 +122,7 @@ namespace Acquaintance.PubSub
         IDetailsSubscriptionBuilder<TPayload> OnDedicatedWorker();
     }
 
-    public interface IDetailsSubscriptionBuilder<TPayload>
+    public interface IDetailsSubscriptionBuilder<TPayload> : ISubscriptionBuilderBase
     {
         /// <summary>
         /// Use a filter to determine if the message should be sent to this subscription or not.

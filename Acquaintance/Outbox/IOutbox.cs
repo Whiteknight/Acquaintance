@@ -1,14 +1,16 @@
-﻿namespace Acquaintance.Outbox
+﻿using System.Collections.Generic;
+
+namespace Acquaintance.Outbox
 {
     public interface IOutbox
     {
-        OutboxFlushResult TryFlush();
         int GetQueuedMessageCount();
     }
 
-    public interface IOutbox<TMessage> : IOutbox
+    public interface IOutbox<TPayload> : IOutbox
     {
-        bool AddMessage(Envelope<TMessage> message);
+        bool AddMessage(Envelope<TPayload> message);
+        IOutboxEntry<TPayload>[] GetNextQueuedMessages(int max);
     }
 }
 

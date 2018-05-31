@@ -1,31 +1,34 @@
 ﻿using System;
 using Acquaintance.Outbox;
 using Acquaintance.PubSub;
+using Acquaintance.Utility;
 using EasyNetQ;
 using EasyNetQ.FluentConfiguration;
 
 namespace Acquaintance.RabbitMq
 {
-    public class ForwardToRabbitSubscription<TPayload> : ISubscription<TPayload>
+    public sealed class ForwardToRabbitSubscription<TPayload> : ISubscription<TPayload>
     {
-        private readonly IBus _bus;
+        private readonly IBus _rabbitBus;
         private readonly string _queueName;
-        private readonly IOutbox<TPayload> _outbox;
-        private readonly IDisposable _outboxToken;
-
-        public ForwardToRabbitSubscription(IBus bus, string queueName, IOutboxFactory outboxFactory)
+        private readonly SendingOutbox<TPayload> _outbox;
+        
+        public ForwardToRabbitSubscription(IBusBase messageBus, IBus rabbitBus, string queueName, IOutbox<TPayload> outbox)
         {
-            _bus = bus;
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(rabbitBus, nameof(rabbitBus));
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+
+            _rabbitBus = rabbitBus;
             _queueName = queueName;
-            var outbox = outboxFactory.Create<TPayload>(PublishInternal);
-            _outbox = outbox.Outbox;
-            _outboxToken = outbox.Token;
+            var sender = new OutboxSender<TPayload>(messageBus.Logger, outbox, PublishInternal);
+            var outboxToken = messageBus.AddOutboxToBeMonitored(sender);
+            _outbox = new SendingOutbox<TPayload>(outbox, sender, outboxToken);
         }
 
         public void Publish(Envelope<TPayload> message)
         {
-            _outbox.AddMessage(message);
-            _outbox.TryFlush();
+            _outbox.SendMessage(message);
         }
 
         public bool ShouldUnsubscribe => false;
@@ -34,7 +37,7 @@ namespace Acquaintance.RabbitMq
         private void PublishInternal(Envelope<TPayload> message)
         {
             foreach (var topic in message.Topics)
-                _bus.Publish(message, c => Configure(c, topic));
+                _rabbitBus.Publish(message, c => Configure(c, topic));
         }
 
         private void Configure(IPublishConfiguration configuration, string topic)
@@ -46,7 +49,7 @@ namespace Acquaintance.RabbitMq
 
         public void Dispose()
         {
-            _outboxToken.Dispose();
+            _outbox.Dispose();
         }
     }
 }

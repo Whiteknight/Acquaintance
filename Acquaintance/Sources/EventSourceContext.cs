@@ -1,5 +1,6 @@
 ﻿using System;
 using Acquaintance.Logging;
+using Acquaintance.Modules;
 using Acquaintance.Threading;
 using Acquaintance.Utility;
 
@@ -21,6 +22,7 @@ namespace Acquaintance.Sources
        
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
 
+        public IModuleManager Modules => throw new NotImplementedException();
         public IWorkerPool WorkerPool => _messageBus.WorkerPool;
 
         public void PublishEnvelope<TPayload>(Envelope<TPayload> envelope)

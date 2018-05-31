@@ -7,38 +7,30 @@ namespace Acquaintance.Outbox
     public sealed class OutboxSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscription<TPayload> _inner;
-        private readonly IOutbox<TPayload> _outbox;
-        private readonly IDisposable _outboxToken;
+        private readonly SendingOutbox<TPayload> _outbox;
 
-        public OutboxSubscription(ISubscription<TPayload> inner, IOutboxFactory outboxFactory)
+        public OutboxSubscription(IBusBase messageBus, ISubscription<TPayload> inner, IOutbox<TPayload> outbox)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(inner, nameof(inner));
-            Assert.ArgumentNotNull(outboxFactory, nameof(outboxFactory));
-
-            _inner = inner;
-            var outbox = outboxFactory.Create<TPayload>(PublishInternal);
-            _outbox = outbox.Outbox;
-            _outboxToken = outbox.Token;
-        }
-
-        public OutboxSubscription(IOutbox<TPayload> outbox)
-        {
             Assert.ArgumentNotNull(outbox, nameof(outbox));
 
-            _outbox = outbox;
+            _inner = inner;
+            var sender = new OutboxSender<TPayload>(messageBus.Logger, outbox, PublishInternal);
+            var outboxToken = messageBus.TryAddOutboxToBeMonitored(sender);
+            _outbox = new SendingOutbox<TPayload>(outbox, sender, outboxToken);
         }
 
-        public static ISubscription<TPayload> WrapSubscription(ISubscription<TPayload> inner, IOutboxFactory outboxFactory)
+        public static ISubscription<TPayload> WrapSubscription(IBusBase messageBus, ISubscription<TPayload> inner, IOutbox<TPayload> outbox)
         {
-            if (outboxFactory == null)
+            if (outbox == null)
                 return inner;
-            return new OutboxSubscription<TPayload>(inner, outboxFactory);
+            return new OutboxSubscription<TPayload>(messageBus, inner, outbox);
         }
 
         public void Publish(Envelope<TPayload> message)
         {
-            _outbox.AddMessage(message);
-            _outbox.TryFlush();
+            _outbox.SendMessage(message);
         }
 
         private void PublishInternal(Envelope<TPayload> message)
@@ -56,27 +48,8 @@ namespace Acquaintance.Outbox
 
         public void Dispose()
         {
-            _outboxToken?.Dispose();
-            (_outbox as IDisposable)?.Dispose();
+            _outbox?.Dispose();
             _inner?.Dispose();
         }
-    }
-
-    public class OutboxSubscriberReference<TPayload> : ISubscriberReference<TPayload>
-    {
-        private readonly IOutbox<TPayload> _outbox;
-
-        public OutboxSubscriberReference(IOutbox<TPayload> outbox)
-        {
-            _outbox = outbox;
-        }
-
-        public void Invoke(Envelope<TPayload> message)
-        {
-            _outbox.AddMessage(message);
-            _outbox.TryFlush();
-        }
-
-        public bool IsAlive => true;
     }
 }

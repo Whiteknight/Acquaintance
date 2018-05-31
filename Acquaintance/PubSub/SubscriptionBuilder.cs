@@ -11,7 +11,7 @@ namespace Acquaintance.PubSub
         IThreadSubscriptionBuilder<TPayload>,
         IDetailsSubscriptionBuilder<TPayload>
     {
-        private readonly IPubSubBus _messageBus;
+        public IPubSubBus MessageBus { get; }
         private readonly IWorkerPool _workerPool;
 
         private ISubscriberReference<TPayload> _actionReference;
@@ -31,7 +31,7 @@ namespace Acquaintance.PubSub
 
             _dispatchType = DispatchThreadType.NoPreference;
             _workerPool = workerPool;
-            _messageBus = messageBus;
+            MessageBus = messageBus;
             Topics = null;
         }
 
@@ -134,7 +134,7 @@ namespace Acquaintance.PubSub
             return Invoke(payload =>
             {
                 var transformed = transform(payload);
-                _messageBus.Publish(newTopic, transformed);
+                MessageBus.Publish(newTopic, transformed);
             });
         }
 

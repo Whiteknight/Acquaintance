@@ -12,6 +12,11 @@ namespace Acquaintance
     public interface IBusBase
     {
         /// <summary>
+        /// Extension modules for the message bus which may add additional features.
+        /// </summary>
+        IModuleManager Modules { get; }
+
+        /// <summary>
         /// The threadpool which holds worker threads for dispatching requests and events
         /// </summary>
         IWorkerPool WorkerPool { get; }
@@ -109,11 +114,6 @@ namespace Acquaintance
 
     public interface IMessageBus : IPubSubBus, IReqResBus, IScatterGatherBus, IDisposable
     {
-        /// <summary>
-        /// Extension modules for the message bus which may add additional features.
-        /// </summary>
-        IModuleManager Modules { get; }
-
         /// <summary>
         /// Run an event loop in the current thread to process messages queued against the current
         /// thread ID

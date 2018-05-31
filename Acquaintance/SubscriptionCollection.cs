@@ -4,6 +4,7 @@ using Acquaintance.ScatterGather;
 using Acquaintance.Threading;
 using System;
 using Acquaintance.Logging;
+using Acquaintance.Modules;
 using Acquaintance.Routing;
 using Acquaintance.Utility;
 
@@ -33,6 +34,7 @@ namespace Acquaintance
         public IRequestTopicRouter RequestRouter => _router;
         public IScatterTopicRouter ScatterRouter => _router;
 
+        public IModuleManager Modules => throw new NotImplementedException();
         public IWorkerPool WorkerPool { get; }
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;

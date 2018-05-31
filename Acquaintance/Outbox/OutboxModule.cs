@@ -5,10 +5,12 @@ namespace Acquaintance.Outbox
 {
     public class OutboxModule : IMessageBusModule, IDisposable
     {
+        private readonly IBusBase _messageBus;
         public OutboxManager Manager { get; }
 
         public OutboxModule(IBusBase messageBus, int pollDelayMs)
         {
+            _messageBus = messageBus;
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.IsInRange(pollDelayMs, nameof(pollDelayMs), 1000, int.MaxValue);
 
@@ -25,15 +27,15 @@ namespace Acquaintance.Outbox
             Manager.Stop();
         }
 
-        public IDisposable AddOutboxToBeMonitored(IOutbox outbox)
+        public IDisposable AddOutboxToBeMonitored<TMessage>(IOutbox<TMessage> outbox, Action<Envelope<TMessage>> send)
         {
-            return Manager.AddOutboxToBeMonitored(outbox);
+            var sender = new OutboxSender<TMessage>(_messageBus.Logger, outbox, send);
+            return Manager.AddOutboxToBeMonitored(sender);
         }
 
-        public IOutboxFactory GetInMemoryOutboxFactory(int maxMessages = 100)
+        public IDisposable AddOutboxToBeMonitored(IOutboxSender outbox)
         {
-            // TODO: Should we cache this?
-            return new InMemoryOutboxFactory(Manager, maxMessages);
+            return Manager.AddOutboxToBeMonitored(outbox);
         }
 
         public void Dispose()

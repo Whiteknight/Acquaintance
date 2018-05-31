@@ -67,11 +67,10 @@ namespace Acquaintance.RabbitMq
             return token;
         }
 
-        public ISubscription<TPayload> CreateForwardingSubscriber<TPayload>(IOutboxFactory outboxFactory)
+        public ISubscription<TPayload> CreateForwardingSubscriber<TPayload>(IOutbox<TPayload> outbox = null)
         {
             var queueName = MakeQueueName<TPayload>();
-            outboxFactory = outboxFactory ?? new PassthroughOutboxFactory();
-            return new ForwardToRabbitSubscription<TPayload>(_bus, queueName, outboxFactory);
+            return new ForwardToRabbitSubscription<TPayload>(_messageBus, _bus, queueName, outbox ?? new InMemoryOutbox<TPayload>(100));
         }
 
         public static string MakeQueueName<TPayload>()

@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Acquaintance.Outbox;
 using Acquaintance.PubSub;
 using FluentAssertions;
 using NUnit.Framework;
@@ -289,6 +290,30 @@ namespace Acquaintance.Tests.PubSub
             target.Subscribe("", new ShouldUnsubscribeSubscription(() => value = 1));
             target.Publish("", 5);
             value.Should().Be(0);
+        }
+
+        [Test]
+        public void Subscription_UseInMemoryOutbox()
+        {
+            int sum = 0;
+            int attempts = 0;
+            var target = new MessageBus();
+            target.Subscribe<int>(b => b
+                .WithDefaultTopic()
+                .Invoke(i =>
+                {
+                    attempts++;
+                    if (attempts <= 1)
+                        throw new Exception("The first one fails");
+                    sum += i;
+                })
+                .Immediate()
+                .UseInMemoryOutbox());
+
+            target.Publish(1);
+            sum.Should().Be(0);
+            target.Publish(2);
+            sum.Should().Be(3);
         }
     }
 }

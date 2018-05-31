@@ -221,6 +221,10 @@ var messageBus = new MessageBus(new MessageBusCreateParameters {
 });
 ```
 
+### Reliable Publishing with Outboxes
+
+Acquaintance provides an implementation of the [Outbox pattern](Outbox.md) to support reliable message publishing. Please see that page for more details.
+
 ### Autosubscribing
 
 **Warning**: Autosubscribing is currently experimental and is subject to change between versions based on usage and feedback.

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 
 namespace Acquaintance.Outbox
@@ -8,19 +7,16 @@ namespace Acquaintance.Outbox
     // TODO: MaxRetries. If we exceed the maximum number of retries on a message, drop it
     // TODO: Would like to use this for cases where a slow Subscriber provides backpressure, so we can hold the message until it's able to be delivered
     // TODO: We need a mechanism for _inner to communicate backpressure to the outbox
-    internal class InMemoryOutbox<TMessage> : IOutbox<TMessage>
+    public class InMemoryOutbox<TMessage> : IOutbox<TMessage>
     {
-        private readonly Action<Envelope<TMessage>> _outputPort;
         private readonly ConcurrentQueue<Envelope<TMessage>> _messages;
         private readonly int _maxMessages;
-        private int _readers;
+        private int _concurrentReadAttempts;
 
-        public InMemoryOutbox(Action<Envelope<TMessage>> outputPort, int maxMessages)
+        public InMemoryOutbox(int maxMessages)
         {
-            _outputPort = outputPort;
             _maxMessages = maxMessages;
             _messages = new ConcurrentQueue<Envelope<TMessage>>();
-            _readers = 0;
         }
 
         public bool AddMessage(Envelope<TMessage> message)
@@ -31,41 +27,52 @@ namespace Acquaintance.Outbox
             return true;
         }
 
-        public OutboxFlushResult TryFlush()
+        public IOutboxEntry<TMessage>[] GetNextQueuedMessages(int max)
         {
-            var readers = Interlocked.CompareExchange(ref _readers, 1, 0);
-            if (readers != 0)
-                return OutboxFlushResult.CouldNotObtainLock();
-
-            try
-            {
-                return TryFlushQueueInternal();
-            }
-            finally
-            {
-                _readers = 0;
-            }
+            var otherReaders = Interlocked.CompareExchange(ref _concurrentReadAttempts, 1, 0);
+            if (otherReaders > 0)
+                return new IOutboxEntry<TMessage>[0];
+            if (!_messages.TryPeek(out Envelope<TMessage> message))
+                return new IOutboxEntry<TMessage>[0];
+            return new IOutboxEntry<TMessage>[] { new InMemoryOutboxEntry(this, message) };
         }
 
-        private OutboxFlushResult TryFlushQueueInternal()
+        private void MarkForRetry(Envelope<TMessage> message)
         {
-            while (true)
-            {
-                if (!_messages.TryPeek(out Envelope<TMessage> message))
-                    break;
-                try
-                {
-                    _outputPort(message);
-                }
-                catch (Exception e)
-                {
-                    return OutboxFlushResult.ReceivedError(e);
-                }
+            _concurrentReadAttempts = 0;
+        }
 
-                _messages.TryDequeue(out message);
+        private void MarkComplete(Envelope<TMessage> message)
+        {
+            _concurrentReadAttempts = 0;
+            _messages.TryPeek(out Envelope<TMessage> queueMessage);
+            if (!ReferenceEquals(message, queueMessage))
+                return;
+            _messages.TryDequeue(out queueMessage);
+        }
+
+        public class InMemoryOutboxEntry : IOutboxEntry<TMessage>
+        {
+            private readonly InMemoryOutbox<TMessage> _outbox;
+
+            public InMemoryOutboxEntry(InMemoryOutbox<TMessage> outbox, Envelope<TMessage> envelope)
+            {
+                _outbox = outbox;
+                Envelope = envelope;
             }
 
-            return OutboxFlushResult.Success();
+            public Envelope<TMessage> Envelope { get; }
+
+
+            public void MarkForRetry()
+            {
+                _outbox.MarkForRetry(Envelope);
+            }
+
+            public void MarkComplete()
+            {
+                _outbox.MarkComplete(Envelope);
+            }
         }
 
         public int GetQueuedMessageCount()

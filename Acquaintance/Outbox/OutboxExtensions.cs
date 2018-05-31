@@ -5,43 +5,66 @@ namespace Acquaintance.Outbox
 {
     public static class OutboxExtensions
     {
-        public static IDisposable InitializeOutboxModule(this IMessageBus messageBus, int pollDelayMs = 5000)
+        public static IDisposable InitializeOutboxModule(this IBusBase messageBus, int pollDelayMs = 5000)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
             return messageBus.Modules.Add(new OutboxModule(messageBus, pollDelayMs));
         }
 
-        public static IDisposable AddOutboxToBeMonitored(this IMessageBus messageBus, IOutbox outbox)
+        public static IDisposable AddOutboxToBeMonitored<TMessage>(this IBusBase messageBus, IOutbox<TMessage> outbox, Action<Envelope<TMessage>> send)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+            Assert.ArgumentNotNull(send, nameof(send));
+
+            var module = GetOutboxModuleOrThrow(messageBus);
+            return module.AddOutboxToBeMonitored(outbox, send);
+        }
+
+        public static IDisposable AddOutboxToBeMonitored(this IBusBase messageBus, IOutboxSender outbox)
+        {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+
             var module = GetOutboxModuleOrThrow(messageBus);
             return module.AddOutboxToBeMonitored(outbox);
         }
 
-        private static OutboxModule GetOutboxModuleOrThrow(IMessageBus messageBus)
+        public static IDisposable TryAddOutboxToBeMonitored(this IBusBase messageBus, IOutboxSender outbox)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+
             var module = messageBus.Modules.Get<OutboxModule>();
             if (module == null)
-                throw new Exception($"Outbox module has not been initialized. Call .{nameof(InitializeOutboxModule)} first.");
-            return module;
+                return new DoNothingDisposable();
+            return module.AddOutboxToBeMonitored(outbox);
         }
 
-        public static IOutboxFactory GetInMemoryOutboxFactory(this IMessageBus messageBus)
+        public static OutboxAndToken<TMessage> GetMonitoredInMemoryOutbox<TMessage>(this IBusBase messageBus, Action<Envelope<TMessage>> send, int maxMessages = 100)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(send, nameof(send));
+
             var module = GetOutboxModuleOrThrow(messageBus);
-            return module.GetInMemoryOutboxFactory();
+            var outbox = new InMemoryOutbox<TMessage>(maxMessages);
+            var token = module.AddOutboxToBeMonitored(outbox, send);
+            return new OutboxAndToken<TMessage>(outbox, token);
         }
 
-        public static IOutboxFactory GetPassthroughOutboxFactory(this IMessageBus messageBus)
+        public static IOutboxManager GetOutboxManager(this IBusBase messageBus)
         {
-            GetOutboxModuleOrThrow(messageBus);
-            return new PassthroughOutboxFactory();
-        }
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
-        public static IOutboxManager GetOutboxManager(this IMessageBus messageBus)
-        {
             var module = GetOutboxModuleOrThrow(messageBus);
             return module.Manager;
+        }
+
+        private static OutboxModule GetOutboxModuleOrThrow(IBusBase messageBus)
+        {
+            var module = messageBus.Modules.Get<OutboxModule>();
+            return module ?? throw new Exception($"Outbox module has not been initialized. Call .{nameof(InitializeOutboxModule)} first.");
         }
     }
 }
