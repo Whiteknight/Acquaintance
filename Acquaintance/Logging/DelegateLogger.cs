@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace Acquaintance.Logging
 {
@@ -29,6 +30,17 @@ namespace Acquaintance.Logging
         public void Error(string fmt, params object[] args)
         {
             _logger(Build("ERROR", fmt, args));
+        }
+
+        public void Error(Exception e, string fmt, params object[] args)
+        {   
+            var builder = new StringBuilder();
+            builder.Append("ERROR | ");
+            var msg = string.Format(fmt ?? string.Empty, args);
+            builder.AppendLine(msg);
+            builder.AppendLine(e.Message);
+            builder.AppendLine(e.StackTrace);
+            _logger(builder.ToString());
         }
 
         private string Build(string severity, string fmt, object[] args)

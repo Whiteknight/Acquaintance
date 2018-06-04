@@ -1,4 +1,6 @@
-﻿namespace Acquaintance.Logging
+﻿using System;
+
+namespace Acquaintance.Logging
 {
     public interface ILogger
     {
@@ -29,5 +31,14 @@
         /// <param name="fmt"></param>
         /// <param name="args"></param>
         void Error(string fmt, params object[] args);
+
+        /// <summary>
+        /// An error which may cause an operation to fail or other functionality to not work as expected.
+        /// Includes exception information.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="fmt"></param>
+        /// <param name="args"></param>
+        void Error(Exception e, string fmt, params object[] args);
     }
 }
