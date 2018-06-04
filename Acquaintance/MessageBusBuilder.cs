@@ -1,4 +1,5 @@
-﻿using Acquaintance.Logging;
+﻿using System;
+using Acquaintance.Logging;
 
 namespace Acquaintance
 {
@@ -37,6 +38,12 @@ namespace Acquaintance
         public MessageBusBuilder UseLogger(ILogger logger)
         {
             _parameters.Logger = logger;
+            return this;
+        }
+
+        public MessageBusBuilder UserLogger(Action<string> log)
+        {
+            _parameters.Logger = new DelegateLogger(log);
             return this;
         }
 

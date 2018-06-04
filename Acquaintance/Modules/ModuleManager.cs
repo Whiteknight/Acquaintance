@@ -41,8 +41,7 @@ namespace Acquaintance.Modules
             bool ok = _modules.TryGetValue(key, out IMessageBusModule module);
             if (!ok || module == null)
                 return null;
-            var typedModule = module as TModule;
-            if (typedModule == null)
+            if (!(module is TModule typedModule))
                 throw new Exception($"Module type mismatch. Expected {typeof(TModule).FullName} but found {module.GetType().FullName}");
             return typedModule;
         }

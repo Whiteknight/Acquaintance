@@ -8,7 +8,7 @@ namespace Acquaintance.Modules
     public interface IModuleManager
     {
         /// <summary>
-        /// Add a new module to the message bus.
+        /// Add a new module to the message bus. Modules are unique by type.
         /// </summary>
         /// <param name="module"></param>
         /// <returns>A token which can be disposed to remove the module</returns>

@@ -8,9 +8,7 @@ namespace Acquaintance.Logging
 
         public DelegateLogger(Action<string> logger)
         {
-            if (logger == null)
-                throw new ArgumentNullException(nameof(logger));
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void Debug(string fmt, params object[] args)
@@ -36,7 +34,7 @@ namespace Acquaintance.Logging
         private string Build(string severity, string fmt, object[] args)
         {
             var msg = string.Format(fmt ?? string.Empty, args);
-            return severity + "| " + msg;
+            return severity + " | " + msg;
         }
     }
 }
