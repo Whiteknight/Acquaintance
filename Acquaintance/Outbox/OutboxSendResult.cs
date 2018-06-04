@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Acquaintance.Outbox
 {
@@ -27,19 +28,33 @@ namespace Acquaintance.Outbox
         public OutboxSendResultType Result { get; }
         public Exception Exception { get; }
     }
-
+    
     public class OutboxSendResult : IOutboxSendResult
     {
-        private readonly List<MessageSendResult> _results;
-        public OutboxSendResult()
+        public OutboxSendResult(bool success, IReadOnlyList<MessageSendResult> results)
         {
-            _results = new List<MessageSendResult>();
-            Success = true;
+            Results = results ?? new List<MessageSendResult>();
+            Success = success;
         }
 
-        public bool Success { get; private set; }
+        public bool Success { get; }
 
-        public IReadOnlyList<MessageSendResult> Results => _results;
+        public IReadOnlyList<MessageSendResult> Results { get; }
+    }
+
+    public class OutboxSendResultBuilder
+    {
+        private readonly List<MessageSendResult> _results;
+
+        public OutboxSendResultBuilder()
+        {
+            _results = new List<MessageSendResult>();
+        }
+
+        public OutboxSendResult Build()
+        {
+            return new OutboxSendResult(_results.All(r => r.Result == OutboxSendResultType.SendSuccess), _results);
+        }
 
         public void AddSuccess(long messageId)
         {
@@ -49,7 +64,6 @@ namespace Acquaintance.Outbox
         public void AddError(long messageId, Exception e)
         {
             _results.Add(new MessageSendResult(messageId, OutboxSendResultType.SendFailed, e));
-            Success = false;
         }
     }
 }

@@ -128,8 +128,8 @@ namespace Acquaintance.PubSub
 
             public void RemoveSubscription(Guid id)
             {
-                _subscriptions.TryRemove(id, out ISubscription<TPayload> subscription);
-                (subscription as IDisposable)?.Dispose();
+                if (_subscriptions.TryRemove(id, out ISubscription<TPayload> subscription))
+                    subscription?.Dispose();
             }
 
             public IEnumerable<ISubscription<TPayload>> GetSubscriptions()

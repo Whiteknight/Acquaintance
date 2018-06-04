@@ -1,29 +1,33 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
     // TODO: Message TimeToLive. If the message has not been sent before the TTL is expired, drop it
-    // TODO: MaxRetries. If we exceed the maximum number of retries on a message, drop it
     // TODO: Would like to use this for cases where a slow Subscriber provides backpressure, so we can hold the message until it's able to be delivered
     // TODO: We need a mechanism for _inner to communicate backpressure to the outbox
     public class InMemoryOutbox<TMessage> : IOutbox<TMessage>
     {
-        private readonly ConcurrentQueue<Envelope<TMessage>> _messages;
+        private readonly ConcurrentQueue<OutboxItem> _messages;
         private readonly int _maxMessages;
+        private readonly int _maxAttempts;
         private int _concurrentReadAttempts;
 
-        public InMemoryOutbox(int maxMessages)
+        public InMemoryOutbox(int maxMessages, int maxAttempts = int.MaxValue)
         {
             _maxMessages = maxMessages;
-            _messages = new ConcurrentQueue<Envelope<TMessage>>();
+            _maxAttempts = maxAttempts;
+            _messages = new ConcurrentQueue<OutboxItem>();
         }
 
         public bool AddMessage(Envelope<TMessage> message)
         {
+            Assert.ArgumentNotNull(message, nameof(message));
+
             if (_maxMessages > 0 && _messages.Count >= _maxMessages)
                 return false;
-            _messages.Enqueue(message);
+            _messages.Enqueue(new OutboxItem(message));
             return true;
         }
 
@@ -32,30 +36,55 @@ namespace Acquaintance.Outbox
             var otherReaders = Interlocked.CompareExchange(ref _concurrentReadAttempts, 1, 0);
             if (otherReaders > 0)
                 return new IOutboxEntry<TMessage>[0];
-            if (!_messages.TryPeek(out Envelope<TMessage> message))
+            if (!_messages.TryPeek(out OutboxItem item))
                 return new IOutboxEntry<TMessage>[0];
-            return new IOutboxEntry<TMessage>[] { new InMemoryOutboxEntry(this, message) };
+            return new IOutboxEntry<TMessage>[] { new OutboxEntry(this, item.Message) };
         }
 
         private void MarkForRetry(Envelope<TMessage> message)
         {
-            _concurrentReadAttempts = 0;
+            if (!_messages.TryPeek(out OutboxItem item) || item == null || !ReferenceEquals(message, item.Message))
+                return;
+            
+            item.Attempts++;
+            if (item.Attempts >= _maxAttempts)
+                _messages.TryDequeue(out item);
+
+            ReleaseLock();
         }
 
         private void MarkComplete(Envelope<TMessage> message)
         {
-            _concurrentReadAttempts = 0;
-            _messages.TryPeek(out Envelope<TMessage> queueMessage);
-            if (!ReferenceEquals(message, queueMessage))
+            if (!_messages.TryPeek(out OutboxItem item) || item == null  || !ReferenceEquals(message, item.Message))
                 return;
-            _messages.TryDequeue(out queueMessage);
+            _messages.TryDequeue(out item);
+
+            ReleaseLock();
         }
 
-        public class InMemoryOutboxEntry : IOutboxEntry<TMessage>
+        private void ReleaseLock()
+        {
+            Interlocked.MemoryBarrier();
+            Interlocked.CompareExchange(ref _concurrentReadAttempts, 0, 1);
+            // TODO: If it's possible for the CompareExchange to fail, we could end up in big trouble and may need to alert the user
+        }
+
+        private class OutboxItem
+        {
+            public OutboxItem(Envelope<TMessage> message)
+            {
+                Message = message;
+            }
+
+            public Envelope<TMessage> Message { get; }
+            public int Attempts { get; set; }
+        }
+
+        public class OutboxEntry : IOutboxEntry<TMessage>
         {
             private readonly InMemoryOutbox<TMessage> _outbox;
 
-            public InMemoryOutboxEntry(InMemoryOutbox<TMessage> outbox, Envelope<TMessage> envelope)
+            public OutboxEntry(InMemoryOutbox<TMessage> outbox, Envelope<TMessage> envelope)
             {
                 _outbox = outbox;
                 Envelope = envelope;

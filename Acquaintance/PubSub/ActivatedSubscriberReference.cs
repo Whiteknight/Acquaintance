@@ -26,9 +26,7 @@ namespace Acquaintance.PubSub
 
         public void Invoke(Envelope<TPayload> message)
         {
-            var service = _service ?? _createService(message.Payload);
-            if (service == null)
-                throw new NullReferenceException("Activated service is null");
+            var service = _service ?? _createService(message.Payload) ?? throw new NullReferenceException("Activated service is null");
             _handler(service, message.Payload);
             if (_cacheInstance)
                 Interlocked.CompareExchange(ref _service, service, null);

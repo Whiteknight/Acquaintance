@@ -18,7 +18,6 @@ namespace Acquaintance.Routing
 
         public string[] GetRoute(string topic, Envelope<T> envelope)
         {
-            // TODO: If newTopic == topic, does it get into a loop?
             var newTopic = _getRoute?.Invoke(envelope.Payload, topic);
             return newTopic == null ? new string[0] : new[] { newTopic };
         }

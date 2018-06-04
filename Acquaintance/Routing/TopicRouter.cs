@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using Acquaintance.Utility;
 
@@ -34,7 +35,7 @@ namespace Acquaintance.Routing
             return topics.SelectMany(topic => GetRoutesForPublishTopic(topic, envelope)).Distinct().ToArray();
         }
 
-        private string[] GetRoutesForPublishTopic<TPayload>(string topic, Envelope<TPayload> envelope)
+        private IEnumerable<string> GetRoutesForPublishTopic<TPayload>(string topic, Envelope<TPayload> envelope)
         {
             var key = GetKey<TPayload>(topic);
             if (!_publishRoutes.TryGetValue(key, out IRouteRule rule))

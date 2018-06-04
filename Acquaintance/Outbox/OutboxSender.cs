@@ -24,44 +24,54 @@ namespace Acquaintance.Outbox
 
         public IOutboxSendResult TrySend()
         {
-            var results = new OutboxSendResult();
+            var results = new OutboxSendResultBuilder();
             while (true)
             {
                 var messages = _outbox.GetNextQueuedMessages(_maxBatchSize);
                 if (messages == null || messages.Length == 0)
                     break;
 
-                if (!TrySendBatch(messages, results))
+                var numSent = TrySendBatch(messages, results);
+                if (numSent < messages.Length)
                     break;
             }
 
-            return results;
+            return results.Build();
         }
 
-        private bool TrySendBatch(IOutboxEntry<TPayload>[] messages, OutboxSendResult results)
+        private int TrySendBatch(IOutboxEntry<TPayload>[] messages, OutboxSendResultBuilder results)
         {
-            bool hadError = false;
+            int messagesSent = 0;
             int i = 0;
             for (; i < messages.Length; i++)
             {
                 var message = messages[i];
-                bool sentOk = TrySendMessage(message, results);
-                if (!sentOk)
+                try
                 {
-                    hadError = true;
-                    break;
-                }
+                    bool sentOk = TrySendMessage(message, results);
+                    if (!sentOk)
+                    {
+                        message.MarkForRetry();
+                        break;
+                    }
 
-                message.MarkComplete();
+                    messagesSent++;
+                    message.MarkComplete();
+                }
+                catch(Exception e)
+                {
+                    message.MarkForRetry();
+                    _logger.Error(e, "Error during message send or bookkeeping. Message will be marked for retry");
+                }
             }
 
             for (; i < messages.Length; i++)
                 messages[i].MarkForRetry();
 
-            return !hadError;
+            return messagesSent;
         }
 
-        private bool TrySendMessage(IOutboxEntry<TPayload> message, OutboxSendResult results)
+        private bool TrySendMessage(IOutboxEntry<TPayload> message, OutboxSendResultBuilder results)
         {
             try
             {
@@ -71,7 +81,7 @@ namespace Acquaintance.Outbox
             }
             catch (Exception e)
             {
-                _logger.Error(e.Message + "\n\n" + e.StackTrace);
+                _logger.Error(e, "Error during message send. Message will be marked for retry.");
                 results.AddError(message.Envelope.Id, e);
                 return false;
             }

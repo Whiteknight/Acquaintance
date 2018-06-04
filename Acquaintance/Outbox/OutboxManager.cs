@@ -57,6 +57,8 @@ namespace Acquaintance.Outbox
 
         public void TryFlushAll(CancellationTokenSource tokenSource)
         {
+            Assert.ArgumentNotNull(tokenSource, nameof(tokenSource));
+
             var token = tokenSource.Token;
             var entries = _outboxes.ToArray();
             foreach (var entry in entries)

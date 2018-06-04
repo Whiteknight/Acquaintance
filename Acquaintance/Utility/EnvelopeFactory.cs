@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 namespace Acquaintance.Utility
@@ -17,6 +16,7 @@ namespace Acquaintance.Utility
 
         public Envelope<TPayload> Create<TPayload>(string[] topics, TPayload payload, IReadOnlyDictionary<string, string> metadata = null)
         {
+            // TODO: Should we use something like Flake?
             long id = Interlocked.Increment(ref _id);
             var envelope = new Envelope<TPayload>(_originBusId, id, topics, payload);
             SetMetadata(metadata, envelope);

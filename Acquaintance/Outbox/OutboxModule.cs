@@ -29,12 +29,17 @@ namespace Acquaintance.Outbox
 
         public IDisposable AddOutboxToBeMonitored<TMessage>(IOutbox<TMessage> outbox, Action<Envelope<TMessage>> send)
         {
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+            Assert.ArgumentNotNull(send, nameof(send));
+
             var sender = new OutboxSender<TMessage>(_messageBus.Logger, outbox, send);
             return Manager.AddOutboxToBeMonitored(sender);
         }
 
         public IDisposable AddOutboxToBeMonitored(IOutboxSender outbox)
         {
+            Assert.ArgumentNotNull(outbox, nameof(outbox));
+
             return Manager.AddOutboxToBeMonitored(outbox);
         }
 

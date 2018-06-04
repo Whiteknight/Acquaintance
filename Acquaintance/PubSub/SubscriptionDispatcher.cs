@@ -19,7 +19,6 @@ namespace Acquaintance.PubSub
         {
             Assert.ArgumentNotNull(subscription, nameof(subscription));
             var token = _store.AddSubscription(topics, subscription);
-            // TODO: Improve this logging message
             _log.Debug($"Adding subscription {subscription.Id} to type Type={typeof(TPayload).FullName}");
             return token;
         }

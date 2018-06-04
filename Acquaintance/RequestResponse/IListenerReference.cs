@@ -10,7 +10,16 @@ namespace Acquaintance.RequestResponse
     /// <typeparam name="TResponse"></typeparam>
     public interface IListenerReference<TRequest, out TResponse>
     {
+        /// <summary>
+        /// Invokes the listener
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         TResponse Invoke(Envelope<TRequest> request);
+
+        /// <summary>
+        /// Determines if the listener is alive and able to be invoked
+        /// </summary>
         bool IsAlive { get; }
     }
 

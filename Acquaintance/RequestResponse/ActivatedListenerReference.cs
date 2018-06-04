@@ -26,7 +26,6 @@ namespace Acquaintance.RequestResponse
 
         public TResponse Invoke(Envelope<TRequest> request)
         {
-            // TODO: An option to cache the service object
             var service = _service ?? _createService(request.Payload);
             if (service == null)
                 throw new NullReferenceException("Activated service is null");

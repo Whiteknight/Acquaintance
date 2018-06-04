@@ -4,6 +4,9 @@ namespace Acquaintance.PubSub
 {
     public interface ISubscriptionBuilderBase
     {
+        /// <summary>
+        /// The message bus used by the subscription builder.
+        /// </summary>
         IPubSubBus MessageBus { get; }
     }
 
@@ -21,6 +24,11 @@ namespace Acquaintance.PubSub
         /// </summary>
         /// <returns>The builder</returns>
         IActionSubscriptionBuilder<TPayload> WithDefaultTopic();
+
+        /// <summary>
+        /// The subscription should be invoked for all topics
+        /// </summary>
+        /// <returns></returns>
         IActionSubscriptionBuilder<TPayload> ForAllTopics();
     }
 

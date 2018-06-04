@@ -3,9 +3,21 @@ using System.Threading;
 
 namespace Acquaintance.Utility
 {
+    /// <summary>
+    /// Error-handling tool which breaks a connection when a sufficient number of errors have been accumulated
+    /// </summary>
     public interface ICircuitBreaker
     {
+        /// <summary>
+        /// Determines if the operation can proceed
+        /// </summary>
+        /// <returns>true if the operation can proceed, false otherwise</returns>
         bool CanProceed();
+
+        /// <summary>
+        /// Record a result.
+        /// </summary>
+        /// <param name="success">If true, the breaker is considered healthy. If false, the breaker may trip.</param>
         void RecordResult(bool success);
     }
 
