@@ -119,6 +119,7 @@ namespace Acquaintance.ScatterGather
             Interlocked.Increment(ref _completedParticipants);
             _responses.Add(response);
             Interlocked.Decrement(ref _expectCount);
+            Interlocked.MemoryBarrier();
         }
 
         public void AddParticipant(Guid participantId)
@@ -127,6 +128,7 @@ namespace Acquaintance.ScatterGather
             Interlocked.Increment(ref _totalParticipants);
             _neverHadParticipants = false;
             Interlocked.Increment(ref _expectCount);
+            Interlocked.MemoryBarrier();
         }
 
         public void Dispose()
