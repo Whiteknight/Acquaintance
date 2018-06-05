@@ -96,30 +96,6 @@ namespace Acquaintance
             return _participantDispatcher.Participate(topic ?? string.Empty, participant);
         }
 
-        public void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500)
-        {
-            if (shouldStop == null)
-                shouldStop = () => false;
-            var threadContext = WorkerPool.GetCurrentThreadContext();
-            while (!shouldStop() && !threadContext.ShouldStop)
-            {
-                var action = threadContext.GetAction(timeoutMs);
-                action?.Execute();
-            }
-        }
-
-        public void EmptyActionQueue(int max)
-        {
-            var threadContext = WorkerPool.GetCurrentThreadContext();
-            for (int i = 0; i < max; i++)
-            {
-                var action = threadContext.GetAction();
-                if (action == null)
-                    break;
-                action.Execute();
-            }
-        }
-
         public void Dispose()
         {
             _subscriptionDispatcher.Dispose();
@@ -128,6 +104,11 @@ namespace Acquaintance
 
             (WorkerPool as IDisposable)?.Dispose();
             (Modules as IDisposable)?.Dispose();
+        }
+
+        public IEventLoop GetEventLoop()
+        {
+            return EventLoop.CreateEventLoopForTheCurrentThread(WorkerPool);
         }
     }
 }

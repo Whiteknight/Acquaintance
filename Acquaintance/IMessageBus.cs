@@ -115,21 +115,9 @@ namespace Acquaintance
     public interface IMessageBus : IPubSubBus, IReqResBus, IScatterGatherBus, IDisposable
     {
         /// <summary>
-        /// Run an event loop in the current thread to process messages queued against the current
-        /// thread ID
+        /// Get an EventLoop for the current thread. The event loop cannot be used on any other thread
         /// </summary>
-        /// <param name="shouldStop">A callback which, if provided, will allow the runloop to 
-        /// terminate when a condition is satisfied.</param>
-        /// <param name="timeoutMs">A maximum amount of time to wait before the shouldStop
-        /// condition is tested.</param>
-        void RunEventLoop(Func<bool> shouldStop = null, int timeoutMs = 500);
-
-        /// <summary>
-        /// Runs an event loop in the current thread to process messages queued agains the current
-        /// thread ID. Continue looping until the queue is empty or until a maximum number of
-        /// events are processed, and then return.
-        /// </summary>
-        /// <param name="max">The maximum number of events to process before returning.</param>
-        void EmptyActionQueue(int max);
+        /// <returns></returns>
+        IEventLoop GetEventLoop();
     }
 }

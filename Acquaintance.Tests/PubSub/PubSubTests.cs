@@ -256,7 +256,7 @@ namespace Acquaintance.Tests.PubSub
             target.Publish(5);
             result.Should().Be(0);
             int iterations = 0;
-            target.RunEventLoop(() => iterations++ != 0);
+            target.GetEventLoop().Run(() => iterations++ != 0);
             result.Should().Be(5);
         }
 

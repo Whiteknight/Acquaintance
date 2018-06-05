@@ -136,7 +136,7 @@ namespace Acquaintance.Tests.PubSub
                 .OnThread(Thread.CurrentThread.ManagedThreadId));
             target.Publish("Test", typeof(TestPubSubEvent), new TestPubSubEvent("Test2"));
 
-            target.EmptyActionQueue(1);
+            target.GetEventLoop().EmptyActionQueue(1);
             ok.Should().BeTrue();
         }
 
