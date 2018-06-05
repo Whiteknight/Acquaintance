@@ -6,9 +6,9 @@ namespace Acquaintance.Timers
     public class MessageTimerModule : IMessageBusModule
     {
         private readonly ConcurrentDictionary<Guid, MessageTimer> _timers;
-        private readonly IMessageBus _messageBus;
+        private readonly IPublishable _messageBus;
 
-        public MessageTimerModule(IMessageBus messageBus)
+        public MessageTimerModule(IPublishable messageBus)
         {
             _messageBus = messageBus;
             _timers = new ConcurrentDictionary<Guid, MessageTimer>();

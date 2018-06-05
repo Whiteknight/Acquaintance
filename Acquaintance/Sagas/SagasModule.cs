@@ -12,10 +12,10 @@ namespace Acquaintance.Sagas
         private readonly ConcurrentDictionary<Guid, IDisposable> _sagas;
         private readonly WorkerToken[] _threadTokens;
 
-        private readonly IMessageBus _messageBus;
+        private readonly IPubSubBus _messageBus;
         private int _currentThreadIndex;
 
-        public SagasModule(IMessageBus messageBus, int numberOfThreads)
+        public SagasModule(IPubSubBus messageBus, int numberOfThreads)
         {
             Assert.IsInRange(numberOfThreads, nameof(numberOfThreads), 1, 50);
             _messageBus = messageBus;

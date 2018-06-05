@@ -8,12 +8,12 @@ namespace Acquaintance.Sources
 {
     public class EventSourceModule : IMessageBusModule
     {
-        private readonly IMessageBus _messageBus;
+        private readonly IPubSubBus _messageBus;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<Guid, EventSourceWorker> _threads;
         private readonly ConcurrentDictionary<Guid, IDisposable> _tokens;
 
-        public EventSourceModule(IMessageBus messageBus, ILogger logger)
+        public EventSourceModule(IPubSubBus messageBus, ILogger logger)
         {
             _messageBus = messageBus;
             _logger = logger;

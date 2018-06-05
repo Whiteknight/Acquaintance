@@ -5,17 +5,17 @@ namespace Acquaintance.Testing
 {
     public static class TestingExtensions
     {
-        public static PublishExpectation<TPayload> ExpectPublish<TPayload>(this IMessageBus messageBus, string topic, Func<TPayload, bool> filter = null, string description = null)
+        public static PublishExpectation<TPayload> ExpectPublish<TPayload>(this IBusBase messageBus, string topic, Func<TPayload, bool> filter = null, string description = null)
         {
             return GetTestingModule(messageBus).ExpectPublish(topic, filter, description);
         }
 
-        public static RequestExpectation<TRequest, TResponse> ExpectRequest<TRequest, TResponse>(this IMessageBus messageBus, string topic, Func<TRequest, bool> filter = null, string description = null)
+        public static RequestExpectation<TRequest, TResponse> ExpectRequest<TRequest, TResponse>(this IBusBase messageBus, string topic, Func<TRequest, bool> filter = null, string description = null)
         {
             return GetTestingModule(messageBus).ExpectRequest<TRequest, TResponse>(topic, filter, description);
         }
 
-        public static ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(this IMessageBus messageBus, string topic, Func<TRequest, bool> filter = null, string description = null)
+        public static ScatterExpectation<TRequest, TResponse> ExpectScatter<TRequest, TResponse>(this IBusBase messageBus, string topic, Func<TRequest, bool> filter = null, string description = null)
         {
             return GetTestingModule(messageBus).ExpectScatter<TRequest, TResponse>(topic, filter, description);
         }
@@ -34,7 +34,7 @@ namespace Acquaintance.Testing
             return messageBus.Modules.Add(new TestingModule(messageBus));
         }
 
-        private static TestingModule GetTestingModule(IMessageBus messageBus)
+        private static TestingModule GetTestingModule(IBusBase messageBus)
         {
             var module = messageBus.Modules.Get<TestingModule>();
             if (module == null)

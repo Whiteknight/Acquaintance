@@ -6,20 +6,20 @@ namespace Acquaintance.Timers
 {
     public static class MessageTimerExtensions
     {
-        public static IDisposable InitializeMessageTimer(this IMessageBus messageBus)
+        public static IDisposable InitializeMessageTimer(this IPublishable messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
             return messageBus.Modules.Add(new MessageTimerModule(messageBus));
         }
 
-        public static bool IsMessageTimerInitialized(this IMessageBus messageBus)
+        public static bool IsMessageTimerInitialized(this IBusBase messageBus)
         {
             var module = messageBus.Modules.Get<MessageTimerModule>();
             return module != null;
         }
 
-        public static IDisposable StartTimer(this IMessageBus messageBus, string topic, int delayMs = 5000, int intervalMs = 10000)
+        public static IDisposable StartTimer(this IBusBase messageBus, string topic, int delayMs = 5000, int intervalMs = 10000)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
@@ -44,12 +44,9 @@ namespace Acquaintance.Timers
             });
         }
 
-        private static MessageTimerModule GetModule(IMessageBus messageBus)
+        private static MessageTimerModule GetModule(IBusBase messageBus)
         {
-            var module = messageBus.Modules.Get<MessageTimerModule>();
-            if (module == null)
-                throw new Exception($"Message Timer module is not initialized. Call .{nameof(InitializeMessageTimer)}() first");
-            return module;
+            return messageBus.Modules.Get<MessageTimerModule>() ?? throw new Exception($"Message Timer module is not initialized. Call .{nameof(InitializeMessageTimer)}() first");
         }
     }
 }

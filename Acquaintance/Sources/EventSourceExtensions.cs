@@ -6,17 +6,17 @@ namespace Acquaintance.Sources
 {
     public static class EventSourceExtensions
     {
-        public static IDisposable RunEventSource(this IMessageBus messageBus, Action<IEventSourceContext, CancellationToken> action)
+        public static IDisposable RunEventSource(this IBusBase messageBus, Action<IEventSourceContext, CancellationToken> action)
         {
             return RunEventSource(messageBus, new DelegateEventSource(action));
         }
 
-        public static IDisposable RunEventSource(this IMessageBus messageBus, Action<IEventSourceContext> action)
+        public static IDisposable RunEventSource(this IBusBase messageBus, Action<IEventSourceContext> action)
         {
             return RunEventSource(messageBus, new DelegateEventSource(action));
         }
 
-        public static IDisposable RunEventSource(this IMessageBus messageBus, IEventSource source)
+        public static IDisposable RunEventSource(this IBusBase messageBus, IEventSource source)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
 
@@ -24,13 +24,13 @@ namespace Acquaintance.Sources
             return module.RunEventSource(source);
         }
 
-        public static IDisposable InitializeEventSources(this IMessageBus messageBus)
+        public static IDisposable InitializeEventSources(this IPubSubBus messageBus)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             return messageBus.Modules.Add(new EventSourceModule(messageBus, messageBus.Logger));
         }
 
-        private static EventSourceModule GetModule(IMessageBus messageBus)
+        private static EventSourceModule GetModule(IBusBase messageBus)
         {
             var module = messageBus.Modules.Get<EventSourceModule>();
             if (module == null)

@@ -5,7 +5,7 @@ namespace Acquaintance.Sagas
 {
     public static class SagaExtensions
     {
-        public static IDisposable InitializeSagas(this IMessageBus messageBus, int numberOfThreads = 1)
+        public static IDisposable InitializeSagas(this IPubSubBus messageBus, int numberOfThreads = 1)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             var existing = messageBus.Modules.Get<SagasModule>();
@@ -14,7 +14,7 @@ namespace Acquaintance.Sagas
             return messageBus.Modules.Add(new SagasModule(messageBus, numberOfThreads));
         }
 
-        public static IDisposable CreateSaga<TState, TKey>(this IMessageBus messageBus, Action<ISagaBuilder<TState, TKey>> build)
+        public static IDisposable CreateSaga<TState, TKey>(this IPubSubBus messageBus, Action<ISagaBuilder<TState, TKey>> build)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(build, nameof(build));
