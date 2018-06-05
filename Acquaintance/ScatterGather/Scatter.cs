@@ -13,9 +13,9 @@ namespace Acquaintance.ScatterGather
         private readonly ConcurrentDictionary<Guid, bool> _respondents;
 
         private volatile bool _neverHadParticipants;
-        private volatile int _expectCount;
-        private volatile int _totalParticipants;
-        private volatile int _completedParticipants;
+        private int _expectCount;
+        private int _totalParticipants;
+        private int _completedParticipants;
 
         public Scatter()
         {
@@ -24,16 +24,17 @@ namespace Acquaintance.ScatterGather
             _neverHadParticipants = true;
         }
 
-        public int TotalParticipants => _totalParticipants;
+        public int TotalParticipants => Interlocked.CompareExchange(ref _totalParticipants, 0, 0);
 
-        public int CompletedParticipants => _completedParticipants;
+        public int CompletedParticipants => Interlocked.CompareExchange(ref _completedParticipants, 0, 0);
 
         public ScatterResponse<TResponse> GetNextResponse(TimeSpan timeout)
         {
             if (_neverHadParticipants)
                 return null;
 
-            if (_expectCount == 0 && _responses.Count == 0)
+            var expectCount = Interlocked.CompareExchange(ref _expectCount, 0, 0);
+            if (expectCount <= 0 && _responses.Count == 0)
                 return null;
 
             var ok = _responses.TryTake(out ScatterResponse<TResponse> response, timeout);
@@ -45,7 +46,8 @@ namespace Acquaintance.ScatterGather
             if (_neverHadParticipants)
                 return default(TResponse);
 
-            if (_expectCount == 0 && _responses.Count == 0)
+            var expectCount = Interlocked.CompareExchange(ref _expectCount, 0, 0);
+            if (expectCount <= 0 && _responses.Count == 0)
                 return default(TResponse);
 
             return await Task

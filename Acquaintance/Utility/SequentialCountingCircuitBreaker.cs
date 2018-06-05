@@ -20,14 +20,13 @@ namespace Acquaintance.Utility
         /// <param name="success">If true, the breaker is considered healthy. If false, the breaker may trip.</param>
         void RecordResult(bool success);
     }
-
     
     public class SequentialCountingCircuitBreaker : ICircuitBreaker
     {
         private readonly int _breakMs;
         private readonly int _maxFailedRequests;
 
-        private volatile int _failedRequests;
+        private int _failedRequests;
         private long _restartTime;
 
         public SequentialCountingCircuitBreaker(int breakMs, int maxFailedRequests)
@@ -39,12 +38,14 @@ namespace Acquaintance.Utility
 
         public bool CanProceed()
         {
-            if (_failedRequests < _maxFailedRequests)
+            var failedRequests = Interlocked.CompareExchange(ref _failedRequests, 0, 0);
+            if (failedRequests < _maxFailedRequests)
                 return true;
             var restartTime = Interlocked.Read(ref _restartTime);
             if (DateTime.UtcNow.Ticks >= restartTime)
             {
-                _failedRequests = 0;
+                Interlocked.Exchange(ref _failedRequests, 0);
+                Interlocked.MemoryBarrier();
                 return true;
             }
             return false;
@@ -54,7 +55,8 @@ namespace Acquaintance.Utility
         {
             if (success)
             {
-                _failedRequests = 0;
+                Interlocked.Exchange(ref _failedRequests, 0);
+                Interlocked.MemoryBarrier();
                 return;
             }
 
@@ -66,6 +68,7 @@ namespace Acquaintance.Utility
                 var newRestartTime = DateTime.UtcNow.AddMilliseconds(_breakMs).Ticks;
                 Interlocked.CompareExchange(ref _restartTime, newRestartTime, restartTime);
             }
+            Interlocked.MemoryBarrier();
         }
     }
 
@@ -77,7 +80,7 @@ namespace Acquaintance.Utility
         private readonly bool[] _events;
         private int _currentIndex;
         private long _restartTime;
-        private volatile int _errorCount;
+        private int _errorCount;
 
         public WindowedCountingCircuitBreaker(int breakMs, int maxFailedRequests, int windowSize)
         {
@@ -93,12 +96,13 @@ namespace Acquaintance.Utility
 
         public bool CanProceed()
         {
-            if (_errorCount < _maxFailedRequests)
+            var errorCount = Interlocked.CompareExchange(ref _errorCount, 0, 0);
+            if (errorCount < _maxFailedRequests)
                 return true;
             var restartTime = Interlocked.Read(ref _restartTime);
             if (DateTime.UtcNow.Ticks >= restartTime)
             {
-                _errorCount = 0;
+                Interlocked.Exchange(ref _errorCount, 0);
                 return true;
             }
             return false;
