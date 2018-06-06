@@ -5,13 +5,13 @@ namespace Acquaintance.Timers
 {
     public class MessageTimerModule : IMessageBusModule
     {
-        private readonly ConcurrentDictionary<Guid, MessageTimer> _timers;
+        private readonly ConcurrentDictionary<string, MessageTimer> _timers;
         private readonly IPublishable _messageBus;
 
         public MessageTimerModule(IPublishable messageBus)
         {
             _messageBus = messageBus;
-            _timers = new ConcurrentDictionary<Guid, MessageTimer>();
+            _timers = new ConcurrentDictionary<string, MessageTimer>();
         }
 
         public void Start()
@@ -27,20 +27,20 @@ namespace Acquaintance.Timers
 
         public IDisposable AddNewTimer(string topic, int delayMs = 5000, int intervalMs = 10000)
         {
-            var id = Guid.NewGuid();
+            topic = topic ?? string.Empty;
             var timer = new MessageTimer(_messageBus, topic, delayMs, intervalMs);
-            bool ok = _timers.TryAdd(id, timer);
+            bool ok = _timers.TryAdd(topic, timer);
             if (!ok)
             {
                 timer.Dispose();
-                return null;
+                throw new Exception($"Timer with topic '{topic}' already exists with interval={intervalMs}");
             }
-            return new TimerToken(this, topic, id);
+            return new TimerToken(this, topic);
         }
 
-        private void RemoveTimer(Guid id)
+        private void RemoveTimer(string topic)
         {
-            bool ok = _timers.TryRemove(id, out MessageTimer timer);
+            bool ok = _timers.TryRemove(topic, out MessageTimer timer);
             if (ok)
                 timer?.Dispose();
         }
@@ -49,23 +49,21 @@ namespace Acquaintance.Timers
         {
             private readonly MessageTimerModule _module;
             private readonly string _topic;
-            private readonly Guid _timerId;
 
-            public TimerToken(MessageTimerModule module, string topic, Guid timerId)
+            public TimerToken(MessageTimerModule module, string topic)
             {
                 _module = module;
                 _topic = topic;
-                _timerId = timerId;
             }
 
             public override string ToString()
             {
-                return $"Message Timer Topic={_topic} Id={_timerId}";
+                return $"Message Timer Topic={_topic}";
             }
 
             public void Dispose()
             {
-                _module.RemoveTimer(_timerId);
+                _module.RemoveTimer(_topic);
             }
         }
     }

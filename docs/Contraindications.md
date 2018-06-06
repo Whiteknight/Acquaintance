@@ -18,7 +18,7 @@ Message-passing in Acquaintance is cheaper than making a remote call to a separa
 * **Do**: Keep performance in mind and call the MessageBus only when necessary
 * **Don't**: Use the MessageBus when a simple direct method call would suffice.
 
-Acquaintance works with threading primitives to provide a variety of dispatching behaviors, and it is entirely possible for you to configure Acquaintance to produce bottlenecks, resource starvation and soft-deadlocks if you are not paying enough attention to system design. Acquaintance may try to detect some of the most obvious issues, but it is ultimately your responsibility to keep your process running smoothly.
+Acquaintance works with threading primitives to provide a variety of dispatching behaviors, and it is entirely possible for you to configure Acquaintance to produce bottlenecks, resource starvation and soft-deadlocks if you are not paying enough attention to system design. Acquaintance may try to detect some of the most obvious issues, but it is ultimately your responsibility to keep your process running smoothly. 
 
 * **Do**: Use Acquaintance to help simplify multi-threaded programming and dispatching of work to multiple threads without needing Locks.
 * **Don't**: Use Locks and strict ordering of operations with Acquaintance to potentially create deadlocks.

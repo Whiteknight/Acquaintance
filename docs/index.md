@@ -91,10 +91,10 @@ Acquaintance provides several features which are extensions of the three basic m
 
 ## Design Goals
 
-Acquaintance follows several design goals:
+Acquaintance follows several design goals and principles:
 
-1. Make good use of appropriate patterns, including GoF, Messaging and Architectural patterns
-1. Be lockless
+1. Make good use of appropriate patterns, including Gang-of-Four, Messaging and Architectural patterns
+1. Be lockless and non-blocking
 1. Optimize for the common case, both in terms of performance and usability
 1. Use good, fluent interfaces to help features be usable and discoverable
 1. Be flexible and extensible to support a wide variety of projects and use-cases
