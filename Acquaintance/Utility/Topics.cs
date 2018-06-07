@@ -10,9 +10,7 @@ namespace Acquaintance.Utility
             if (topics == null || topics.Length == 0)
                 return new[] { string.Empty };
             topics =  topics.Select(t => t ?? string.Empty).Distinct().ToArray();
-            if (topics.Length == 0)
-                return new[] { string.Empty };
-            return topics;
+            return topics.Length == 0 ? new[] { string.Empty } : topics;
         }
 
         public static string[] Canonicalize(IEnumerable<string> topics)

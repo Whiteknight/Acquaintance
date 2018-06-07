@@ -38,17 +38,12 @@ namespace Acquaintance.ScatterGather
             if (_useDedicatedThread)
                 _threadId = _workerPool.StartDedicatedWorker().ThreadId;
 
-            var participant = BuildParticipantInternal();
+            if (_funcReference == null)
+                throw new Exception("No actions defined");
+            var participant = CreateParticipant(_funcReference, _dispatchType, _threadId, _name);
 
             participant = WrapParticipant(participant, _filter, _maxRequests);
             return participant;
-        }
-
-        private IParticipant<TRequest, TResponse> BuildParticipantInternal()
-        {
-            if (_funcReference == null)
-                throw new Exception("No actions defined");
-            return CreateParticipant(_funcReference, _dispatchType, _threadId, _name);
         }
 
         public IDisposable WrapToken(IDisposable token)
@@ -136,21 +131,44 @@ namespace Acquaintance.ScatterGather
 
         public IDetailsParticipantBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
         {
-            _filter = filter;
+            if (filter == null)
+                return this;
+            if (_filter == null)
+                _filter = filter;
+            else
+            {
+                var oldFilter = _filter;
+                _filter = r => oldFilter(r) && filter(r);
+            }
+
             return this;
         }
 
         public IDetailsParticipantBuilder<TRequest, TResponse> ModifyParticipant(Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> modify)
         {
-            _modify = modify;
+            Assert.ArgumentNotNull(modify, nameof(modify));
+            if (_modify == null)
+                _modify = modify;
+            else
+            {
+                var oldModify = _modify;
+                _modify = p => modify(oldModify(p));
+            }
             return this;
         }
 
         public IDetailsParticipantBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs)
         {
-            if (_circuitBreaker != null)
-                throw new Exception("Circuit breaker is already configured");
+            ValidateDoesNotAlreadyHaveCircuitBreaker();
             _circuitBreaker = new SequentialCountingCircuitBreaker(breakMs, maxFailures);
+            return this;
+        }
+
+        public IDetailsParticipantBuilder<TRequest, TResponse> WithCircuitBreaker(ICircuitBreaker circuitBreaker)
+        {
+            Assert.ArgumentNotNull(circuitBreaker, nameof(circuitBreaker));
+            ValidateDoesNotAlreadyHaveCircuitBreaker();
+            _circuitBreaker = circuitBreaker;
             return this;
         }
 
@@ -158,6 +176,12 @@ namespace Acquaintance.ScatterGather
         {
             _name = name;
             return this;
+        }
+
+        private void ValidateDoesNotAlreadyHaveCircuitBreaker()
+        {
+            if (_circuitBreaker != null)
+                throw new Exception("Circuit breaker is already configured");
         }
 
         private void ValidateDoesNotAlreadyHaveAction()

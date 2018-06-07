@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.RequestResponse
 {
@@ -154,5 +155,12 @@ namespace Acquaintance.RequestResponse
         /// <param name="breakMs"></param>
         /// <returns></returns>
         IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs);
+
+        /// <summary>
+        /// Use the specified circuit breaker for this listener.
+        /// </summary>
+        /// <param name="circuitBreaker"></param>
+        /// <returns></returns>
+        IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(ICircuitBreaker circuitBreaker);
     }
 }

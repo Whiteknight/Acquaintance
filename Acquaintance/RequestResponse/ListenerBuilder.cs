@@ -164,22 +164,52 @@ namespace Acquaintance.RequestResponse
 
         public IDetailsListenerBuilder<TRequest, TResponse> WithFilter(Func<TRequest, bool> filter)
         {
-            _filter = filter;
+            if (filter == null)
+                return this;
+            if (_filter == null)
+                _filter = filter;
+            else
+            {
+                var oldFilter = _filter;
+                _filter = r => oldFilter(r) && filter(r);
+            }
+
             return this;
         }
 
         public IDetailsListenerBuilder<TRequest, TResponse> ModifyListener(Func<IListener<TRequest, TResponse>, IListener<TRequest, TResponse>> modify)
         {
-            _modify = modify;
+            Assert.ArgumentNotNull(modify, nameof(modify));
+            if (_modify == null)
+                _modify = modify;
+            else
+            {
+                var oldModify = _modify;
+                _modify = l => modify(oldModify(l));
+            }
+
             return this;
         }
 
         public IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs)
         {
-            if (_circuitBreaker != null)
-                throw new Exception("Already has a circuit breaker configured");
+            ValidateDoesNotAlreadyHaveCircuitBreaker();
             _circuitBreaker = new SequentialCountingCircuitBreaker(breakMs, maxFailures);
             return this;
+        }
+
+        public IDetailsListenerBuilder<TRequest, TResponse> WithCircuitBreaker(ICircuitBreaker circuitBreaker)
+        {
+            Assert.ArgumentNotNull(circuitBreaker, nameof(circuitBreaker));
+            ValidateDoesNotAlreadyHaveCircuitBreaker();
+            _circuitBreaker = circuitBreaker;
+            return this;
+        }
+
+        private void ValidateDoesNotAlreadyHaveCircuitBreaker()
+        {
+            if (_circuitBreaker != null)
+                throw new Exception("Already has a circuit breaker configured");
         }
 
         private void ValidateDoesNotAlreadyHaveDispatchType()

@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.ScatterGather
 {
@@ -114,8 +115,28 @@ namespace Acquaintance.ScatterGather
         /// <returns></returns>
         IDetailsParticipantBuilder<TRequest, TResponse> ModifyParticipant(Func<IParticipant<TRequest, TResponse>, IParticipant<TRequest, TResponse>> modify);
 
+        /// <summary>
+        /// Use a circuit breaker with this participant which breaks after a number of sequential failures
+        /// and reconnects after a specified cool-off period
+        /// </summary>
+        /// <param name="maxFailures"></param>
+        /// <param name="breakMs"></param>
+        /// <returns></returns>
         IDetailsParticipantBuilder<TRequest, TResponse> WithCircuitBreaker(int maxFailures, int breakMs);
 
+        /// <summary>
+        /// Use the specified custom circuit breaker with this participant
+        /// </summary>
+        /// <param name="circuitBreaker"></param>
+        /// <returns></returns>
+        IDetailsParticipantBuilder<TRequest, TResponse> WithCircuitBreaker(ICircuitBreaker circuitBreaker);
+
+        /// <summary>
+        /// Give this participant a descriptive name which will be included during results gathering, to help
+        /// with debugging and auditing
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         IDetailsParticipantBuilder<TRequest, TResponse> Named(string name);
     }
 }
