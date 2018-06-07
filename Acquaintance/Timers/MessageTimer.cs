@@ -10,6 +10,7 @@ namespace Acquaintance.Timers
         private readonly IPublishable _messageBus;
         private readonly Timer _timer;
         private int _messageId;
+        private int _concurrentTicks;
 
         public MessageTimer(IPublishable messageBus, string topic, int delayMs = 5000, int intervalMs = 10000)
         {
@@ -25,6 +26,7 @@ namespace Acquaintance.Timers
             _topic = topic ?? string.Empty;
 
             _timer = new Timer(TimerTick, null, delayMs, intervalMs);
+            _concurrentTicks = 0;
         }
 
         public void Dispose()
@@ -34,11 +36,18 @@ namespace Acquaintance.Timers
 
         private void TimerTick(object state)
         {
-            var bus = _messageBus;
-            if (bus == null)
-                return;
             var id = Interlocked.Increment(ref _messageId);
-            bus.Publish(_topic, new MessageTimerEvent(_topic, id));
+
+            var concurrentTicks = Interlocked.CompareExchange(ref _concurrentTicks, 1, 0);
+            if (concurrentTicks == 1)
+            {
+                _messageBus.Logger.Warn($"Timer Topic={_topic} tick={id} could not fire because the previous Tick has not completed.");
+                return;
+            }
+            
+            _messageBus.Publish(_topic, new MessageTimerEvent(_topic, id));
+
+            Interlocked.CompareExchange(ref _concurrentTicks, 0, 1);
         }
     }
 }

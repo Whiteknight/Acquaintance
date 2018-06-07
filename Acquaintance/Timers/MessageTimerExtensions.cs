@@ -33,7 +33,13 @@ namespace Acquaintance.Timers
             Assert.IsInRange(multiple, nameof(multiple), 1, int.MaxValue);
             Assert.ArgumentNotNull(build, nameof(build));
 
-            // TODO: Warning to the user of the MessageTimer hasn't been added to the list of modules?
+            topic = topic ?? string.Empty;
+
+            var module = messageBus.Modules.Get<MessageTimerModule>();
+            if (module == null)
+                messageBus.Logger.Warn($"Subscribed to Timer message {topic} but the message timer module has not been initialized. Did you forget to call .{nameof(InitializeMessageTimer)}() first?");
+            else if (!module.TimerExists(topic))
+                messageBus.Logger.Warn($"Subscribed to Timer message {topic} but that timer does not exist. You must call .{nameof(StartTimer)}({topic}) to activate that timer");
 
             return messageBus.Subscribe<MessageTimerEvent>(builder =>
             {

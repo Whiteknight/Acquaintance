@@ -8,7 +8,7 @@
             TimerName = timerName;
         }
 
-        public long Id { get; private set; }
-        public string TimerName { get; private set; }
+        public long Id { get; }
+        public string TimerName { get; }
     }
 }

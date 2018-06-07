@@ -38,6 +38,11 @@ namespace Acquaintance.Timers
             return new TimerToken(this, topic);
         }
 
+        public bool TimerExists(string topic)
+        {
+            return _timers.ContainsKey(topic);
+        }
+
         private void RemoveTimer(string topic)
         {
             bool ok = _timers.TryRemove(topic, out MessageTimer timer);
