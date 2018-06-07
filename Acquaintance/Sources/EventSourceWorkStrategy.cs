@@ -1,5 +1,4 @@
 using System.Threading;
-using Acquaintance.Logging;
 using Acquaintance.Threading;
 using Acquaintance.Utility;
 

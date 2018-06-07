@@ -32,10 +32,7 @@ namespace Acquaintance.Sources
 
         private static EventSourceModule GetModule(IBusBase messageBus)
         {
-            var module = messageBus.Modules.Get<EventSourceModule>();
-            if (module == null)
-                throw new Exception($"EventSource module is not enabled. Call .{nameof(InitializeEventSources)}() first");
-            return module;
+            return messageBus.Modules.Get<EventSourceModule>() ?? throw new Exception($"EventSource module is not enabled. Call .{nameof(InitializeEventSources)}() first");
         }
     }
 }
