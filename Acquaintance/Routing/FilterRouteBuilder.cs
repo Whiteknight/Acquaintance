@@ -4,24 +4,6 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Routing
 {
-    public interface IFilterRouteBuilderSingleInput<T>
-    {
-        IFilterRouteBuilderWhen<T> FromTopic(string topic);
-        IFilterRouteBuilderWhen<T> FromDefaultTopic();
-    }
-    public interface IFilterRouteBuilderMultiInput<T>
-    {
-        IFilterRouteBuilderWhen<T> FromTopics(params string[] topics);
-        IFilterRouteBuilderWhen<T> FromTopics(IEnumerable<string> topics);
-        IFilterRouteBuilderWhen<T> FromDefaultTopic();
-    }
-
-    public interface IFilterRouteBuilderWhen<T>
-    {
-        IFilterRouteBuilderWhen<T> When(Func<T, bool> predicate, string topic);
-        void Else(string defaultRoute);
-    }
-
     public class FilterRouteBuilder<T> : IFilterRouteBuilderSingleInput<T>, IFilterRouteBuilderMultiInput<T>, IFilterRouteBuilderWhen<T>
     {
         private readonly List<EventRoute<T>> _routes;
@@ -41,13 +23,13 @@ namespace Acquaintance.Routing
 
         public IFilterRouteBuilderWhen<T> FromTopics(params string[] topics)
         {
-            InTopics = TopicUtility.CanonicalizeTopics(topics);
+            InTopics = Topics.Canonicalize(topics);
             return this;
         }
 
         public IFilterRouteBuilderWhen<T> FromTopics(IEnumerable<string> topics)
         {
-            InTopics = TopicUtility.CanonicalizeTopics(topics);
+            InTopics = Topics.Canonicalize(topics);
             return this;
         }
 

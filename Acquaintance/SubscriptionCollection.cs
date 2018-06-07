@@ -26,6 +26,7 @@ namespace Acquaintance
             _subscriptions = new DisposableCollection();
             WorkerPool = new DisposableWorkerPool(messageBus.WorkerPool, _subscriptions);
             _router = new DisposableTopicRouter(messageBus.PublishRouter, messageBus.RequestRouter, messageBus.ScatterRouter, _subscriptions);
+            Modules = new ReadOnlyModules(messageBus);
         }
 
         public ILogger Logger => _messageBus.Logger;
@@ -34,7 +35,7 @@ namespace Acquaintance
         public IRequestTopicRouter RequestRouter => _router;
         public IScatterTopicRouter ScatterRouter => _router;
 
-        public IModuleManager Modules => throw new NotImplementedException();
+        public IModuleManager Modules { get; }
         public IWorkerPool WorkerPool { get; }
 
         public IEnvelopeFactory EnvelopeFactory => _messageBus.EnvelopeFactory;
@@ -88,6 +89,28 @@ namespace Acquaintance
         public void Dispose()
         {
             _subscriptions.Dispose();
+        }
+
+        private class ReadOnlyModules : IModuleManager
+        {
+            private readonly IMessageBus _messageBus;
+
+            public ReadOnlyModules(IMessageBus messageBus)
+            {
+                _messageBus = messageBus;
+            }
+
+            public IDisposable Add<TModule>(TModule module)
+                where TModule : class, IMessageBusModule
+            {
+                throw new Exception("Cannot add a module to a child bus");
+            }
+
+            public TModule Get<TModule>()
+                where TModule : class, IMessageBusModule
+            {
+                return _messageBus.Modules.Get<TModule>();
+            }
         }
 
         private class DisposableTopicRouter : IPublishTopicRouter, IRequestTopicRouter, IScatterTopicRouter

@@ -26,8 +26,15 @@ namespace Acquaintance
         /// </summary>
         IEnvelopeFactory EnvelopeFactory { get; }
 
+        /// <summary>
+        /// Source for all logging operations.
+        /// </summary>
         ILogger Logger { get; }
 
+        /// <summary>
+        /// The ID of the bus. The ID should be unique among federated MessageBus instances, but can be any
+        /// arbitrary string in the absence of federation
+        /// </summary>
         string Id { get; }
     }
 

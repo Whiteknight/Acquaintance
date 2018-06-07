@@ -3,9 +3,9 @@ using System.Linq;
 
 namespace Acquaintance.Utility
 {
-    public static class TopicUtility
+    public static class Topics
     {
-        public static string[] CanonicalizeTopics(string[] topics)
+        public static string[] Canonicalize(string[] topics)
         {
             if (topics == null || topics.Length == 0)
                 return new[] { string.Empty };
@@ -15,12 +15,12 @@ namespace Acquaintance.Utility
             return topics;
         }
 
-        public static string[] CanonicalizeTopics(IEnumerable<string> topics)
+        public static string[] Canonicalize(IEnumerable<string> topics)
         {
-            return CanonicalizeTopics(topics?.ToArray());
+            return Canonicalize(topics?.ToArray());
         }
 
-        public static string[] CanonicalizeTopics(string topic)
+        public static string[] Canonicalize(string topic)
         {
             return new[] { topic ?? string.Empty };
         }

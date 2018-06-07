@@ -92,13 +92,13 @@ namespace Acquaintance.Routing
         IDisposable IPublishTopicRouter.AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
         {
             Assert.ArgumentNotNull(rule, nameof(rule));
-            var keys = TopicUtility.CanonicalizeTopics(topics)
+            var keys = Topics.Canonicalize(topics)
                 .Select(t => GetKey<TPayload>(t ?? string.Empty))
                 .ToArray();
             foreach (var key in keys)
             {
-                bool ok = _publishRoutes.TryAdd(key, rule);
-                // TODO: How do we handle this error condition where !ok?
+                if (!_publishRoutes.TryAdd(key, rule))
+                    throw new Exception($"Could not add route for Payload={typeof(TPayload).Name} Topic={key}. It may have already been added");
             }
             return new PublishRouteToken(this, keys);
         }

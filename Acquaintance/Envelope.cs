@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
-using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -13,7 +12,7 @@ namespace Acquaintance
         {
             OriginBusId = originBusId;
             Id = id;
-            Topics = TopicUtility.CanonicalizeTopics(topics);
+            Topics = Utility.Topics.Canonicalize(topics);
             Payload = payload;
         }
 
@@ -21,7 +20,7 @@ namespace Acquaintance
         {
             OriginBusId = originBusId;
             Id = id;
-            Topics = TopicUtility.CanonicalizeTopics(topic);
+            Topics = Utility.Topics.Canonicalize(topic);
             Payload = payload;
         }
 
@@ -32,13 +31,13 @@ namespace Acquaintance
 
         public Envelope<TPayload> RedirectToTopic(string topic)
         {
-            var topics = TopicUtility.CanonicalizeTopics(topic);
+            var topics = Utility.Topics.Canonicalize(topic);
             return RedirectToTopicsInternal(topics);
         }
 
         public Envelope<TPayload> RedirectToTopics(string[] topics)
         {
-            topics = TopicUtility.CanonicalizeTopics(topics);
+            topics = Utility.Topics.Canonicalize(topics);
             return RedirectToTopicsInternal(topics);
         }
 
