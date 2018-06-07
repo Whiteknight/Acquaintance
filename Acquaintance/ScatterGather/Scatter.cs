@@ -126,7 +126,9 @@ namespace Acquaintance.ScatterGather
 
         public void AddParticipant(Guid participantId)
         {
-            _respondents.TryAdd(participantId, false);
+            if (!_respondents.TryAdd(participantId, false))
+                return;
+
             Interlocked.Increment(ref _totalParticipants);
             _neverHadParticipants = false;
             Interlocked.Increment(ref _expectCount);
