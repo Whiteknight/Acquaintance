@@ -35,7 +35,7 @@ namespace Acquaintance
         }
 
         /// <summary>
-        /// Publish the given payload as an event on the topic. 
+        /// Publish the given payload as an event on the topic.
         /// This overload is used when the object type is not known at compile time but is only
         /// available at runtime.
         /// </summary>
@@ -50,7 +50,7 @@ namespace Acquaintance
             var factoryMethod = messageBus.EnvelopeFactory.GetType()
                 .GetMethod(nameof(messageBus.EnvelopeFactory.Create))
                 .MakeGenericMethod(payloadType);
-            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { new [] { topic }, payload, null });
+            var envelope = factoryMethod.Invoke(messageBus.EnvelopeFactory, new[] { new[] { topic }, payload, null });
 
             var method = messageBus.GetType().GetMethod(nameof(messageBus.PublishEnvelope)).MakeGenericMethod(payloadType);
             method.Invoke(messageBus, new[] { envelope });
@@ -101,12 +101,12 @@ namespace Acquaintance
             return messageBus.Subscribe(new[] { topic ?? string.Empty }, subscription);
         }
 
-        public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj)
+        public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj, bool useWeakReference = false)
         {
-            return new SubscriptionScanner(messageBus, messageBus.Logger).AutoSubscribe(obj);
+            return new SubscriptionScanner(messageBus, messageBus.Logger).AutoSubscribe(obj, useWeakReference);
         }
 
-        public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, Action act)
+        public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, Action act, bool useWeakReference = false)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(payloadType, nameof(payloadType));
@@ -114,10 +114,10 @@ namespace Acquaintance
 
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedActionInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new object[] { messageBus, topics, act }) as IDisposable;
+            return method.Invoke(null, new object[] { messageBus, topics, act, useWeakReference }) as IDisposable;
         }
 
-        public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
+        public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber, bool useWeakReference = false)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(payloadType, nameof(payloadType));
@@ -126,16 +126,16 @@ namespace Acquaintance
 
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedMethodInfoInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new[] { messageBus, topics, target, subscriber } ) as IDisposable;
+            return method.Invoke(null, new[] { messageBus, topics, target, subscriber, useWeakReference }) as IDisposable;
         }
 
-        private static IDisposable SubscribeUntypedMethodInfoInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
+        private static IDisposable SubscribeUntypedMethodInfoInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber, bool useWeakReference)
         {
             if (topics == null)
             {
                 return Subscribe<TPayload>(messageBus, b => b
                     .ForAllTopics()
-                    .Invoke(p => subscriber.Invoke(target, new object[] { p })));
+                    .Invoke(p => subscriber.Invoke(target, new object[] { p }), useWeakReference));
             }
 
             if (topics.Length == 0)
@@ -143,16 +143,16 @@ namespace Acquaintance
 
             return Subscribe<TPayload>(messageBus, b => b
                 .WithTopic(topics)
-                .Invoke(p => subscriber.Invoke(target, new object[] { p })));
+                .Invoke(p => subscriber.Invoke(target, new object[] { p }), useWeakReference));
         }
 
-        private static IDisposable SubscribeUntypedActionInternal<TPayload>(IPubSubBus messageBus, string[] topics, Action act)
+        private static IDisposable SubscribeUntypedActionInternal<TPayload>(IPubSubBus messageBus, string[] topics, Action act, bool useWeakReference)
         {
             if (topics == null)
             {
                 return Subscribe<TPayload>(messageBus, b => b
                     .ForAllTopics()
-                    .Invoke(p => act()));
+                    .Invoke(p => act(), useWeakReference));
             }
 
             if (topics.Length == 0)
@@ -160,10 +160,10 @@ namespace Acquaintance
 
             return Subscribe<TPayload>(messageBus, b => b
                 .WithTopic(topics)
-                .Invoke(p => act()));
+                .Invoke(p => act(), useWeakReference));
         }
 
-        public static IDisposable SubscribeEnvelopeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber)
+        public static IDisposable SubscribeEnvelopeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber, bool useWeakReference = false)
         {
             Assert.ArgumentNotNull(messageBus, nameof(messageBus));
             Assert.ArgumentNotNull(payloadType, nameof(payloadType));
@@ -172,18 +172,18 @@ namespace Acquaintance
 
             var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeEnvelopeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
             method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new[] { messageBus, topics, target, subscriber }) as IDisposable;
+            return method.Invoke(null, new[] { messageBus, topics, target, subscriber, useWeakReference }) as IDisposable;
         }
 
         // TODO: Ability to use WeakReferences, so that the subscriptions are automatically culled when the object gets collected
         // This may require a new attribute to be used at the class level, or some parameter to the Autosubscribe() method.
-        private static IDisposable SubscribeEnvelopeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber)
+        private static IDisposable SubscribeEnvelopeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber, bool useWeakReference)
         {
             if (topics == null || topics.Length == 0)
             {
                 return Subscribe<TPayload>(messageBus, b => b
                     .WithDefaultTopic()
-                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e })));
+                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e }), useWeakReference));
             }
 
             var tokens = new DisposableCollection();
@@ -191,7 +191,7 @@ namespace Acquaintance
             {
                 var token = Subscribe<TPayload>(messageBus, b => b
                     .WithTopic(topic)
-                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e })));
+                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e }), useWeakReference));
                 tokens.Add(token);
             }
             return tokens;

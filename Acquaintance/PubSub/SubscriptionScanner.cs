@@ -20,8 +20,8 @@ namespace Acquaintance.PubSub
             _messageBus = messageBus;
             _logger = logger;
         }
-        
-        public IDisposable AutoSubscribe(object obj)
+
+        public IDisposable AutoSubscribe(object obj, bool useWeakReference = false)
         {
             Assert.ArgumentNotNull(obj, nameof(obj));
 
@@ -30,14 +30,14 @@ namespace Acquaintance.PubSub
             var tokens = new DisposableCollection();
             foreach (var method in methods)
             {
-                var token = SubscribeMethod(obj, method, type);
+                var token = SubscribeMethod(obj, method, type, useWeakReference);
                 if (token != null)
                     tokens.Add(token);
             }
             return tokens;
         }
 
-        private IDisposable SubscribeMethod(object obj, SubscribableMethod method, Type type)
+        private IDisposable SubscribeMethod(object obj, SubscribableMethod method, Type type, bool useWeakReference)
         {
             Type payloadType = method.Subscription.Type;
             if (payloadType == null && method.Parameter != null)
@@ -66,17 +66,17 @@ namespace Acquaintance.PubSub
             // If the method does not have a parameter, subscribe a trampoline to get to that method
             if (parameter == null)
             {
-                return _messageBus.SubscribeUntyped(payloadType, method.Subscription.Topics, () => methodInfo.Invoke(obj, new object[0]));
+                return _messageBus.SubscribeUntyped(payloadType, method.Subscription.Topics, () => methodInfo.Invoke(obj, new object[0]), useWeakReference);
             }
 
             // If the method has a parameter, and it's an Envelope<> type, subscribe it that way
             var envelopeType = typeof(Envelope<>).MakeGenericType(payloadType);
             if (parameter.ParameterType.IsAssignableFrom(envelopeType))
-                return _messageBus.SubscribeEnvelopeUntyped(payloadType, method.Subscription.Topics, obj, methodInfo);
+                return _messageBus.SubscribeEnvelopeUntyped(payloadType, method.Subscription.Topics, obj, methodInfo, useWeakReference);
 
             // If the parameter type is assignable from the payload type, subscribe it that way
             if (parameter.ParameterType.IsAssignableFrom(payloadType))
-                return _messageBus.SubscribeUntyped(payloadType, method.Subscription.Topics, obj, methodInfo);
+                return _messageBus.SubscribeUntyped(payloadType, method.Subscription.Topics, obj, methodInfo, useWeakReference);
 
             // We can't match the type, log an error
             _logger.Error($"Could not add subscription {type.Name}.{methodInfo.Name} because parameter of type {parameter.ParameterType.Name} is not assignable from {payloadType.Name}");
