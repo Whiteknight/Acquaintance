@@ -5,15 +5,15 @@
     <AssemblyName>Acquaintance</AssemblyName>
     <RootNamespace>Acquaintance</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.0.0</Version>
+    <Version>3.0.0-beta1</Version>
     <Authors>Andrew F. Whitworth</Authors>
     <Company />
     <Description>Internal messaging for loosely-coupled applications</Description>
     <Copyright>Copyright 2016-2017</Copyright>
     <PackageLicenseUrl>https://github.com/Whiteknight/Acquaintance/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://whiteknight.github.io/Acquaintance/</PackageProjectUrl>
-    <AssemblyVersion>2.0.0.2</AssemblyVersion>
-    <FileVersion>2.0.0.2</FileVersion>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0.1</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup>
