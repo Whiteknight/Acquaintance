@@ -26,10 +26,12 @@ namespace Acquaintance.RequestResponse
         private int _timesSet;
         private volatile bool _isComplete;
         private volatile bool _hasResponse;
+        private int _cleanupAttempts;
 
         public Request()
         {
             _timesSet = 0;
+            _cleanupAttempts = 0;
             _resetEvent = new ManualResetEvent(false);
         }
 
@@ -40,6 +42,7 @@ namespace Acquaintance.RequestResponse
             {
                 _isComplete = true;
                 _hasResponse = false;
+                Interlocked.MemoryBarrier();
                 _resetEvent.Set();
             }
         }
@@ -50,9 +53,11 @@ namespace Acquaintance.RequestResponse
             if (canSet != 1)
                 return;
             _response = response;
-            _isComplete = true;
-            _hasResponse = true;
             _exception = null;
+            _hasResponse = true;
+            Interlocked.MemoryBarrier();
+            _isComplete = true;
+            Interlocked.MemoryBarrier();
             _resetEvent.Set();
         }
 
@@ -63,8 +68,10 @@ namespace Acquaintance.RequestResponse
                 return;
             _response = default(TResponse);
             _exception = e;
-            _isComplete = true;
             _hasResponse = true;
+            Interlocked.MemoryBarrier();
+            _isComplete = true;
+            Interlocked.MemoryBarrier();
             _resetEvent.Set();
         }
 
@@ -73,7 +80,8 @@ namespace Acquaintance.RequestResponse
             if (_isComplete)
                 return true;
             bool ok = _resetEvent.WaitOne(timeout);
-            _resetEvent.Dispose();
+            if (Interlocked.CompareExchange(ref _cleanupAttempts, 1, 0) == 0)
+                _resetEvent.Dispose();
             return ok;
         }
 
@@ -106,6 +114,6 @@ namespace Acquaintance.RequestResponse
         {
             if (_exception != null)
                 throw _exception;
-        }  
+        }
     }
 }

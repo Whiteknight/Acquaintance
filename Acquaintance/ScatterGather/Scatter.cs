@@ -12,7 +12,6 @@ namespace Acquaintance.ScatterGather
         private readonly BlockingCollection<ScatterResponse<TResponse>> _responses;
         private readonly ConcurrentDictionary<Guid, bool> _respondents;
 
-        private volatile bool _neverHadParticipants;
         private int _expectCount;
         private int _totalParticipants;
         private int _completedParticipants;
@@ -21,7 +20,6 @@ namespace Acquaintance.ScatterGather
         {
             _responses = new BlockingCollection<ScatterResponse<TResponse>>();
             _respondents = new ConcurrentDictionary<Guid, bool>();
-            _neverHadParticipants = true;
         }
 
         public int TotalParticipants => Interlocked.CompareExchange(ref _totalParticipants, 0, 0);
@@ -30,7 +28,7 @@ namespace Acquaintance.ScatterGather
 
         public ScatterResponse<TResponse> GetNextResponse(TimeSpan timeout)
         {
-            if (_neverHadParticipants)
+            if (TotalParticipants == 0)
                 return null;
 
             var expectCount = Interlocked.CompareExchange(ref _expectCount, 0, 0);
@@ -43,7 +41,7 @@ namespace Acquaintance.ScatterGather
 
         public async Task<TResponse> GetNextResponseAsync(int timeoutMs, CancellationToken token)
         {
-            if (_neverHadParticipants)
+            if (TotalParticipants == 0)
                 return default(TResponse);
 
             var expectCount = Interlocked.CompareExchange(ref _expectCount, 0, 0);
@@ -129,9 +127,9 @@ namespace Acquaintance.ScatterGather
             if (!_respondents.TryAdd(participantId, false))
                 return;
 
-            Interlocked.Increment(ref _totalParticipants);
-            _neverHadParticipants = false;
             Interlocked.Increment(ref _expectCount);
+            Interlocked.MemoryBarrier();
+            Interlocked.Increment(ref _totalParticipants);
             Interlocked.MemoryBarrier();
         }
 

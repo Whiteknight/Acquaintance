@@ -31,7 +31,13 @@ namespace Acquaintance.RequestResponse
 
             var topicEnvelope = envelope.RedirectToTopic(topic);
             var listener = _store.GetListener<TRequest, TResponse>(topic);
-            if (listener == null || !listener.CanHandle(envelope))
+            if (listener == null)
+            {
+                _logger.Debug($"No listener configured for RequestType={typeof(TRequest).Name} ResponseType={typeof(TResponse).Name} Topic={topic}");
+                request.SetNoResponse();
+                return;
+            }
+            if (!listener.CanHandle(envelope))
             {
                 request.SetNoResponse();
                 return;
