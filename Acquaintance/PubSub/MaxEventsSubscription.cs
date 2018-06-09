@@ -37,7 +37,7 @@ namespace Acquaintance.PubSub
                 _inner.Publish(message);
         }
 
-        public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe || _maxEvents <= 0;
+        public bool ShouldUnsubscribe => _inner.ShouldUnsubscribe || Interlocked.CompareExchange(ref _maxEvents, 0, 0) <= 0;
 
         public void Dispose()
         {

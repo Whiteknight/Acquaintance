@@ -20,7 +20,7 @@ namespace Acquaintance.Utility
         /// <param name="success">If true, the breaker is considered healthy. If false, the breaker may trip.</param>
         void RecordResult(bool success);
     }
-    
+
     public class SequentialCountingCircuitBreaker : ICircuitBreaker
     {
         private readonly int _breakMs;
@@ -43,11 +43,7 @@ namespace Acquaintance.Utility
                 return true;
             var restartTime = Interlocked.Read(ref _restartTime);
             if (DateTime.UtcNow.Ticks >= restartTime)
-            {
-                Interlocked.Exchange(ref _failedRequests, 0);
-                Interlocked.MemoryBarrier();
                 return true;
-            }
             return false;
         }
 
@@ -63,7 +59,7 @@ namespace Acquaintance.Utility
             var restartTime = Interlocked.Read(ref _restartTime);
 
             var failedRequests = Interlocked.Increment(ref _failedRequests);
-            if (failedRequests >= _maxFailedRequests)
+            if (failedRequests >= _maxFailedRequests && restartTime <= DateTime.UtcNow.Ticks)
             {
                 var newRestartTime = DateTime.UtcNow.AddMilliseconds(_breakMs).Ticks;
                 Interlocked.CompareExchange(ref _restartTime, newRestartTime, restartTime);

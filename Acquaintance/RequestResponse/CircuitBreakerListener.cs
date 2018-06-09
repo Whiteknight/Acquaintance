@@ -10,12 +10,15 @@ namespace Acquaintance.RequestResponse
 
         public CircuitBreakerListener(IListener<TRequest, TResponse> inner, int breakMs, int maxFailures)
         {
+            Assert.ArgumentNotNull(inner, nameof(inner));
             _inner = inner;
             _circuitBreaker = new SequentialCountingCircuitBreaker(breakMs, maxFailures);
         }
 
         public CircuitBreakerListener(IListener<TRequest, TResponse> inner, ICircuitBreaker circuitBreaker)
         {
+            Assert.ArgumentNotNull(inner, nameof(inner));
+            Assert.ArgumentNotNull(circuitBreaker, nameof(circuitBreaker));
             _inner = inner;
             _circuitBreaker = circuitBreaker;
         }

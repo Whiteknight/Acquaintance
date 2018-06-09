@@ -24,7 +24,7 @@ namespace Acquaintance.RequestResponse
 
         public bool CanHandle(Envelope<TRequest> request)
         {
-            return _maxRequests > 0 || _inner.CanHandle(request);
+            return Interlocked.CompareExchange(ref _maxRequests, 0, 0) > 0 || _inner.CanHandle(request);
         }
 
         public void Request(Envelope<TRequest> envelope, IResponseReceiver<TResponse> request)
@@ -35,14 +35,14 @@ namespace Acquaintance.RequestResponse
                 return;
             }
             var maxRequests = Interlocked.Decrement(ref _maxRequests);
-            if (maxRequests >= 0)
+            if (maxRequests < 0)
             {
-                _inner.Request(envelope, request);
+                ShouldStopListening = true;
+                request.SetNoResponse();
                 return;
             }
 
-            ShouldStopListening = true;
-            request.SetNoResponse();
+            _inner.Request(envelope, request);
         }
     }
 }
