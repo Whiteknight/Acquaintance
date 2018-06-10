@@ -27,7 +27,7 @@ namespace Acquaintance.Tests
         [Test]
         public void HasMetadataFromFactory()
         {
-            var target = new EnvelopeFactory("A").Create("test", 5, new Dictionary<string, string>
+            var target = new EnvelopeFactory("A", new LocalIncrementIdGenerator()).Create("test", 5, new Dictionary<string, string>
             {
                 { "value1", "result1" }
             });
@@ -44,6 +44,20 @@ namespace Acquaintance.Tests
 
             var result = target.RedirectToTopic("other");
             result.GetMetadata("key").Should().Be("value");
+        }
+
+        [Test]
+        public void NoDuplicateIds_LocalIncrement()
+        {
+            const int numEnvelopes = 1000;
+            var target = new EnvelopeFactory("test", new LocalIncrementIdGenerator());
+            var seenIds = new HashSet<long>();
+            for (int i = 0; i < numEnvelopes; i++)
+            {
+                var envelope = target.Create("", i);
+                seenIds.Contains(envelope.Id).Should().BeFalse();
+                seenIds.Add(envelope.Id);
+            }
         }
     }
 }

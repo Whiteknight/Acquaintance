@@ -1,5 +1,6 @@
 ﻿using System;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -50,6 +51,12 @@ namespace Acquaintance
         public MessageBusBuilder UseId(string id)
         {
             _parameters.Id = id;
+            return this;
+        }
+
+        public MessageBusBuilder UseIdGenerator(IIdGenerator idGenerator)
+        {
+            _parameters.IdGenerator = idGenerator;
             return this;
         }
     }

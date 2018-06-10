@@ -78,7 +78,6 @@ namespace Acquaintance.Utility
         private readonly ConcurrentQueue<bool> _events;
         private long _restartTime;
         private int _errorCount;
-        private int _accessorCount;
 
         public WindowedCountingCircuitBreaker(int breakMs, int maxFailedRequests, int windowSize)
         {

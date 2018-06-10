@@ -16,6 +16,12 @@ namespace Acquaintance.Utility
                 throw new ArgumentOutOfRangeException(name, $"Argument {name}={arg} must be between {low} and {high}");
         }
 
+        public static void IsInRange(long arg, string name, long low, long high)
+        {
+            if (arg < low || arg > high)
+                throw new ArgumentOutOfRangeException(name, $"Argument {name}={arg} must be between {low} and {high}");
+        }
+
         public static void IsInstanceOf(Type type, object obj, string objName)
         {
             if (!type.IsInstanceOfType(obj))

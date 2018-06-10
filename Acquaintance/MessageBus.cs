@@ -30,7 +30,7 @@ namespace Acquaintance
 
             WorkerPool = new WorkerPool(Logger, parameters.NumberOfWorkers, parameters.MaximumQueuedMessages);
             Modules = new ModuleManager(Logger);
-            EnvelopeFactory = new EnvelopeFactory(Id);
+            EnvelopeFactory = new EnvelopeFactory(Id, parameters.IdGenerator ?? new LocalIncrementIdGenerator());
             _subscriptionDispatcher = new SubscriptionDispatcher(Logger, parameters.AllowWildcards);
             _requestDispatcher = new RequestDispatcher(Logger, parameters.AllowWildcards);
             _participantDispatcher = new ParticipantDispatcher(Logger, parameters.AllowWildcards);

@@ -1,5 +1,6 @@
 ﻿using System;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance
 {
@@ -16,6 +17,7 @@ namespace Acquaintance
         public int MaximumQueuedMessages { get; set; }
         public ILogger Logger { get; set; }
         public string Id { get; set; }
+        public IIdGenerator IdGenerator { get; set; }
 
         public static MessageBusCreateParameters Default => new MessageBusCreateParameters();
 
