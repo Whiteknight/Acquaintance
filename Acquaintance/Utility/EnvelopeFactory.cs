@@ -25,6 +25,14 @@ namespace Acquaintance.Utility
             return envelope;
         }
 
+        public Envelope<TPayload> CreateFromRemote<TPayload>(string originBusId, string[] topics, TPayload payload, IReadOnlyDictionary<string, string> metadata = null)
+        {
+            long id = _idGenerator.GenerateNext();
+            var envelope = new Envelope<TPayload>(originBusId, id, topics, payload);
+            SetMetadata(metadata, envelope);
+            return envelope;
+        }
+
         private static void SetMetadata<TPayload>(IReadOnlyDictionary<string, string> metadata, Envelope<TPayload> envelope)
         {
             if (metadata == null)

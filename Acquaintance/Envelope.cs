@@ -6,7 +6,7 @@ namespace Acquaintance
 {
     public class Envelope<TPayload>
     {
-        private ConcurrentDictionary<string, string> _metadata;
+        private volatile ConcurrentDictionary<string, string> _metadata;
 
         public Envelope(string originBusId, long id, string[] topics, TPayload payload)
         {
@@ -65,15 +65,12 @@ namespace Acquaintance
 
         public void SetMetadata(string name, string value)
         {
-            var metadata = _metadata;
-            if (metadata == null)
-            {
-                var newMetadata = new ConcurrentDictionary<string, string>();
-                var oldMetadata = Interlocked.CompareExchange(ref _metadata, newMetadata, null);
-                metadata = oldMetadata == null ? newMetadata : _metadata;
-            }
+            EnsureMetadataExists().AddOrUpdate(name, value, (a, b) => value);
+        }
 
-            metadata.AddOrUpdate(name, value, (a, b) => value);
+        public void AppendMetadata(string name, string value, string separator = "\n")
+        {
+            EnsureMetadataExists().AddOrUpdate(name, value, (a, b) => a + separator + b);
         }
 
         public string GetAndClearMetadata(string name)
@@ -81,6 +78,16 @@ namespace Acquaintance
             if (_metadata == null)
                 return null;
             return _metadata.TryRemove(name, out string value) ? value : null;
+        }
+
+        private ConcurrentDictionary<string, string> EnsureMetadataExists()
+        {
+            if (_metadata == null)
+            {
+                var newMetadata = new ConcurrentDictionary<string, string>();
+                var oldMetadata = Interlocked.CompareExchange(ref _metadata, newMetadata, null);
+            }
+            return _metadata;
         }
     }
 }

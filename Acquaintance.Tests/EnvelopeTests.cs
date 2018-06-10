@@ -59,5 +59,19 @@ namespace Acquaintance.Tests
                 seenIds.Add(envelope.Id);
             }
         }
+
+        [Test]
+        public void NoDuplicateIds_NetworkedIncrement()
+        {
+            const int numEnvelopes = 1000;
+            var target = new EnvelopeFactory("test", new NetworkedIncrementIdGenerator(5));
+            var seenIds = new HashSet<long>();
+            for (int i = 0; i < numEnvelopes; i++)
+            {
+                var envelope = target.Create("", i);
+                seenIds.Contains(envelope.Id).Should().BeFalse();
+                seenIds.Add(envelope.Id);
+            }
+        }
     }
 }

@@ -12,14 +12,6 @@ namespace Acquaintance.RabbitMq
         public long Id { get; set; }
         public Dictionary<string, string> Metadata { get; set; }
 
-        public Envelope<TPayload> ToLocalEnvelope()
-        {
-            var envelope = new Envelope<TPayload>(OriginBusId, Id, Topics, Payload);
-            foreach (var kvp in Metadata ?? new Dictionary<string, string>())
-                envelope.SetMetadata(kvp.Key, kvp.Value);
-            return envelope;
-        }
-
         public static RabbitEnvelope<TPayload> WrapForRabbit(string rabbitTopic, Envelope<TPayload> envelope)
         {
             return new RabbitEnvelope<TPayload>

@@ -17,6 +17,18 @@ namespace Acquaintance
         /// <param name="metadata"></param>
         /// <returns></returns>
         Envelope<TPayload> Create<TPayload>(string[] topics, TPayload payload, IReadOnlyDictionary<string, string> metadata = null);
+
+        /// <summary>
+        /// Create an envelope to hold a message which has originated from a remote source
+        /// For most cases you want to use .Create instead
+        /// </summary>
+        /// <typeparam name="TPayload"></typeparam>
+        /// <param name="originBusId"></param>
+        /// <param name="topics"></param>
+        /// <param name="payload"></param>
+        /// <param name="metadata"></param>
+        /// <returns></returns>
+        Envelope<TPayload> CreateFromRemote<TPayload>(string originBusId, string[] topics, TPayload payload, IReadOnlyDictionary<string, string> metadata = null);
     }
 
     public static class EnvelopeFactoryExtensions
