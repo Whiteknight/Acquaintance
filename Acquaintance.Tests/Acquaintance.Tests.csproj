@@ -8,9 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" version="4.19.4" />
-    <PackageReference Include="NUnit" version="3.8.1" />
-    <PackageReference Include="NUnit3TestAdapter" version="3.8.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" version="15.*" />
+    <PackageReference Include="NUnit" version="3.9.0" />
+    <PackageReference Include="NUnit3TestAdapter" version="3.9.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" version="15.5.0" />
   </ItemGroup>
 
   <ItemGroup>
