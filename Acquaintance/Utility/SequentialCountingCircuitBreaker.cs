@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 
 namespace Acquaintance.Utility
@@ -68,25 +69,25 @@ namespace Acquaintance.Utility
         }
     }
 
+    // TODO: This class is experimental, harden it up
     public class WindowedCountingCircuitBreaker : ICircuitBreaker
     {
         private readonly int _breakMs;
         private readonly int _maxFailedRequests;
         private readonly int _windowSize;
-        private readonly bool[] _events;
-        private int _currentIndex;
+        private readonly ConcurrentQueue<bool> _events;
         private long _restartTime;
         private int _errorCount;
+        private int _accessorCount;
 
         public WindowedCountingCircuitBreaker(int breakMs, int maxFailedRequests, int windowSize)
         {
             _breakMs = breakMs;
             _maxFailedRequests = maxFailedRequests;
             _windowSize = windowSize;
-            _events = new bool[windowSize];
-            for (int i = 0; i < windowSize; i++)
-                _events[i] = true;
-            _currentIndex = -1;
+            _events = new ConcurrentQueue<bool>();
+            for (int i = 0; i < _windowSize; i++)
+                _events.Enqueue(true);
             _errorCount = 0;
         }
 
@@ -97,22 +98,15 @@ namespace Acquaintance.Utility
                 return true;
             var restartTime = Interlocked.Read(ref _restartTime);
             if (DateTime.UtcNow.Ticks >= restartTime)
-            {
-                Interlocked.Exchange(ref _errorCount, 0);
                 return true;
-            }
             return false;
         }
 
         public void RecordResult(bool success)
         {
-            var index = Interlocked.Increment(ref _currentIndex) % _windowSize;
-            var restartTime = Interlocked.Read(ref _restartTime);
-
-            // TODO: this isn't safe. If we have a small windowSize and a large number of concurrent calls,
-            // it's possible that two threads could be accessing this slot at the same time.
-            var currentValue = _events[index];
-            _events[index] = success;
+            _events.Enqueue(success);
+            if (!_events.TryDequeue(out bool currentValue))
+                return;
 
             int delta = 0;
             // If we're removing an error from the end of the queue, decrement the error count
@@ -123,8 +117,9 @@ namespace Acquaintance.Utility
             if (!success)
                 delta += 1;
 
+            var restartTime = Interlocked.Read(ref _restartTime);
             var errorCount = Interlocked.Add(ref _errorCount, delta);
-            if (errorCount >= _maxFailedRequests)
+            if (errorCount >= _maxFailedRequests && restartTime <= DateTime.UtcNow.Ticks)
             {
                 var newRestartTime = DateTime.UtcNow.AddMilliseconds(_breakMs).Ticks;
                 Interlocked.CompareExchange(ref _restartTime, newRestartTime, restartTime);
