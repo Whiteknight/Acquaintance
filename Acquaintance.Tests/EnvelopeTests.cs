@@ -73,5 +73,29 @@ namespace Acquaintance.Tests
                 seenIds.Add(envelope.Id);
             }
         }
+
+        [Test]
+        public void GetEnvelopeHistory_Tests()
+        {
+            var envelope = new Envelope<int>("A", 1, "Test", 5);
+
+            var entry = Envelope.CreateHistoryEntry("A", 1);
+            envelope.AppendMetadata(Envelope.MetadataHistory, entry);
+            entry = Envelope.CreateHistoryEntry("B", 2);
+            envelope.AppendMetadata(Envelope.MetadataHistory, entry);
+            entry = Envelope.CreateHistoryEntry("C", 3);
+            envelope.AppendMetadata(Envelope.MetadataHistory, entry);
+
+            var history = envelope.GetHistory();
+            history.Should().NotBeNull();
+            history.OriginBusId.Should().Be("A");
+            history.Hops.Count.Should().Be(3);
+            history.Hops[0].BusId.Should().Be("A");
+            history.Hops[0].EnvelopeId.Should().Be(1);
+            history.Hops[1].BusId.Should().Be("B");
+            history.Hops[1].EnvelopeId.Should().Be(2);
+            history.Hops[2].BusId.Should().Be("C");
+            history.Hops[2].EnvelopeId.Should().Be(3);
+        }
     }
 }

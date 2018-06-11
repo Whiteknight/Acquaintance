@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using EasyNetQ;
 
 namespace Acquaintance.RabbitMq
@@ -52,7 +53,7 @@ namespace Acquaintance.RabbitMq
 
         public RabbitSenderBuilder<TPayload> CreatePublisherBuilder<TPayload>()
         {
-            return new RabbitSenderBuilder<TPayload>(_bus, this);
+            return new RabbitSenderBuilder<TPayload>(_messageBus, _bus, this);
         }
 
         public RabbitConsumerBuilder<TPayload> CreateSubscriberBuilder<TPayload>()
@@ -80,9 +81,9 @@ namespace Acquaintance.RabbitMq
 
         public Envelope<TResponse> Request<TRequest, TResponse>(Envelope<TRequest> request)
         {
-            var rabbitRequest = RabbitEnvelope<TRequest>.WrapForRabbit(null, request);
+            var rabbitRequest = RabbitEnvelope<TRequest>.Wrap(_messageBus.Id, request, request.Topics.FirstOrDefault() ?? "");
             var rabbitResponse = _bus.Request<RabbitEnvelope<TRequest>, RabbitEnvelope<TResponse>>(rabbitRequest);
-            return rabbitResponse.ToLocalEnvelope();
+            return _messageBus.EnvelopeFactory.CreateFromRemote(rabbitResponse.OriginBusId, null, rabbitResponse.Payload, rabbitResponse.Metadata);
         }
 
         public IDisposable Listen<TRequest, TResponse>(Func<Envelope<TRequest>, TResponse> handle)
@@ -90,7 +91,7 @@ namespace Acquaintance.RabbitMq
         {
             return _bus.Respond<RabbitEnvelope<TRequest>, TResponse>(request =>
             {
-                var envelope = request.ToLocalEnvelope();
+                var envelope = _messageBus.EnvelopeFactory.CreateFromRemote(request.OriginBusId, request.Topics, request.Payload, request.Metadata);
                 return handle(envelope);
             });
         }

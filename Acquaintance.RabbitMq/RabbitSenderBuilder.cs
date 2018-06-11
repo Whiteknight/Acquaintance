@@ -1,5 +1,6 @@
 ﻿using System;
 using Acquaintance.PubSub;
+using Acquaintance.Utility;
 using EasyNetQ;
 
 namespace Acquaintance.RabbitMq
@@ -14,11 +15,14 @@ namespace Acquaintance.RabbitMq
         private byte _priority;
         private IRabbitSenderBuildStrategy _strategy;
 
-        public RabbitSenderBuilder(IBus _bus, RabbitModule module)
+        public RabbitSenderBuilder(IMessageBus messageBus, IBus bus, RabbitModule module)
         {
-            this._bus = _bus;
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+            Assert.ArgumentNotNull(bus, nameof(bus));
+
+            _bus = bus;
             _module = module;
-            _strategy = new DefaultSenderBuildStrategy();
+            _strategy = new DefaultSenderBuildStrategy(messageBus.Id);
         }
 
         public ISubscriberReference<TPayload> Build()
@@ -83,9 +87,16 @@ namespace Acquaintance.RabbitMq
 
         private class DefaultSenderBuildStrategy : IRabbitSenderBuildStrategy
         {
+            private readonly string _messageBusId;
+
+            public DefaultSenderBuildStrategy(string messageBusId)
+            {
+                _messageBusId = messageBusId;
+            }
+
             public ISubscriberReference<TPayload> Build(IBus _bus, RabbitSenderOptions options)
             {
-                return new RabbitForwardingSubscriberReference<TPayload, RabbitEnvelope<TPayload>>(_bus, options, (e, t) => RabbitEnvelope<TPayload>.WrapForRabbit(t, e));
+                return new RabbitForwardingSubscriberReference<TPayload, RabbitEnvelope<TPayload>>(_bus, options, (e, t) => RabbitEnvelope<TPayload>.Wrap(_messageBusId, e, t));
             }
         }
 

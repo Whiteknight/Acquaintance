@@ -18,13 +18,8 @@ namespace Acquaintance.RabbitMq
             {
                 var remoteTopic = options.RemoteTopic;
                 var localTopic = options.MakeLocalTopic(remoteTopic);
-                var envelope = remote.ToLocalEnvelope().RedirectToTopic(localTopic);
-                var envelope = messageBus.EnvelopeFactory.CreateFromRemote(remote.OriginBusId, new[] { localTopic }, remote.Payload, remote.Metadata);
-
-                // TODO: We want to keep a running receipt of busId:messageId for all hops
-                // Probably need to do appending in the sender, not the receiver
-                // TODO: Need a parser for this data, so we can extract a strongly-typed itinerary
-                envelope.AppendMetadata("OriginEnvelopeId", remote.Id.ToString);
+                var envelope = messageBus.EnvelopeFactory
+                    .CreateFromRemote(remote.OriginBusId, new[] { localTopic }, remote.Payload, remote.Metadata);
 
                 if (options.RemoteOnly && envelope.OriginBusId == messageBus.Id)
                     return;
