@@ -2,6 +2,7 @@
 
 namespace Acquaintance.Outbox
 {
+    // Facade over IOutbox<T> and IOutboxSender to simplify storage and common operations
     public sealed class SendingOutbox<TPayload> : IDisposable
     {
         private readonly IDisposable _monitorToken;

@@ -7,7 +7,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
-    public class OutboxManager : IOutboxManager, IDisposable
+    public class OutboxMonitor : IOutboxMonitor, IDisposable
     {
         private readonly IntervalWorkerThread _thread;
         private readonly IDisposable _threadToken;
@@ -15,7 +15,7 @@ namespace Acquaintance.Outbox
 
         private long _outboxId;
 
-        public OutboxManager(ILogger logger, IWorkerPool workers, int pollDelayMs)
+        public OutboxMonitor(ILogger logger, IWorkerPool workers, int pollDelayMs)
         {
             Assert.ArgumentNotNull(logger, nameof(logger));
             Assert.ArgumentNotNull(workers, nameof(workers));
@@ -49,8 +49,7 @@ namespace Acquaintance.Outbox
 
             // TODO: Need to check to ensure we don't contain this outbox already?
             var id = Interlocked.Increment(ref _outboxId);
-            bool ok = _outboxes.TryAdd(id, outbox);
-            if (!ok)
+            if (!_outboxes.TryAdd(id, outbox))
                 throw new Exception("Cannot add outbox to be monitored");
             return new Token(this, id);
         }
@@ -72,23 +71,28 @@ namespace Acquaintance.Outbox
 
         private void RemoveOutbox(long id)
         {
-            _outboxes.TryRemove(id, out IOutboxSender outbox);
+            _outboxes.TryRemove(id);
         }
 
-        private class Token : IDisposable
+        private class Token : DisposeOnceToken
         {
-            private readonly OutboxManager _manager;
+            private readonly OutboxMonitor _monitor;
             private readonly long _id;
 
-            public Token(OutboxManager manager, long id)
+            public Token(OutboxMonitor monitor, long id)
             {
-                _manager = manager;
+                _monitor = monitor;
                 _id = id;
             }
 
-            public void Dispose()
+            protected override void Dispose(bool disposing)
             {
-                _manager.RemoveOutbox(_id);
+                _monitor.RemoveOutbox(_id);
+            }
+
+            public override string ToString()
+            {
+                return $"Monitor outbox Id={_id}";
             }
         }
     }

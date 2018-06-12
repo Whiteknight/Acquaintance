@@ -80,7 +80,7 @@ namespace Acquaintance.Outbox
             public int Attempts { get; set; }
         }
 
-        public class OutboxEntry : IOutboxEntry<TMessage>
+        private class OutboxEntry : IOutboxEntry<TMessage>
         {
             private readonly InMemoryOutbox<TMessage> _outbox;
 

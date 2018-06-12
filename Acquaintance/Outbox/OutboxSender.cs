@@ -41,6 +41,7 @@ namespace Acquaintance.Outbox
 
         private int TrySendBatch(IOutboxEntry<TPayload>[] messages, OutboxSendResultBuilder results)
         {
+            // TODO: Need to cleanup this logic
             int messagesSent = 0;
             int i = 0;
             for (; i < messages.Length; i++)
@@ -66,7 +67,10 @@ namespace Acquaintance.Outbox
             }
 
             for (; i < messages.Length; i++)
+            {
+                results.AddNotAttempted(messages[i].Envelope.Id);
                 messages[i].MarkForRetry();
+            }
 
             return messagesSent;
         }

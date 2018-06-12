@@ -7,7 +7,14 @@
     /// </summary>
     public interface IOutboxEntry
     {
+        /// <summary>
+        /// The send failed or was not attempted, and the message needs to be retried later
+        /// </summary>
         void MarkForRetry();
+
+        /// <summary>
+        /// The send completed successfully and the message can be removed from the outbox
+        /// </summary>
         void MarkComplete();
     }
 

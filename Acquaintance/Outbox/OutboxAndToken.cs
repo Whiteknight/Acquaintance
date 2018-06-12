@@ -21,5 +21,10 @@ namespace Acquaintance.Outbox
         {
             Token?.Dispose();
         }
+
+        public override string ToString()
+        {
+            return Token.ToString();
+        }
     }
 }

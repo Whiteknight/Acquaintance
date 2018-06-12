@@ -6,7 +6,14 @@ namespace Acquaintance.Outbox
 {
     public interface IOutboxSendResult
     {
+        /// <summary>
+        /// Results for individual messages 
+        /// </summary>
         IReadOnlyList<MessageSendResult> Results { get; }
+
+        /// <summary>
+        /// Returns true if all messages in the batch sent successfully, false otherwise
+        /// </summary>
         bool Success { get; }
     }
 
@@ -64,6 +71,11 @@ namespace Acquaintance.Outbox
         public void AddError(long messageId, Exception e)
         {
             _results.Add(new MessageSendResult(messageId, OutboxSendResultType.SendFailed, e));
+        }
+
+        public void AddNotAttempted(long messageId)
+        {
+            _results.Add(new MessageSendResult(messageId, OutboxSendResultType.NotAttempted));
         }
     }
 }

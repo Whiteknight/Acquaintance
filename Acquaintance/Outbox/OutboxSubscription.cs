@@ -4,6 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
+    // Adaptor between IOutbox<T> and ISubscription<T>
     public sealed class OutboxSubscription<TPayload> : ISubscription<TPayload>
     {
         private readonly ISubscription<TPayload> _inner;
@@ -23,9 +24,7 @@ namespace Acquaintance.Outbox
 
         public static ISubscription<TPayload> WrapSubscription(IBusBase messageBus, ISubscription<TPayload> inner, IOutbox<TPayload> outbox)
         {
-            if (outbox == null)
-                return inner;
-            return new OutboxSubscription<TPayload>(messageBus, inner, outbox);
+            return outbox == null ? inner : new OutboxSubscription<TPayload>(messageBus, inner, outbox);
         }
 
         public void Publish(Envelope<TPayload> message)

@@ -6,21 +6,21 @@ namespace Acquaintance.Outbox
 {
     public class OutboxWorkerStrategy : IIntervalWorkStrategy
     {
-        private readonly OutboxManager _manager;
+        private readonly OutboxMonitor _monitor;
         private readonly int _pollDelayMs;
 
-        public OutboxWorkerStrategy(OutboxManager manager, int pollDelayMs)
+        public OutboxWorkerStrategy(OutboxMonitor monitor, int pollDelayMs)
         {
-            Assert.ArgumentNotNull(manager, nameof(manager));
+            Assert.ArgumentNotNull(monitor, nameof(monitor));
             Assert.IsInRange(pollDelayMs, nameof(pollDelayMs), 1000, int.MaxValue);
 
-            _manager = manager;
+            _monitor = monitor;
             _pollDelayMs = pollDelayMs;
         }
 
         public void DoWork(IIntervalWorkerContext context, CancellationTokenSource tokenSource)
         {
-            _manager.TryFlushAll(tokenSource);
+            _monitor.TryFlushAll(tokenSource);
         }
 
         public IIntervalWorkerContext CreateContext()

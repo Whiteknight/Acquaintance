@@ -26,7 +26,7 @@ namespace Acquaintance.Outbox
         /// </summary>
         /// <typeparam name="TPayload"></typeparam>
         /// <param name="builder"></param>
-        /// <param name="maxMessages"></param>
+        /// <param name="maxMessages">The maximum number of messages to hold. If 0, there is no limit</param>
         /// <returns></returns>
         public static IDetailsSubscriptionBuilder<TPayload> UseInMemoryOutbox<TPayload>(this IDetailsSubscriptionBuilder<TPayload> builder, int maxMessages = 100)
         {
