@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Sources
 {
@@ -15,11 +16,12 @@ namespace Acquaintance.Sources
 
         public EventSourceModule(IPubSubBus messageBus, ILogger logger)
         {
+            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
+
             _messageBus = messageBus;
-            _logger = logger;
+            _logger = logger ?? messageBus.Logger;
             _threads = new ConcurrentDictionary<Guid, IntervalWorkerThread>();
-            _tokens = new ConcurrentDictionary<Guid, IDisposable>();
-            
+            _tokens = new ConcurrentDictionary<Guid, IDisposable>();   
         }
 
         public void Start()
@@ -35,12 +37,13 @@ namespace Acquaintance.Sources
 
         public IDisposable RunEventSource(IEventSource source)
         {
+            Assert.ArgumentNotNull(source, nameof(source));
+
             IEventSourceContext context = new EventSourceContext(_messageBus);
             var strategy = new EventSourceWorkStrategy(source, context);
             var thread = new IntervalWorkerThread(_messageBus.Logger, strategy);
 
-            bool ok = _threads.TryAdd(thread.Id, thread);
-            if (!ok)
+            if (!_threads.TryAdd(thread.Id, thread))
             {
                 _logger.Error($"Could not add new event source ThreadId={thread.Id}. Maybe it has already been added?");
                 thread.Dispose();
@@ -56,12 +59,11 @@ namespace Acquaintance.Sources
 
         private void RemoveThread(Guid id)
         {
-            _tokens.TryRemove(id, out IDisposable token);
-            _threads.TryRemove(id, out IntervalWorkerThread worker);
-            worker?.Dispose();
+            _tokens.TryRemove(id);
+            _threads.TryRemoveAndDispose(id);
         }
 
-        private class WorkerToken : IDisposable
+        private class WorkerToken : DisposeOnceToken
         {
             private readonly IntervalWorkerThread _worker;
             private readonly Guid _id;
@@ -76,7 +78,7 @@ namespace Acquaintance.Sources
                 _module = module;
             }
 
-            public void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 _threadToken.Dispose();
                 _module.RemoveThread(_id);
@@ -90,7 +92,6 @@ namespace Acquaintance.Sources
 
         public void Dispose()
         {
-
             foreach (var token in _tokens.Values)
             {
                 try

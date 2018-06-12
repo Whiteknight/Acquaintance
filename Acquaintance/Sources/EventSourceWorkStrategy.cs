@@ -4,6 +4,7 @@ using Acquaintance.Utility;
 
 namespace Acquaintance.Sources
 {
+    // Adaptor class between IIntervalWorkStrategy and IEventSource
     public class EventSourceWorkStrategy : IIntervalWorkStrategy
     {
         private readonly IEventSource _source;

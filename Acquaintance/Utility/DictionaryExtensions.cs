@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Acquaintance.Utility
@@ -25,6 +26,18 @@ namespace Acquaintance.Utility
                 dict[key] = updateValue(dict[key]);
             else
                 dict.Add(key, addValue);
+        }
+
+        public static bool TryRemove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key)
+        {
+            return dict.TryRemove(key, out var ignored);
+        }
+
+        public static bool TryRemoveAndDispose<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key)
+        {
+            bool ok = dict.TryRemove(key, out var ignored);
+            (ignored as IDisposable)?.Dispose();
+            return ok;
         }
     }
 }
