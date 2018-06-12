@@ -7,15 +7,22 @@ namespace Acquaintance
     public class MessageBusBuilder
     {
         private readonly MessageBusCreateParameters _parameters;
+        private Func<MessageBusCreateParameters, IMessageBus> _factory;
 
         public MessageBusBuilder()
         {
             _parameters = new MessageBusCreateParameters();
+            _factory = DefaultFactoryMethod;
+        }
+
+        private static IMessageBus DefaultFactoryMethod(MessageBusCreateParameters p)
+        {
+            return new MessageBus(p);
         }
 
         public IMessageBus Build()
         {
-            return new MessageBus(_parameters);
+            return _factory(_parameters);
         }
 
         public MessageBusBuilder AllowTopicWildcards()
@@ -57,6 +64,12 @@ namespace Acquaintance
         public MessageBusBuilder UseIdGenerator(IIdGenerator idGenerator)
         {
             _parameters.IdGenerator = idGenerator;
+            return this;
+        }
+
+        public MessageBusBuilder SetFactoryMethod(Func<MessageBusCreateParameters, IMessageBus> build)
+        {
+            _factory = build ?? DefaultFactoryMethod;
             return this;
         }
     }
