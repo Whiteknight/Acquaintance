@@ -35,7 +35,8 @@ namespace Acquaintance.Routing
 
         public IFilterRouteBuilderWhen<T> FromTopic(string topic)
         {
-            throw new NotImplementedException();
+            InTopics = Topics.Canonicalize(topic);
+            return this;
         }
 
         public IFilterRouteBuilderWhen<T> FromDefaultTopic()

@@ -19,20 +19,28 @@ namespace Acquaintance.Routing
             _scatterRoutes = new ConcurrentDictionary<string, IRouteRule>();
         }
 
-        private static string GetKey<TPayload>(string topic)
+        public IDisposable AddPublishRouteRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
         {
-            return $"{typeof(TPayload).FullName}:{topic}";
-        }
+            Assert.ArgumentNotNull(rule, nameof(rule));
 
-        private static string GetKey<TRequest, TResponse>(string topic)
-        {
-            return $"{typeof(TRequest).FullName}:{typeof(TResponse).FullName}:{topic}";
+            var keys = Topics.Canonicalize(topics)
+                .Select(t => GetKey<TPayload>(t ?? string.Empty))
+                .ToArray();
+            foreach (var key in keys)
+            {
+                if (!_publishRoutes.TryAdd(key, rule))
+                    throw new Exception($"Could not add route for Payload={typeof(TPayload).Name} Topic={key}. It may have already been added");
+            }
+            return new PublishRouteToken<TPayload>(this, keys);
         }
 
         public string[] RoutePublish<TPayload>(string[] topics, Envelope<TPayload> envelope)
         {
             topics = topics ?? new[] { string.Empty };
-            return topics.SelectMany(topic => GetRoutesForPublishTopic(topic, envelope)).Distinct().ToArray();
+            return topics
+                .SelectMany(topic => GetRoutesForPublishTopic(topic, envelope))
+                .Distinct()
+                .ToArray();
         }
 
         private IEnumerable<string> GetRoutesForPublishTopic<TPayload>(string topic, Envelope<TPayload> envelope)
@@ -42,6 +50,14 @@ namespace Acquaintance.Routing
                 return new[] { topic };
             var typedRule = rule as IRouteRule<TPayload>;
             return typedRule?.GetRoute(topic, envelope) ?? new[] { topic };
+        }
+
+        public IDisposable AddRequestRouteRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
+        {
+            Assert.ArgumentNotNull(rule, nameof(rule));
+            var key = GetKey<TRequest, TResponse>(topic ?? string.Empty);
+            bool ok = _requestRoutes.TryAdd(key, rule);
+            return ok ? new RequestRouteToken<TRequest, TResponse>(this, key) : (IDisposable)new DoNothingDisposable();
         }
 
         public string RouteRequest<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
@@ -54,6 +70,14 @@ namespace Acquaintance.Routing
             return typedRule?.GetRoute(topic, envelope)?.FirstOrDefault() ?? topic;
         }
 
+        public IDisposable AddScatterRouteRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
+        {
+            Assert.ArgumentNotNull(rule, nameof(rule));
+            var key = GetKey<TRequest, TResponse>(topic ?? string.Empty);
+            bool ok = _scatterRoutes.TryAdd(key, rule);
+            return ok ? new ScatterRouteToken<TRequest, TResponse>(this, key) : (IDisposable)new DoNothingDisposable();
+        }
+
         public string RouteScatter<TRequest, TResponse>(string topic, Envelope<TRequest> envelope)
         {
             topic = topic ?? string.Empty;
@@ -64,14 +88,7 @@ namespace Acquaintance.Routing
             return typedRule?.GetRoute(topic, envelope)?.FirstOrDefault() ?? topic;
         }
 
-        private class NoRouteToken : IDisposable
-        {
-            public void Dispose()
-            {
-            }
-        }
-
-        private class PublishRouteToken : DisposeOnceToken
+        private class PublishRouteToken<TPayload> : DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string[] _routeKeys;
@@ -85,25 +102,19 @@ namespace Acquaintance.Routing
             protected override void Dispose(bool disposing)
             {
                 foreach (var routeKey in _routeKeys)
+                {
                     _router._publishRoutes.TryRemove(routeKey, out IRouteRule rule);
+                    (rule as IDisposable)?.Dispose();
+                }
             }
-        }
 
-        IDisposable IPublishTopicRouter.AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
-        {
-            Assert.ArgumentNotNull(rule, nameof(rule));
-            var keys = Topics.Canonicalize(topics)
-                .Select(t => GetKey<TPayload>(t ?? string.Empty))
-                .ToArray();
-            foreach (var key in keys)
+            public override string ToString()
             {
-                if (!_publishRoutes.TryAdd(key, rule))
-                    throw new Exception($"Could not add route for Payload={typeof(TPayload).Name} Topic={key}. It may have already been added");
+                return $"Publish Route for Type={typeof(TPayload).Name} Topics={string.Join(",", _routeKeys)}";
             }
-            return new PublishRouteToken(this, keys);
         }
 
-        private class RequestRouteToken : DisposeOnceToken
+        private class RequestRouteToken<TRequest, TResponse> : DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -117,18 +128,16 @@ namespace Acquaintance.Routing
             protected override void Dispose(bool disposing)
             {
                 _router._requestRoutes.TryRemove(_route, out IRouteRule rule);
+                (rule as IDisposable)?.Dispose();
+            }
+
+            public override string ToString()
+            {
+                return $"Request Route for Request={typeof(TRequest).Name} Response={typeof(TResponse).Name} Topic={_route}";
             }
         }
 
-        IDisposable IRequestTopicRouter.AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
-        {
-            Assert.ArgumentNotNull(rule, nameof(rule));
-            var key = GetKey<TRequest, TResponse>(topic ?? string.Empty);
-            bool ok = _requestRoutes.TryAdd(key, rule);
-            return ok ? new RequestRouteToken(this, key) : (IDisposable)new NoRouteToken();
-        }
-
-        private class ScatterRouteToken : DisposeOnceToken
+        private class ScatterRouteToken<TRequest, TResponse> : DisposeOnceToken
         {
             private readonly TopicRouter _router;
             private readonly string _route;
@@ -142,15 +151,23 @@ namespace Acquaintance.Routing
             protected override void Dispose(bool disposing)
             {
                 _router._scatterRoutes.TryRemove(_route, out IRouteRule rule);
+                (rule as IDisposable)?.Dispose();
+            }
+
+            public override string ToString()
+            {
+                return $"Scatter Route for Request={typeof(TRequest).Name} Response={typeof(TResponse).Name} Topic={_route}";
             }
         }
 
-        IDisposable IScatterTopicRouter.AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
+        private static string GetKey<TPayload>(string topic)
         {
-            Assert.ArgumentNotNull(rule, nameof(rule));
-            var key = GetKey<TRequest, TResponse>(topic ?? string.Empty);
-            bool ok = _scatterRoutes.TryAdd(key, rule);
-            return ok ? new ScatterRouteToken(this, key) : (IDisposable)new NoRouteToken();
+            return $"{typeof(TPayload).FullName}:{topic}";
+        }
+
+        private static string GetKey<TRequest, TResponse>(string topic)
+        {
+            return $"{typeof(TRequest).FullName}:{typeof(TResponse).FullName}:{topic}";
         }
     }
 }

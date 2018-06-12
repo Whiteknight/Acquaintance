@@ -23,7 +23,7 @@ namespace Acquaintance.Routing
         /// <param name="topic"></param>
         /// <param name="rule"></param>
         /// <returns></returns>
-        IDisposable AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule);
+        IDisposable AddRequestRouteRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule);
     }
 
     public interface IPublishTopicRouter
@@ -45,7 +45,7 @@ namespace Acquaintance.Routing
         /// <param name="topics"></param>
         /// <param name="rule"></param>
         /// <returns></returns>
-        IDisposable AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule);
+        IDisposable AddPublishRouteRule<TPayload>(string[] topics, IRouteRule<TPayload> rule);
     }
 
     public interface IScatterTopicRouter
@@ -69,6 +69,6 @@ namespace Acquaintance.Routing
         /// <param name="topic"></param>
         /// <param name="rule"></param>
         /// <returns></returns>
-        IDisposable AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule);
+        IDisposable AddScatterRouteRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule);
     }
 }

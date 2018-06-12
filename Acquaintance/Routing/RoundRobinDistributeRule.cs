@@ -21,7 +21,7 @@ namespace Acquaintance.Routing
             _idx = 0;
         }
 
-        string[] IRouteRule<T>.GetRoute(string topic, Envelope<T> envelope)
+        public string[] GetRoute(string topic, Envelope<T> envelope)
         {
             int idx = Interlocked.Increment(ref _idx);
             idx = idx % _topics.Length;

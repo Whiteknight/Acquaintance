@@ -217,7 +217,7 @@ namespace Acquaintance.Tests.RequestResponse
         public void RequestRouterReturnsNull()
         {
             var target = new MessageBus();
-            target.RequestRouter.AddRule<int, int>("", new ReturnsNullRouteRule());
+            target.RequestRouter.AddRequestRouteRule<int, int>("", new ReturnsNullRouteRule());
             var response = target.Request<int, int>("", 5);
         }
 

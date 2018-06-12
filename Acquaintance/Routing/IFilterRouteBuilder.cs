@@ -18,6 +18,7 @@ namespace Acquaintance.Routing
         /// <returns></returns>
         IFilterRouteBuilderWhen<T> FromDefaultTopic();
     }
+
     public interface IFilterRouteBuilderMultiInput<out T>
     {
         /// <summary>

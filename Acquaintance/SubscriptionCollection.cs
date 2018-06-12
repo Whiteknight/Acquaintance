@@ -133,9 +133,9 @@ namespace Acquaintance
                 return _publishRouter.RoutePublish(topics, envelope);
             }
 
-            IDisposable IPublishTopicRouter.AddRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
+            public IDisposable AddPublishRouteRule<TPayload>(string[] topics, IRouteRule<TPayload> rule)
             {
-                var token = _publishRouter.AddRule(topics, rule);
+                var token = _publishRouter.AddPublishRouteRule(topics, rule);
                 _tokens.Add(token);
                 return token;
             }
@@ -145,9 +145,9 @@ namespace Acquaintance
                 return _requestRouter.RouteRequest<TRequest, TResponse>(topic, envelope);
             }
 
-            IDisposable IRequestTopicRouter.AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
+            public IDisposable AddRequestRouteRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
             {
-                var token = _requestRouter.AddRule<TRequest, TResponse>(topic, rule);
+                var token = _requestRouter.AddRequestRouteRule<TRequest, TResponse>(topic, rule);
                 _tokens.Add(token);
                 return token;
             }
@@ -157,9 +157,9 @@ namespace Acquaintance
                 return _scatterRouter.RouteScatter<TRequest, TResponse>(topic, envelope);
             }
 
-            IDisposable IScatterTopicRouter.AddRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
+            public IDisposable AddScatterRouteRule<TRequest, TResponse>(string topic, IRouteRule<TRequest> rule)
             {
-                var token = _scatterRouter.AddRule<TRequest, TResponse>(topic, rule);
+                var token = _scatterRouter.AddScatterRouteRule<TRequest, TResponse>(topic, rule);
                 _tokens.Add(token);
                 return token;
             }

@@ -8,5 +8,10 @@ namespace Acquaintance.Utility
         public void Dispose()
         {
         }
+
+        public override string ToString()
+        {
+            return "Nothing";
+        }
     }
 }
