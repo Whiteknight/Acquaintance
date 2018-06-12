@@ -2,75 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Acquaintance.Messages;
 
 namespace Acquaintance
 {
-    public class EnvelopeHistory
-    {
-        public EnvelopeHistory(string originBusId, IReadOnlyList<EnvelopeHistoryHop> hops)
-        {
-            OriginBusId = originBusId;
-            Hops = hops;
-        }
-
-        public string OriginBusId { get; }
-        public IReadOnlyList<EnvelopeHistoryHop> Hops { get; }
-    }
-
-    public class EnvelopeHistoryHop
-    {
-        public EnvelopeHistoryHop(string busId, long envelopeId)
-        {
-            BusId = busId;
-            EnvelopeId = envelopeId;
-        }
-
-        public string BusId { get; }
-        public long EnvelopeId { get; }
-    }
-
-    public class EnvelopeHistoryParser
-    {
-        public EnvelopeHistory ParseHistory(string originBusId, string history)
-        {
-            if (string.IsNullOrEmpty(history))
-                return new EnvelopeHistory(originBusId, new EnvelopeHistoryHop[0]);
-
-            var hops = history.Split('\n')
-                .Select(line =>
-                {
-                    if (line == null || line.Length < 3)
-                        return null;
-                    var p = line.Split(':');
-                    if (p.Length < 2 || string.IsNullOrEmpty(p[0]))
-                        return null;
-                    if (!long.TryParse(p[1], out long messageId))
-                        return null;
-                    return new EnvelopeHistoryHop(p[0], messageId);
-                })
-                .Where(h => h != null)
-                .ToList();
-            return new EnvelopeHistory(originBusId, hops);
-        }
-    }
-
     public static class Envelope
     {
+        public const string MetadataInternalPrefix = "_aq";
         public const string MetadataHistory = "_aq:history";
 
-        // TODO: Need a parser for this data, so we can extract a strongly-typed itinerary from and existing message
-        public static string CreateHistoryEntry(string messageBusId, long messageId)
-        {
-            return $"{messageBusId}:{messageId}";
-        }
-
-        public static string AppendHistoryEntry(string messageBusId, long messageId, string existingHistory)
-        {
-            var entry = CreateHistoryEntry(messageBusId, messageId);
-            if (string.IsNullOrEmpty(existingHistory))
-                return entry;
-            return existingHistory + "\n" + entry;
-        }
+        
     }
 
     public class Envelope<TPayload>
@@ -132,7 +73,10 @@ namespace Acquaintance
             var metadata = GetMetadataCollection();
             if (metadata == null)
                 return new Dictionary<string, string>();
-            return new Dictionary<string, string>(_metadata);
+            return metadata
+                .ToArray()
+                .Where(kvp => !kvp.Key.StartsWith(Envelope.MetadataInternalPrefix))
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
 
         public void SetMetadata(string name, string value)

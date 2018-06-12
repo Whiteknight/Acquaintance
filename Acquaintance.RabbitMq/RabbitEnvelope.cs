@@ -23,13 +23,9 @@ namespace Acquaintance.RabbitMq
                 Metadata = envelope.ExportMetadata()
             };
 
-            if (!rabbitEnvelope.Metadata.ContainsKey(Envelope.MetadataHistory))
-            {
-                var historyEntry = Envelope.CreateHistoryEntry(messageBusId, envelope.Id);
-                rabbitEnvelope.Metadata.Add(Envelope.MetadataHistory, historyEntry);
-            }
-            else
-                rabbitEnvelope.Metadata[Envelope.MetadataHistory] = Envelope.AppendHistoryEntry(messageBusId, envelope.Id, rabbitEnvelope.Metadata[Envelope.MetadataHistory]);
+            var history = envelope.GetHistory();
+            history.AddHop(messageBusId, envelope.Id);
+            rabbitEnvelope.Metadata.Add(Envelope.MetadataHistory, history.ToString());
 
             return rabbitEnvelope;
         }

@@ -78,12 +78,9 @@ namespace Acquaintance.Tests
         {
             var envelope = new Envelope<int>("A", 1, "Test", 5);
 
-            var entry = Envelope.CreateHistoryEntry("A", 1);
-            envelope.AppendMetadata(Envelope.MetadataHistory, entry);
-            entry = Envelope.CreateHistoryEntry("B", 2);
-            envelope.AppendMetadata(Envelope.MetadataHistory, entry);
-            entry = Envelope.CreateHistoryEntry("C", 3);
-            envelope.AppendMetadata(Envelope.MetadataHistory, entry);
+            envelope.AppendMetadata(Envelope.MetadataHistory, "A:1");
+            envelope.AppendMetadata(Envelope.MetadataHistory, "B:2");
+            envelope.AppendMetadata(Envelope.MetadataHistory, "C:3");
 
             var history = envelope.GetHistory();
             history.Should().NotBeNull();
