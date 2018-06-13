@@ -18,6 +18,14 @@ namespace Acquaintance.Utility
             _isDisposed = 0;
         }
 
+        public DisposableCollection(IEnumerable<IDisposable> disposables)
+        {
+            Assert.ArgumentNotNull(disposables, nameof(disposables));
+
+            _isDisposed = 0;
+            _disposables = new ConcurrentBag<IDisposable>(disposables);
+        }
+
         public void Add(IDisposable disposable)
         {
             if (_isDisposed > 0)

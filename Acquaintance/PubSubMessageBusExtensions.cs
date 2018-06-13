@@ -1,6 +1,7 @@
 ﻿using Acquaintance.PubSub;
 using System;
 using System.Reflection;
+using Acquaintance.Scanning;
 using Acquaintance.Utility;
 
 namespace Acquaintance
@@ -103,96 +104,23 @@ namespace Acquaintance
 
         public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj, bool useWeakReference = false)
         {
-            return new SubscriptionScanner(messageBus, messageBus.Logger).AutoSubscribe(obj, useWeakReference);
+            var tokens = new SubscriptionScanner(messageBus, messageBus.Logger).DetectAndWireUpSubscriptions(obj, useWeakReference);
+            return new DisposableCollection(tokens);
         }
 
         public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, Action act, bool useWeakReference = false)
         {
-            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            Assert.ArgumentNotNull(payloadType, nameof(payloadType));
-            Assert.ArgumentNotNull(act, nameof(act));
-
-            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedActionInternal), BindingFlags.Static | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new object[] { messageBus, topics, act, useWeakReference }) as IDisposable;
+            return new UntypedSubscriptionBuilder(messageBus).SubscribeUntyped(payloadType, topics, act, useWeakReference);
         }
 
         public static IDisposable SubscribeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber, bool useWeakReference = false)
         {
-            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            Assert.ArgumentNotNull(payloadType, nameof(payloadType));
-            Assert.ArgumentNotNull(target, nameof(target));
-            Assert.ArgumentNotNull(subscriber, nameof(subscriber));
-
-            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeUntypedMethodInfoInternal), BindingFlags.Static | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new[] { messageBus, topics, target, subscriber, useWeakReference }) as IDisposable;
-        }
-
-        private static IDisposable SubscribeUntypedMethodInfoInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber, bool useWeakReference)
-        {
-            if (topics == null)
-            {
-                return Subscribe<TPayload>(messageBus, b => b
-                    .ForAllTopics()
-                    .Invoke(p => subscriber.Invoke(target, new object[] { p }), useWeakReference));
-            }
-
-            if (topics.Length == 0)
-                topics = new[] { string.Empty };
-
-            return Subscribe<TPayload>(messageBus, b => b
-                .WithTopic(topics)
-                .Invoke(p => subscriber.Invoke(target, new object[] { p }), useWeakReference));
-        }
-
-        private static IDisposable SubscribeUntypedActionInternal<TPayload>(IPubSubBus messageBus, string[] topics, Action act, bool useWeakReference)
-        {
-            if (topics == null)
-            {
-                return Subscribe<TPayload>(messageBus, b => b
-                    .ForAllTopics()
-                    .Invoke(p => act(), useWeakReference));
-            }
-
-            if (topics.Length == 0)
-                topics = new[] { string.Empty };
-
-            return Subscribe<TPayload>(messageBus, b => b
-                .WithTopic(topics)
-                .Invoke(p => act(), useWeakReference));
+            return new UntypedSubscriptionBuilder(messageBus).SubscribeUntyped(payloadType, topics, target, subscriber, useWeakReference);
         }
 
         public static IDisposable SubscribeEnvelopeUntyped(this IPubSubBus messageBus, Type payloadType, string[] topics, object target, MethodInfo subscriber, bool useWeakReference = false)
         {
-            Assert.ArgumentNotNull(messageBus, nameof(messageBus));
-            Assert.ArgumentNotNull(payloadType, nameof(payloadType));
-            Assert.ArgumentNotNull(target, nameof(target));
-            Assert.ArgumentNotNull(subscriber, nameof(subscriber));
-
-            var method = typeof(PubSubMessageBusExtensions).GetMethod(nameof(SubscribeEnvelopeUntypedInternal), BindingFlags.Static | BindingFlags.NonPublic);
-            method = method.MakeGenericMethod(payloadType);
-            return method.Invoke(null, new[] { messageBus, topics, target, subscriber, useWeakReference }) as IDisposable;
-        }
-
-        private static IDisposable SubscribeEnvelopeUntypedInternal<TPayload>(IPubSubBus messageBus, string[] topics, object target, MethodInfo subscriber, bool useWeakReference)
-        {
-            if (topics == null || topics.Length == 0)
-            {
-                return Subscribe<TPayload>(messageBus, b => b
-                    .WithDefaultTopic()
-                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e }), useWeakReference));
-            }
-
-            var tokens = new DisposableCollection();
-            foreach (var topic in topics)
-            {
-                var token = Subscribe<TPayload>(messageBus, b => b
-                    .WithTopic(topic)
-                    .InvokeEnvelope(e => subscriber.Invoke(target, new object[] { e }), useWeakReference));
-                tokens.Add(token);
-            }
-            return tokens;
+            return new UntypedSubscriptionBuilder(messageBus).SubscribeEnvelopeUntyped(payloadType, topics, target, subscriber, useWeakReference);
         }
 
         public static WrappedAction<TPayload> WrapAction<TPayload>(this IPubSubBus messageBus, Action<TPayload> action, Action<IThreadSubscriptionBuilder<TPayload>> build = null)

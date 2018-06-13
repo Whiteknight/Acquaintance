@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Acquaintance.PubSub;
+using Acquaintance.Scanning;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -237,6 +238,66 @@ namespace Acquaintance.Tests.PubSub
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
                 obj.Value.Should().Be("test");
+            }
+        }
+
+        public class TestClass8
+        {
+            private readonly ManualResetEvent _wait;
+
+            public TestClass8(ManualResetEvent wait)
+            {
+                _wait = wait;
+            }
+
+            [Subscription(typeof(Envelope<string>))]
+            public void GenericSubscriber()
+            {
+                _wait.Set();
+            }
+        }
+
+        [Test]
+        public void Autosubscribe_AttributeEnvelopeParameterless()
+        {
+            using (var wait = new ManualResetEvent(false))
+            {
+                var target = new MessageBus();
+                var obj = new TestClass8(wait);
+                var token = target.AutoSubscribe(obj);
+
+                target.Publish("test");
+                wait.WaitOne(2000).Should().Be(true);
+            }
+        }
+
+        public class TestClass9
+        {
+            private readonly ManualResetEvent _wait;
+
+            public TestClass9(ManualResetEvent wait)
+            {
+                _wait = wait;
+            }
+
+            [Subscription(typeof(Envelope<string>))]
+            public void GenericSubscriber(string s)
+            {
+                _wait.Set();
+            }
+        }
+
+        [Test]
+        public void Autosubscribe_AttributeEnvelope()
+        {
+            using (var wait = new ManualResetEvent(false))
+            {
+                var target = new MessageBus();
+                var obj = new TestClass9(wait);
+                var token = target.AutoSubscribe(obj);
+
+                target.Publish("test");
+                wait.WaitOne(2000).Should().Be(true);
             }
         }
     }
