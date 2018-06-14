@@ -102,9 +102,9 @@ namespace Acquaintance
             return messageBus.Subscribe(new[] { topic ?? string.Empty }, subscription);
         }
 
-        public static IDisposable AutoSubscribe(this IPubSubBus messageBus, object obj, bool useWeakReference = false)
+        public static IDisposable AutoWireupSubscribers(this IPubSubBus messageBus, object obj, bool useWeakReference = false)
         {
-            var tokens = new SubscriptionScanner(messageBus, messageBus.Logger).DetectAndWireUpSubscriptions(obj, useWeakReference);
+            var tokens = new SubscriptionScanner(messageBus, messageBus.Logger).DetectAndWireUpAll(obj, useWeakReference);
             return new DisposableCollection(tokens);
         }
 

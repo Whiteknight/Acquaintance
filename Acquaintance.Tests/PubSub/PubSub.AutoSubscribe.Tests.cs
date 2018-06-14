@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using Acquaintance.PubSub;
 using Acquaintance.Scanning;
 using FluentAssertions;
 using NUnit.Framework;
@@ -35,7 +34,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass1(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -69,7 +68,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass2(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("A", "test1");
                 target.Publish("B", "test2");
@@ -105,7 +104,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass3(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -136,7 +135,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass4(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -169,7 +168,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass5(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -200,7 +199,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass6(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -233,7 +232,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass7<string>(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -264,7 +263,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass8(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);
@@ -294,7 +293,7 @@ namespace Acquaintance.Tests.PubSub
             {
                 var target = new MessageBus();
                 var obj = new TestClass9(wait);
-                var token = target.AutoSubscribe(obj);
+                var token = target.AutoWireupSubscribers(obj);
 
                 target.Publish("test");
                 wait.WaitOne(2000).Should().Be(true);

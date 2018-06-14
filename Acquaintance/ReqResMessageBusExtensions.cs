@@ -1,8 +1,9 @@
 ﻿using Acquaintance.RequestResponse;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Acquaintance.Scanning;
 using Acquaintance.Utility;
 
 namespace Acquaintance
@@ -118,6 +119,27 @@ namespace Acquaintance
         public static WrappedFunction<TRequest, TResponse> WrapFunction<TRequest, TResponse>(this IReqResBus messageBus, Func<TRequest, TResponse> func, Action<IThreadListenerBuilder<TRequest, TResponse>> build)
         {
             return new RequestFuncWrapper<TRequest, TResponse>().WrapFunction(messageBus, func, build);
+        }
+
+        public static IDisposable AutoWireupListeners(this IReqResBus messageBus, object obj, bool useWeakReferences = false)
+        {
+            var tokens = new ListenerScanner(messageBus, messageBus.Logger).DetectAndWireUpAll(obj, useWeakReferences);
+            return new DisposableCollection(tokens);
+        }
+
+        public static IDisposable ListenUntyped(this IReqResBus messageBus, Type requestType, Type responseType, string topic, Func<object, object> handle, bool useWeakReferences = false)
+        {
+            return new UntypedListenerBuilder(messageBus).ListenUntyped(requestType, responseType, topic, handle, useWeakReferences);
+        }
+
+        public static IDisposable ListenUntyped(this IReqResBus messageBus, Type requestType, Type responseType, string topic, object target, MethodInfo listener, bool useWeakReferences = false)
+        {
+            return new UntypedListenerBuilder(messageBus).ListenUntyped(requestType, responseType, topic, target, listener, useWeakReferences);
+        }
+
+        public static IDisposable ListenEnvelopeUntyped(this IReqResBus messageBus, Type requestType, Type responseType, string topic, object target, MethodInfo listener, bool useWeakReferences = false)
+        {
+            return new UntypedListenerBuilder(messageBus).ListenEnvelopeUntyped(requestType, responseType, topic, target, listener, useWeakReferences);
         }
     }
 }

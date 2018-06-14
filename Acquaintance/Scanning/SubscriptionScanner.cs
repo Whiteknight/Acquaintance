@@ -21,16 +21,22 @@ namespace Acquaintance.Scanning
             _builder = new UntypedSubscriptionBuilder(messageBus);
         }
 
-        public IEnumerable<IDisposable> DetectAndWireUpSubscriptions(object obj, bool useWeakReference = false)
+        public IDisposable DetectAndWireUp(object obj, bool useWeakReferences = false)
+        {
+            var tokens = DetectAndWireUpAll(obj, useWeakReferences);
+            return new DisposableCollection(tokens);
+        }
+
+        public IEnumerable<IDisposable> DetectAndWireUpAll(object obj, bool useWeakReference = false)
         {
             Assert.ArgumentNotNull(obj, nameof(obj));
 
             var type = obj.GetType();
             var methods = GetSubscribeableMethods(type).ToList();
-            return methods.Select(m => SubscribeMethod(obj, m, type, useWeakReference));
+            return methods.Select(m => WireupMethod(obj, m, type, useWeakReference));
         }
 
-        private IDisposable SubscribeMethod(object obj, SubscribeableMethod method, Type type, bool useWeakReference)
+        private IDisposable WireupMethod(object obj, SubscribeableMethod method, Type type, bool useWeakReference)
         {
             if (method.PayloadType == null)
             {
@@ -118,9 +124,7 @@ namespace Acquaintance.Scanning
 
         private SubscribeableMethod GetSubscribeableMethod(MethodInfo method, SubscriptionAttribute subscription)
         {
-            Type payloadType = subscription.PayloadType;
-            if (payloadType != null && payloadType.IsConstructedGenericType && payloadType.GetGenericTypeDefinition() == typeof(Envelope<>))
-                payloadType = payloadType.GetGenericArguments().First();
+            Type payloadType = subscription.PayloadType.UnwrapEnvelopeType();
 
             // void MyMethod<T>(T) or void MyMethod<T>() or void MyMethod<T>(Envelope<T>)
             // If the method is generic, we can try to fill in the type parameters with the value from the attribute
@@ -142,15 +146,17 @@ namespace Acquaintance.Scanning
             {
                 // We have no type information at all, so we can't do anything
                 if (payloadType == null)
+                {
+                    _logger.Error($"Could not determine which channel to use because payload type is not provided and there is no parameter");
                     return null;
-
-                // If the type is Envelope<T>, we can strip off the Envelope to find the payload type for the channel
-                if (payloadType.IsConstructedGenericType && payloadType.GetGenericTypeDefinition() == typeof(Envelope<>))
-                    payloadType = payloadType.GetGenericArguments().First();
+                }
 
                 // This is not a fully-constructed type, so we can't determine a channel for it
                 if (payloadType.IsGenericType && !payloadType.IsConstructedGenericType)
+                {
+                    _logger.Error($"Payload type {payloadType.Name} is not fully-constructed and cannot be used to define a channel");
                     return null;
+                }
 
                 // Use the payload type from the attribute to create a trampoline to a method with no parameters
                 return new SubscribeableMethod(method, subscription, payloadType, null, false);
@@ -159,14 +165,8 @@ namespace Acquaintance.Scanning
             // parameterType is the type of the raw parameter, which may include Envelope<>
             // parameterPayloadType is the type of the payload without Envelope<>
 
-            bool isEnvelope = false;
-            Type parameterPayloadType = parameterType;
-            if (parameterType.IsConstructedGenericType && parameterType.GetGenericTypeDefinition() == typeof(Envelope<>))
-            {
-                // void MyMethod(Envelope<Payload>)
-                isEnvelope = true;
-                parameterPayloadType = parameterType.GetGenericArguments().First();
-            }
+            bool isEnvelope = parameterType.IsEnvelopeType();
+            Type parameterPayloadType = parameterType.UnwrapEnvelopeType();
 
             if (payloadType == null)
                 payloadType = parameterPayloadType;
@@ -174,7 +174,10 @@ namespace Acquaintance.Scanning
             // void MyMethod<T>(T payload) or void MyMethod<T>(Envelope<T> payload)
             // This is not a fully-constructed type, so we can't determine a channel for it
             if (payloadType.IsGenericType && !payloadType.IsConstructedGenericType)
+            {
+                _logger.Error($"Payload type {payloadType.Name} is not fully-constructed and cannot be used");
                 return null;
+            }
 
             // Check that the type information between parameter and specified payload type are assignable
             if (!parameterPayloadType.IsAssignableFrom(payloadType))
