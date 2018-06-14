@@ -83,9 +83,10 @@ namespace Acquaintance.RequestResponse
 
         private IDisposable ListenEnvelopeUntypedMethodInfoInternal<TRequest, TResponse>(string topic, object target, MethodInfo method, bool useWeakReference)
         {
-            return _messageBus.Listen<TRequest, TResponse>(b => b
+            var token = _messageBus.Listen<TRequest, TResponse>(b => b
                 .WithTopic(topic)
                 .InvokeEnvelope(p => (TResponse)method.Invoke(target, new object[] { p }), useWeakReference));
+            return token;
         }
     }
 }

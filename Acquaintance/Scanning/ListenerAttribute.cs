@@ -9,7 +9,7 @@ namespace Acquaintance.Scanning
         public Type Response { get; set; }
         public string Topic { get; set; }
 
-        public ListenerAttribute(Type request, Type response)
+        public ListenerAttribute(Type request = null, Type response = null)
         {
             Request = request;
             Response = response;

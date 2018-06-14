@@ -38,17 +38,16 @@ namespace Acquaintance.Scanning
 
         private IDisposable WireupMethod(object obj, ListenableMethod method, Type type, bool useWeakReferences)
         {
-            var methodInfo = GetQualifiedMethodInfo(method, type);
-            var requestType = methodInfo.GetParameters()?.FirstOrDefault()?.ParameterType;
-            var responseType = methodInfo.ReturnType;
+            var requestType = method.RequestType;
+            var responseType = method.ResponseType;
             if (responseType == typeof(void))
             {
-                _logger.Error($"Could not find valid response type for {type.Name}.{methodInfo.Name}");
+                _logger.Error($"Could not find valid response type for {type.Name}.{method.Method.Name}");
                 return null;
             }
             if (requestType == null)
             {
-                _logger.Error($"Could not find valid request type for {type.Name}.{methodInfo.Name}");
+                _logger.Error($"Could not find valid request type for {type.Name}.{method.Method.Name}");
                 return null;
             }
 
@@ -65,45 +64,8 @@ namespace Acquaintance.Scanning
             if (method.ParameterType.IsAssignableFrom(requestType))
                 return _builder.ListenUntyped(requestType, responseType, method.Listener.Topic, obj, method.Method, useWeakReferences);
 
-            _logger.Error($"Could not add subscription {type.Name}.{methodInfo.Name} because parameter of type {method.ParameterType.Name} is not assignable from {requestType.Name}");
+            _logger.Error($"Could not add subscription {type.Name}.{method.Method.Name} because parameter of type {method.ParameterType.Name} is not assignable from {requestType.Name}");
             return null;
-        }
-
-        private MethodInfo GetQualifiedMethodInfo(ListenableMethod method, Type type)
-        {
-            var methodInfo = method.Method;
-            if (methodInfo == null)
-            {
-                _logger.Error("Null method cannot be used");
-                return null;
-            }
-
-            if (methodInfo.IsGenericMethod)
-                methodInfo = BuildGenericMethod(methodInfo, method.RequestType, method.ResponseType);
-            if (methodInfo == null)
-            {
-                _logger.Error($"Could not find suitable method for {type.Name}.{method.Method.Name}. Maybe it is a generic method without suitable parameters?");
-                return null;
-            }
-
-            return methodInfo;
-        }
-
-        private MethodInfo BuildGenericMethod(MethodInfo methodInfo, Type requestType, Type responseType)
-        {
-            var genericParams = methodInfo.GetGenericArguments();
-            if (genericParams.Length == 0)
-                return methodInfo;
-            if (genericParams.Length != 2)
-                return null;
-            try
-            {
-                return methodInfo.MakeGenericMethod(requestType, responseType);
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private class CandidateListenableMethod
