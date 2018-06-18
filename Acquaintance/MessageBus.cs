@@ -102,8 +102,8 @@ namespace Acquaintance
             _requestDispatcher.Dispose();
             _participantDispatcher.Dispose();
 
-            (WorkerPool as IDisposable)?.Dispose();
-            (Modules as IDisposable)?.Dispose();
+            ObjectManagement.TryDispose(WorkerPool);
+            ObjectManagement.TryDispose(Modules);
         }
 
         public IEventLoop GetEventLoop()

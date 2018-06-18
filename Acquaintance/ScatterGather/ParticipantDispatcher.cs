@@ -49,7 +49,7 @@ namespace Acquaintance.ScatterGather
 
         public void Dispose()
         {
-            (_store as IDisposable)?.Dispose();
+            ObjectManagement.TryDispose(_store);
         }
 
         private static IParticipantStore CreateStore(bool allowWildcards)

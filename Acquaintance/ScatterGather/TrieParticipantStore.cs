@@ -59,7 +59,7 @@ namespace Acquaintance.ScatterGather
 
             public void Remove(Guid id)
             {
-                _participants.TryRemove(id, out IParticipant<TRequest, TResponse> participant);
+                _participants.TryRemove(id);
             }
 
             public bool IsEmpty => _participants.IsEmpty;
@@ -103,7 +103,7 @@ namespace Acquaintance.ScatterGather
                 return;
             channel.Remove(id);
             if (channel.IsEmpty)
-                _channels.RemoveValue(root1, root2, path, v => (v as IDisposable)?.Dispose());
+                _channels.RemoveValue(root1, root2, path, ObjectManagement.TryDispose);
         }
     }
 }

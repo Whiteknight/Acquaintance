@@ -1,4 +1,5 @@
 ﻿using System;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Outbox
 {
@@ -29,8 +30,8 @@ namespace Acquaintance.Outbox
 
         public void Dispose()
         {
-            (Outbox as IDisposable)?.Dispose();
-            (Sender as IDisposable)?.Dispose();
+            ObjectManagement.TryDispose(Outbox);
+            ObjectManagement.TryDispose(Sender);
             _monitorToken?.Dispose();
         }
     }

@@ -55,7 +55,7 @@ namespace Acquaintance.PubSub
 
         public void Dispose()
         {
-            _topicChannels.OnEach(c => (c as IDisposable)?.Dispose());
+            _topicChannels.OnEach(ObjectManagement.TryDispose);
         }
 
         private void AddTopicSubscription<TPayload>(ISubscription<TPayload> subscription, string topic)
@@ -71,6 +71,8 @@ namespace Acquaintance.PubSub
         private void AddAllTopicsSubscription<TPayload>(ISubscription<TPayload> subscription)
         {
             var key = typeof(TPayload).FullName;
+            if (string.IsNullOrEmpty(key))
+                return;
             var channelObj = _topiclessChannels.GetOrAdd(key, s => new Channel<TPayload>());
             if (!(channelObj is Channel<TPayload> channel))
                 throw new Exception($"Incorrect Channel type. Expected {typeof(Channel<TPayload>)} but found {channelObj.GetType().FullName}");
@@ -88,6 +90,8 @@ namespace Acquaintance.PubSub
         private IEnumerable<ISubscription<TPayload>> GetTopiclessSubscriptions<TPayload>()
         {
             var key = typeof(TPayload).FullName;
+            if (string.IsNullOrEmpty(key))
+                return Enumerable.Empty<ISubscription<TPayload>>();
             if (!_topiclessChannels.TryGetValue(key, out object channelObj))
                 return Enumerable.Empty<ISubscription<TPayload>>();
             if (!(channelObj is Channel<TPayload> channel))
@@ -110,6 +114,8 @@ namespace Acquaintance.PubSub
         private void UnsubscribeTopicless<TPayload>(Guid id)
         {
             var key = typeof(TPayload).FullName;
+            if (string.IsNullOrEmpty(key))
+                return;
             bool found = _topiclessChannels.TryGetValue(key, out object channel);
             if (!found || channel == null)
                 return;
@@ -117,7 +123,7 @@ namespace Acquaintance.PubSub
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)
-                _topiclessChannels.TryRemove(key, out channel);
+                _topiclessChannels.TryRemove(key);
         }
 
         private void UnsubscribeByTopic<TPayload>(string topic, Guid id)
@@ -129,7 +135,7 @@ namespace Acquaintance.PubSub
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)
-                _topicChannels.RemoveValue(root, path, v => (v as IDisposable)?.Dispose());
+                _topicChannels.RemoveValue(root, path, ObjectManagement.TryDispose);
         }
 
         private class SubscriptionToken<TPayload> : IDisposable
@@ -174,8 +180,7 @@ namespace Acquaintance.PubSub
 
             public void RemoveSubscription(Guid id)
             {
-                _subscriptions.TryRemove(id, out ISubscription<TPayload> subscription);
-                (subscription as IDisposable)?.Dispose();
+                _subscriptions.TryRemove(id, ObjectManagement.TryDispose);
             }
 
             public IEnumerable<ISubscription<TPayload>> GetAllSubscriptions()

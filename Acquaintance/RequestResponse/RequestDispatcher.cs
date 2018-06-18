@@ -60,7 +60,7 @@ namespace Acquaintance.RequestResponse
 
         public void Dispose()
         {
-            (_store as IDisposable)?.Dispose();
+            ObjectManagement.TryDispose(_store);
         }
 
         private static IListenerStore CreateStore(bool allowWildcards)

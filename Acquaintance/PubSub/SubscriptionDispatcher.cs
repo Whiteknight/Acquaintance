@@ -64,7 +64,7 @@ namespace Acquaintance.PubSub
 
         public void Dispose()
         {
-            (_store as IDisposable)?.Dispose();
+            ObjectManagement.TryDispose(_store);
         }
     }
 }

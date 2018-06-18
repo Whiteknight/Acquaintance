@@ -28,15 +28,11 @@ namespace Acquaintance.Utility
                 dict.Add(key, addValue);
         }
 
-        public static bool TryRemove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key)
-        {
-            return dict.TryRemove(key, out var ignored);
-        }
-
-        public static bool TryRemoveAndDispose<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key)
+        public static bool TryRemove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dict, TKey key, Action<TValue> onRemoved = null)
         {
             bool ok = dict.TryRemove(key, out var ignored);
-            (ignored as IDisposable)?.Dispose();
+            if (ok)
+                onRemoved?.Invoke(ignored);
             return ok;
         }
     }

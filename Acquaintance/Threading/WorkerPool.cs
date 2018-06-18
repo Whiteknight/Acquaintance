@@ -118,7 +118,7 @@ namespace Acquaintance.Threading
 
         private void UnregisterManagedThread(int threadId)
         {
-            _registeredThreads.TryRemove(threadId, out RegisteredManagedThread registration);
+            _registeredThreads.TryRemove(threadId);
         }
 
         public ThreadReport GetThreadReport()

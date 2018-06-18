@@ -109,7 +109,7 @@ namespace Acquaintance.PubSub
                 return;
             typedChannel.RemoveSubscription(id);
             if (typedChannel.IsEmpty)
-                store.TryRemove(key, out channel);
+                store.TryRemove(key);
         }
 
         private class Channel<TPayload> 
@@ -128,8 +128,7 @@ namespace Acquaintance.PubSub
 
             public void RemoveSubscription(Guid id)
             {
-                if (_subscriptions.TryRemove(id, out ISubscription<TPayload> subscription))
-                    subscription?.Dispose();
+                _subscriptions.TryRemove(id, ObjectManagement.TryDispose);
             }
 
             public IEnumerable<ISubscription<TPayload>> GetSubscriptions()

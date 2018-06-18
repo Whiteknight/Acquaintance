@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using Acquaintance.Utility;
 using EasyNetQ;
 
 namespace Acquaintance.RabbitMq
@@ -123,8 +124,7 @@ namespace Acquaintance.RabbitMq
             if (_disposing)
                 return;
             _tokens.Remove(token);
-            if (_receivers.TryRemove(id, out RabbitConsumer receiver))
-                receiver?.Dispose();
+            _receivers.TryRemove(id, ObjectManagement.TryDispose);
         }
 
         private void Dispose(bool disposing)

@@ -1,3 +1,4 @@
+using Acquaintance.Utility;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -61,7 +62,7 @@ namespace Acquaintance.ScatterGather
 
             public void Remove(Guid id)
             {
-                _participants.TryRemove(id, out IParticipant<TRequest, TResponse> participant);
+                _participants.TryRemove(id);
             }
 
             public bool IsEmpty => _participants.IsEmpty;
@@ -109,7 +110,7 @@ namespace Acquaintance.ScatterGather
                 return;
             channel.Remove(id);
             if (channel.IsEmpty)
-                _channels.TryRemove(key, out object whatever);
+                _channels.TryRemove(key);
         }
     }
 }

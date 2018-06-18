@@ -1,3 +1,4 @@
+using Acquaintance.Utility;
 using System.Collections.Concurrent;
 using System.Linq;
 
@@ -29,7 +30,7 @@ namespace Acquaintance.Sagas
 
         public void RemoveState(TKey key)
         {
-            _store.TryRemove(key, out ISagaContext<TState, TKey> context);
+            _store.TryRemove(key);
         }
 
         public TKey[] GetAllKeys()

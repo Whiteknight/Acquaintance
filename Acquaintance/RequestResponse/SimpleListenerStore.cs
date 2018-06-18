@@ -1,3 +1,4 @@
+using Acquaintance.Utility;
 using System;
 using System.Collections.Concurrent;
 
@@ -80,7 +81,7 @@ namespace Acquaintance.RequestResponse
                 return;
             if (!(listenerObj is IListener<TRequest, TResponse> listener) || listener.Id != id)
                 return;
-            _listeners.TryRemove(key, out object whatever);
+            _listeners.TryRemove(key);
         }
 
         private static string GetKey(Type requestType, Type responseType, string name)

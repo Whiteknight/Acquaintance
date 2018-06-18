@@ -71,9 +71,7 @@ namespace Acquaintance.Sagas
 
         private void RemoveSaga(Guid id)
         {
-            bool ok = _sagas.TryRemove(id, out IDisposable saga);
-            if (ok)
-                saga?.Dispose();
+            _sagas.TryRemove(id, ObjectManagement.TryDispose);
         }
 
         private class SagaToken : IDisposable

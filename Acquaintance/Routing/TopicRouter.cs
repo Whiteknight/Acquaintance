@@ -102,10 +102,7 @@ namespace Acquaintance.Routing
             protected override void Dispose(bool disposing)
             {
                 foreach (var routeKey in _routeKeys)
-                {
-                    _router._publishRoutes.TryRemove(routeKey, out IRouteRule rule);
-                    (rule as IDisposable)?.Dispose();
-                }
+                    _router._publishRoutes.TryRemove(routeKey, ObjectManagement.TryDispose);
             }
 
             public override string ToString()
@@ -127,8 +124,7 @@ namespace Acquaintance.Routing
 
             protected override void Dispose(bool disposing)
             {
-                _router._requestRoutes.TryRemove(_route, out IRouteRule rule);
-                (rule as IDisposable)?.Dispose();
+                _router._requestRoutes.TryRemove(_route, ObjectManagement.TryDispose);
             }
 
             public override string ToString()
@@ -150,8 +146,7 @@ namespace Acquaintance.Routing
 
             protected override void Dispose(bool disposing)
             {
-                _router._scatterRoutes.TryRemove(_route, out IRouteRule rule);
-                (rule as IDisposable)?.Dispose();
+                _router._scatterRoutes.TryRemove(_route, ObjectManagement.TryDispose);
             }
 
             public override string ToString()

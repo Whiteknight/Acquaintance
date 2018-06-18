@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Timers
 {
@@ -45,9 +46,7 @@ namespace Acquaintance.Timers
 
         private void RemoveTimer(string topic)
         {
-            bool ok = _timers.TryRemove(topic, out MessageTimer timer);
-            if (ok)
-                timer?.Dispose();
+            _timers.TryRemove(topic, ObjectManagement.TryDispose);
         }
 
         private class TimerToken : IDisposable

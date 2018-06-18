@@ -60,7 +60,7 @@ namespace Acquaintance.Sources
         private void RemoveThread(Guid id)
         {
             _tokens.TryRemove(id);
-            _threads.TryRemoveAndDispose(id);
+            _threads.TryRemove(id, ObjectManagement.TryDispose);
         }
 
         private class WorkerToken : DisposeOnceToken

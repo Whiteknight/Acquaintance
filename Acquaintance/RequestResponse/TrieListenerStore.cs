@@ -42,7 +42,7 @@ namespace Acquaintance.RequestResponse
 
         public void Dispose()
         {
-            _listeners.OnEach(v => (v as IDisposable)?.Dispose());
+            _listeners.OnEach(ObjectManagement.TryDispose);
         }
 
         private class Token<TRequest, TResponse> : IDisposable
@@ -81,7 +81,7 @@ namespace Acquaintance.RequestResponse
             var listenerObj = _listeners.Get(root1, root2, path).FirstOrDefault();
             if (!(listenerObj is IListener<TRequest, TResponse> listener) || listener.Id != id)
                 return;
-            _listeners.RemoveValue(root1, root2, path, v => (v as IDisposable)?.Dispose());
+            _listeners.RemoveValue(root1, root2, path, ObjectManagement.TryDispose);
         }
     }
 }

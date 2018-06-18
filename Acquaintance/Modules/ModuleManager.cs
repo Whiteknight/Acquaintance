@@ -1,6 +1,7 @@
 ﻿using Acquaintance.Logging;
 using System;
 using System.Collections.Concurrent;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Modules
 {
@@ -51,7 +52,7 @@ namespace Acquaintance.Modules
             foreach (var module in _modules.Values)
             {
                 module.Stop();
-                (module as IDisposable)?.Dispose();
+                ObjectManagement.TryDispose(module);
             }
             _modules.Clear();
         }
@@ -68,7 +69,7 @@ namespace Acquaintance.Modules
             return typeof(TModule).FullName;
         }
 
-        private class ModuleToken : Utility.DisposeOnceToken
+        private class ModuleToken : DisposeOnceToken
         {
             private readonly ModuleManager _manager;
             private readonly string _key;
