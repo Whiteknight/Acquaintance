@@ -26,6 +26,15 @@ namespace Acquaintance.Logging
         void Warn(string fmt, params object[] args);
 
         /// <summary>
+        /// A warning that things are not operating as expected, though the system does not treat it as an
+        /// error. Contains an exception object, though normal operations should not be impacted.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="fmt"></param>
+        /// <param name="args"></param>
+        void Warn(Exception e, string fmt, params object[] args);
+
+        /// <summary>
         /// An error which may cause an operation to fail or other functionality to not work as expected
         /// </summary>
         /// <param name="fmt"></param>

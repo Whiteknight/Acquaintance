@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
@@ -46,19 +47,12 @@ namespace Acquaintance.Threading
 
             while (true)
             {
-                IThreadAction action = context.GetAction();
+                var action = context.GetAction();
                 if (context.ShouldStop)
                     return;
                 if (action == null)
                     continue;
-                try
-                {
-                    action.Execute();
-                }
-                catch (Exception e)
-                {
-                    context.Log.Warn($"Unhandled exception on worker thread: {e.Message}\n{e.StackTrace}");
-                }
+                ErrorHandling.IgnoreExceptions(action.Execute, context.Log);
             }
         }
 

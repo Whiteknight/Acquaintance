@@ -3,6 +3,11 @@ using System.Text;
 
 namespace Acquaintance.Logging
 {
+    /// <summary>
+    /// Format messages and log them to a simple callback delegate.
+    /// This class IS NOT THREAD SAFE. It is expected that the callback delegate
+    /// implements its own thread-safety mechanisms
+    /// </summary>
     public class DelegateLogger : ILogger
     {
         private readonly Action<string> _logger;
@@ -25,6 +30,17 @@ namespace Acquaintance.Logging
         public void Warn(string fmt, params object[] args)
         {
             _logger(Build("WARN", fmt, args));
+        }
+
+        public void Warn(Exception e, string fmt, params object[] args)
+        {
+            var builder = new StringBuilder();
+            builder.Append("WARN | ");
+            var msg = string.Format(fmt ?? string.Empty, args);
+            builder.AppendLine(msg);
+            builder.AppendLine(e.Message);
+            builder.AppendLine(e.StackTrace);
+            _logger(builder.ToString());
         }
 
         public void Error(string fmt, params object[] args)

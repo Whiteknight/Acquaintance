@@ -132,6 +132,7 @@ namespace Acquaintance.Scanning
                 .Where(m => m != null);
         }
 
+        // TODO: Change this method to return something like Option<T> with a Success flag and an error message.
         private ListenableMethod GetListenableMethod(MethodInfo method, ListenerAttribute listener)
         {
             Type requestType = listener.Request.UnwrapEnvelopeType();

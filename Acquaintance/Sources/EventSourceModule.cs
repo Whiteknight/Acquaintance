@@ -93,24 +93,12 @@ namespace Acquaintance.Sources
         public void Dispose()
         {
             foreach (var token in _tokens.Values)
-            {
-                try
-                {
-                    token.Dispose();
-                }
-                catch { }
-            }
+                ErrorHandling.IgnoreExceptions(() => token.Dispose());
             _tokens.Clear();
-            
+
 
             foreach (var source in _threads.Values)
-            {
-                try
-                {
-                    source.Dispose();
-                }
-                catch { }
-            }
+                ErrorHandling.IgnoreExceptions(() => source.Dispose());
             _threads.Clear();
         }
     }

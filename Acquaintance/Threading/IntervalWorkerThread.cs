@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
@@ -56,27 +57,13 @@ namespace Acquaintance.Threading
             var token = _shouldStop.Token;
             while (!token.IsCancellationRequested)
             {
-                try
-                {
-                    _strategy.DoWork(context, _shouldStop);
-                }
-                catch (Exception e)
-                {
-                    _log.Error(e.Message + "\n\n" + e.StackTrace);
-                }
-
+                ErrorHandling.IgnoreExceptions(() => _strategy.DoWork(context, _shouldStop), _log);
                 if (context.IsComplete)
                     return;
                 if (context.IterationDelayMs < 0)
                     context.IterationDelayMs = DefaultIterationDelayMs;
                 if (context.IterationDelayMs > 0)
-                {
-                    try
-                    {
-                        Task.Delay(context.IterationDelayMs, token).Wait(token);
-                    }
-                    catch { }
-                }
+                    ErrorHandling.IgnoreExceptions(() => Task.Delay(context.IterationDelayMs, token).Wait(token));
             }
         }
     }

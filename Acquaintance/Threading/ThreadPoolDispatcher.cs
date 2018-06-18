@@ -1,9 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
+    // Adaptor class from IActionDispatcher to Task.Factory.StartNew
     public class ThreadPoolDispatcher : IActionDispatcher
     {
         private readonly ILogger _log;
@@ -16,17 +17,7 @@ namespace Acquaintance.Threading
         public void DispatchAction(IThreadAction action)
         {
             Task.Factory
-                .StartNew(() =>
-                {
-                    try
-                    {
-                        action.Execute();
-                    }
-                    catch (Exception e)
-                    {
-                        _log.Warn("Unhandled exception in threadpool dispatcher: {0}\n{1}", e.Message, e.StackTrace);
-                    }
-                })
+                .StartNew(() => ErrorHandling.IgnoreExceptions(action.Execute, _log))
                 .ConfigureAwait(false);
         }
     }

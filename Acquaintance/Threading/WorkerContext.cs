@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Threading;
 using Acquaintance.Logging;
+using Acquaintance.Utility;
 
 namespace Acquaintance.Threading
 {
@@ -42,19 +42,16 @@ namespace Acquaintance.Threading
 
         public IThreadAction GetAction(int? timeoutMs = null)
         {
-            try
-            {
-                if (!timeoutMs.HasValue || timeoutMs.Value > 0)
-                    return _queue.Take();
+            return ErrorHandling.TryGetOrDefault(() => TryGetAction(timeoutMs), Log);
+        }
 
-                bool hasValue = _queue.TryTake(out IThreadAction action, timeoutMs.Value);
-                return hasValue ? action : null;
-            }
-            catch (Exception e)
-            {
-                Log.Warn("Unhandled exception in thread context: {0}\n{1}", e.Message, e.StackTrace);
-                return null;
-            }
+        private IThreadAction TryGetAction(int? timeoutMs)
+        {
+            if (!timeoutMs.HasValue || timeoutMs.Value > 0)
+                return _queue.Take();
+
+            bool hasValue = _queue.TryTake(out IThreadAction action, timeoutMs.Value);
+            return hasValue ? action : null;
         }
 
         public void Dispose()

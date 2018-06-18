@@ -16,6 +16,10 @@ namespace Acquaintance.Logging
         {
         }
 
+        public void Warn(Exception e, string fmt, params object[] args)
+        {
+        }
+
         public void Error(string fmt, params object[] args)
         {
         }
