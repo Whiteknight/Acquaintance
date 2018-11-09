@@ -37,6 +37,9 @@ namespace Acquaintance.Utility
             _failedRequests = 0;
         }
 
+        // TODO: When the circuit is broken but the timeout period has expired, we can proceed with a few test
+        // requests. If the test request fails, we can immediately re-open the breaker. If the test request
+        // succeeds, we can completely re-enable the breaker
         public bool CanProceed()
         {
             var failedRequests = Interlocked.CompareExchange(ref _failedRequests, 0, 0);
